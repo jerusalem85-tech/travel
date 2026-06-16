@@ -109,9 +109,12 @@ app.use((err, req, res, next) => {
 async function start() {
   await init();
   const db = await getDb();
-  const user = await db.get('SELECT id FROM users LIMIT 1');
-  if (!user) {
-    const hash = await bcrypt.hash('password', 10);
+  const hash = await bcrypt.hash('password', 10);
+  const existing = await db.get('SELECT id FROM users WHERE email = ?', ['jerusalem85@gmail.com']);
+  if (existing) {
+    await db.run('UPDATE users SET password = ? WHERE email = ?', [hash, 'jerusalem85@gmail.com']);
+    console.log('Admin password reset');
+  } else {
     await db.run('INSERT INTO users (full_name, email, password, role) VALUES (?,?,?,?)', ['مدير النظام', 'jerusalem85@gmail.com', hash, 'admin']);
     console.log('Default admin user created');
   }
