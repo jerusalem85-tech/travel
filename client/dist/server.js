@@ -81,6 +81,12 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   });
 });
 
+app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const result = await db.get('SELECT COUNT(*) as count FROM notifications WHERE is_read = 0');
+  res.json({ count: result.count });
+});
+
 import authRoutes from './routes/auth.js';
 import bookingsRoutes from './routes/bookings.js';
 import customersRoutes from './routes/customers.js';
@@ -89,6 +95,11 @@ import invoicesRoutes from './routes/invoices.js';
 import paymentsRoutes from './routes/payments.js';
 import expensesRoutes from './routes/expenses.js';
 import settingsRoutes from './routes/settings.js';
+import reportsRoutes from './routes/reports.js';
+import quotationsRoutes from './routes/quotations.js';
+import usersRoutes from './routes/users.js';
+import notificationsRoutes from './routes/notifications.js';
+import backupRoutes from './routes/backup.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -98,6 +109,11 @@ app.use('/api/invoices', authMiddleware, invoicesRoutes);
 app.use('/api/payments', authMiddleware, paymentsRoutes);
 app.use('/api/expenses', authMiddleware, expensesRoutes);
 app.use('/api/settings', authMiddleware, settingsRoutes);
+app.use('/api/reports', authMiddleware, reportsRoutes);
+app.use('/api/quotations', authMiddleware, quotationsRoutes);
+app.use('/api/users', authMiddleware, usersRoutes);
+app.use('/api/notifications', authMiddleware, notificationsRoutes);
+app.use('/api/backup', authMiddleware, backupRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

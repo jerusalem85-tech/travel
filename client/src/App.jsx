@@ -21,6 +21,10 @@ import ShowInvoice from './pages/ShowInvoice';
 import Payments from './pages/Payments';
 import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
+import Reports from './pages/Reports';
+import Quotations from './pages/Quotations';
+import Users from './pages/Users';
+import Notifications from './pages/Notifications';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -54,6 +58,10 @@ function App() {
             <Route path="invoices/:id" element={<ShowInvoice />} />
             <Route path="payments" element={<Payments />} />
             <Route path="expenses" element={<Expenses />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="quotations" element={<Quotations />} />
+            <Route path="users" element={<Users />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

@@ -17,8 +17,8 @@ export default function Suppliers() {
   useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 300); return () => clearTimeout(t); }, [search]);
 
   const handleDelete = (id) => {
-    Swal.fire({ title: 'تأكيد الحذف', text: 'هل أنت متأكد؟', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
-      if (r.isConfirmed) api.delete(`/suppliers/${id}`).then(() => load()).catch(e => Swal.fire('خطأ', e.response?.data?.error || 'لا يمكن حذف المورد', 'error'));
+    Swal.fire({ title: 'تأكيد الحذف', text: 'سيتم حذف المورد', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
+      if (r.isConfirmed) api.delete(`/suppliers/${id}`).then(() => load());
     });
   };
 
@@ -32,23 +32,22 @@ export default function Suppliers() {
         <div className="card-body">
           <div className="search-box">
             <i className="bi bi-search"></i>
-            <input className="form-control" placeholder="بحث..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="form-control" placeholder="بحث بالاسم أو رقم الهاتف..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
       <div className="card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th>#</th><th>الاسم</th><th>جهة الاتصال</th><th>الهاتف</th><th>نوع الخدمة</th><th>خدمات</th><th></th></tr></thead>
+            <thead><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>النوع</th><th>الخدمات</th><th></th></tr></thead>
             <tbody>
               {data.rows.map(s => (
                 <tr key={s.id}>
-                  <td>{s.id}</td>
                   <td><Link to={`/suppliers/${s.id}`} className="text-decoration-none">{s.name}</Link></td>
-                  <td>{s.contact_person || '-'}</td>
                   <td>{s.phone || '-'}</td>
-                  <td>{s.service_type || '-'}</td>
-                  <td><span className="badge bg-info">{s.service_count}</span></td>
+                  <td>{s.email || '-'}</td>
+                  <td>{s.type || '-'}</td>
+                  <td><span className="badge bg-secondary">{s.services_count || 0}</span></td>
                   <td>
                     <Link to={`/suppliers/${s.id}`} className="btn btn-sm btn-outline-primary me-1"><i className="bi bi-eye"></i></Link>
                     <Link to={`/suppliers/${s.id}/edit`} className="btn btn-sm btn-outline-warning me-1"><i className="bi bi-pencil"></i></Link>

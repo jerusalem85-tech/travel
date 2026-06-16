@@ -1,104 +1,296 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import api from '../services/api';
 
-export default function ShowInvoice() {
+const ShowInvoice = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
-  const [customers, setCustomers] = useState([]);
-  const [showPayModal, setShowPayModal] = useState(false);
-  const [payForm, setPayForm] = useState({ amount: '', payment_method: 'نقداً', notes: '' });
+  const [loading, setLoading] = useState(true);
 
-  const load = () => api.get(`/invoices/${id}`).then(res => setInvoice(res.data));
-
-  useEffect(() => { load(); api.get('/customers', { params: { limit: 1000 } }).then(res => setCustomers(res.data.rows)); }, [id]);
-
-  const recordPayment = async () => {
-    if (!payForm.amount || payForm.amount <= 0) return;
-    await api.post('/payments', { invoice_id: parseInt(id), amount: parseFloat(payForm.amount), payment_method: payForm.payment_method, notes: payForm.notes });
-    setShowPayModal(false);
-    setPayForm({ amount: '', payment_method: 'نقداً', notes: '' });
-    load();
+  const fetchInvoice = async () => {
+    try {
+      const res = await api.get(`/invoices/${id}`);
+      setInvoice(res.data);
+    } catch (err) {
+      Swal.fire('خطأ', 'فشل تحميل الفاتورة', 'error');
+      navigate('/invoices');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!invoice) return <div className="text-center py-5"><div className="spinner-border text-primary"></div></div>;
+  useEffect(() => {
+    fetchInvoice();
+  }, [id]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'paid':
+        return <span className="badge bg-success fs-6">مدفوعة</span>;
+      case 'partial':
+        return <span className="badge bg-warning text-dark fs-6">جزئية</span>;
+      case 'unpaid':
+        return <span className="badge bg-danger fs-6">غير مدفوعة</span>;
+      default:
+        return <span className="badge bg-secondary fs-6">{status}</span>;
+    }
+  };
+
+  const getPaymentMethodLabel = (method) => {
+    const methods = {
+      cash: 'نقدي',
+      card: 'بطاقة ائتمان',
+      transfer: 'تحويل بنكي',
+      check: 'شيك',
+      other: 'أخرى'
+    };
+    return methods[method] || method;
+  };
+
+  if (loading) {
+    return (
+      <div className="container-fluid">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">جاري التحميل...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!invoice) return null;
+
+  const remaining = Number(invoice.total_amount) - Number(invoice.paid_amount);
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">فاتورة #{invoice.invoice_number}</h5>
-        <div>
-          <button className="btn btn-success me-2" onClick={() => setShowPayModal(true)}><i className="bi bi-cash"></i> تسجيل دفعة</button>
-          <button className="btn btn-outline-secondary" onClick={() => navigate('/invoices')}>رجوع</button>
+    <div className="container-fluid">
+      <div className="d-flex justify-content-between align-items-center mb-4 no-print">
+        <h4 className="mb-0">
+          <i className="bi bi-receipt me-2"></i>
+          تفاصيل الفاتورة
+        </h4>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-secondary" onClick={() => navigate('/invoices')}>
+            <i className="bi bi-arrow-right me-1"></i>
+            رجوع
+          </button>
+          <button className="btn btn-outline-primary" onClick={handlePrint}>
+            <i className="bi bi-printer me-1"></i>
+            طباعة
+          </button>
+          <Link
+            to={`/invoices/${id}/edit`}
+            className="btn btn-outline-warning"
+          >
+            <i className="bi bi-pencil me-1"></i>
+            تعديل
+          </Link>
         </div>
       </div>
 
-      <div className="row g-3 mb-3">
-        <div className="col-md-6">
-          <div className="card">
+      <div className="row">
+        <div className="col-lg-8">
+          <div className="card mb-4">
+            <div className="card-header d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                فاتورة رقم: <code>{invoice.invoice_number}</code>
+              </h5>
+              {getStatusBadge(invoice.status)}
+            </div>
             <div className="card-body">
-              <h6>معلومات الفاتورة</h6>
-              <div className="row g-2">
-                <div className="col-6"><small className="text-secondary">العميل</small><p className="mb-0">{invoice.customer_name}</p></div>
-                <div className="col-6"><small className="text-secondary">رقم الحجز</small><p className="mb-0">{invoice.booking_number || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">الحالة</small><p className="mb-0">{invoice.status === 'paid' ? <span className="badge bg-success">مدفوع</span> : invoice.status === 'partial' ? <span className="badge bg-warning">جزئي</span> : <span className="badge bg-danger">غير مدفوع</span>}</p></div>
-                <div className="col-6"><small className="text-secondary">التاريخ</small><p className="mb-0">{invoice.created_at?.substring(0, 10)}</p></div>
-              </div>
-              {invoice.notes && <div className="mt-2"><small className="text-secondary">ملاحظات</small><p className="mb-0">{invoice.notes}</p></div>}
-            </div>
-          </div>
-        </div>
-        <div className="col-md-6">
-          <div className="card bg-primary bg-opacity-10">
-            <div className="card-body text-center">
-              <h6>المبالغ</h6>
-              <h3 className="text-primary">{invoice.total_amount?.toLocaleString()}</h3>
-              <small>إجمالي الفاتورة</small>
-              <div className="d-flex justify-content-around mt-3">
-                <div><small className="text-success">مدفوع</small><h5>{invoice.paid_amount?.toLocaleString()}</h5></div>
-                <div><small className="text-danger">متبقي</small><h5>{(invoice.total_amount - invoice.paid_amount)?.toLocaleString()}</h5></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-body">
-          <h6>المدفوعات ({invoice.payments?.length || 0})</h6>
-          {invoice.payments?.length === 0 && <p className="text-secondary mb-0">لا يوجد مدفوعات</p>}
-          {invoice.payments?.map(p => (
-            <div key={p.id} className="d-flex justify-content-between align-items-center border-bottom py-2">
-              <div><strong>{p.payment_number}</strong><br /><small>{p.payment_method} {p.notes && `- ${p.notes}`}</small></div>
-              <span className="text-success">{p.amount?.toLocaleString()}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {showPayModal && (
-        <div className="modal d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header"><h6 className="modal-title">تسجيل دفعة</h6><button className="btn-close" onClick={() => setShowPayModal(false)}></button></div>
-              <div className="modal-body">
-                <div className="mb-2"><label className="form-label">المبلغ</label><input type="number" className="form-control" value={payForm.amount} onChange={e => setPayForm({...payForm, amount: e.target.value})} /></div>
-                <div className="mb-2"><label className="form-label">طريقة الدفع</label>
-                  <select className="form-select" value={payForm.payment_method} onChange={e => setPayForm({...payForm, payment_method: e.target.value})}>
-                    <option>نقداً</option><option>تحويل بنكي</option><option>شبكة</option><option>بطاقة ائتمان</option>
-                  </select>
+              <div className="row mb-4">
+                <div className="col-md-6">
+                  <h6 className="text-muted mb-3">
+                    <i className="bi bi-person me-1"></i>
+                    معلومات العميل
+                  </h6>
+                  <table className="table table-borderless table-sm">
+                    <tbody>
+                      <tr>
+                        <td className="text-muted" style={{ width: '120px' }}>الاسم:</td>
+                        <td className="fw-bold">{invoice.customer_name}</td>
+                      </tr>
+                      <tr>
+                        <td className="text-muted">الهاتف:</td>
+                        <td>{invoice.customer_phone}</td>
+                      </tr>
+                      <tr>
+                        <td className="text-muted">البريد:</td>
+                        <td>{invoice.customer_email || '-'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <div className="mb-2"><label className="form-label">ملاحظات</label><input className="form-control" value={payForm.notes} onChange={e => setPayForm({...payForm, notes: e.target.value})} /></div>
+                <div className="col-md-6">
+                  <h6 className="text-muted mb-3">
+                    <i className="bi bi-info-circle me-1"></i>
+                    تفاصيل الفاتورة
+                  </h6>
+                  <table className="table table-borderless table-sm">
+                    <tbody>
+                      <tr>
+                        <td className="text-muted" style={{ width: '120px' }}>رقم الرحلة:</td>
+                        <td>
+                          {invoice.booking_number ? (
+                            <code>{invoice.booking_number}</code>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="text-muted">التاريخ:</td>
+                        <td>{new Date(invoice.created_at).toLocaleDateString('ar-SA')}</td>
+                      </tr>
+                      {invoice.notes && (
+                        <tr>
+                          <td className="text-muted">ملاحظات:</td>
+                          <td>{invoice.notes}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowPayModal(false)}>إلغاء</button>
-                <button className="btn btn-primary" onClick={recordPayment}>تسجيل الدفعة</button>
+
+              <div className="row text-center mb-4">
+                <div className="col-md-4">
+                  <div className="card bg-primary text-white">
+                    <div className="card-body">
+                      <div className="small text-white-50">المبلغ الإجمالي</div>
+                      <h4 className="mb-0">{Number(invoice.total_amount).toLocaleString()} ر.س</h4>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="card bg-success text-white">
+                    <div className="card-body">
+                      <div className="small text-white-50">المبلغ المدفوع</div>
+                      <h4 className="mb-0">{Number(invoice.paid_amount).toLocaleString()} ر.س</h4>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="card bg-danger text-white">
+                    <div className="card-body">
+                      <div className="small text-white-50">المتبقي</div>
+                      <h4 className="mb-0">{remaining.toLocaleString()} ر.س</h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h6 className="text-muted mb-3">
+                <i className="bi bi-cash-stack me-1"></i>
+                سجل المدفوعات
+              </h6>
+              {invoice.payments && invoice.payments.length > 0 ? (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>رقم الدفعة</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>المرجع</th>
+                        <th>التاريخ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoice.payments.map((payment, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}</td>
+                          <td><code>{payment.payment_number}</code></td>
+                          <td className="fw-bold text-success">
+                            {Number(payment.amount).toLocaleString()} ر.س
+                          </td>
+                          <td>{getPaymentMethodLabel(payment.payment_method)}</td>
+                          <td>{payment.reference || '-'}</td>
+                          <td>{new Date(payment.created_at).toLocaleDateString('ar-SA')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-3 text-muted">
+                  <i className="bi bi-inbox fs-4 d-block mb-1"></i>
+                  لا توجد مدفوعات بعد
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-4">
+          <div className="card mb-4 no-print">
+            <div className="card-body">
+              <h6 className="card-title mb-3">
+                <i className="bi bi-lightning me-1"></i>
+                إجراءات سريعة
+              </h6>
+              <div className="d-grid gap-2">
+                <Link
+                  to={`/payments?invoice_id=${id}`}
+                  className="btn btn-success"
+                >
+                  <i className="bi bi-plus-circle me-1"></i>
+                  إضافة دفعة
+                </Link>
+                <button className="btn btn-outline-primary" onClick={handlePrint}>
+                  <i className="bi bi-printer me-1"></i>
+                  طباعة الفاتورة
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-light no-print">
+            <div className="card-body">
+              <h6 className="card-title mb-3">
+                <i className="bi bi-pie-chart me-1"></i>
+                ملخص الحساب
+              </h6>
+              <div className="d-flex justify-content-between mb-2">
+                <span>الإجمالي:</span>
+                <strong>{Number(invoice.total_amount).toLocaleString()} ر.س</strong>
+              </div>
+              <div className="d-flex justify-content-between mb-2">
+                <span>المدفوع:</span>
+                <strong className="text-success">{Number(invoice.paid_amount).toLocaleString()} ر.س</strong>
+              </div>
+              <hr />
+              <div className="d-flex justify-content-between">
+                <span>المتبقي:</span>
+                <strong className="text-danger">{remaining.toLocaleString()} ر.س</strong>
+              </div>
+              <div className="progress mt-3" style={{ height: '10px' }}>
+                <div
+                  className="progress-bar bg-success"
+                  style={{
+                    width: `${invoice.total_amount > 0 ? (invoice.paid_amount / invoice.total_amount) * 100 : 0}%`
+                  }}
+                ></div>
+              </div>
+              <div className="text-center small text-muted mt-1">
+                {invoice.total_amount > 0
+                  ? Math.round((invoice.paid_amount / invoice.total_amount) * 100)
+                  : 0}% مدفوع
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default ShowInvoice;

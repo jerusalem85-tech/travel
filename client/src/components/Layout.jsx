@@ -1,68 +1,109 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
-  const toggleSidebar = () => {
-    document.getElementById('sidebar').classList.toggle('show');
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      api.get('/notifications/unread-count').then(r => setUnreadCount(r.data.count)).catch(() => {});
+    }, 30000);
+    api.get('/notifications/unread-count').then(r => setUnreadCount(r.data.count)).catch(() => {});
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogout = () => { logout(); navigate('/login'); };
+  const toggleSidebar = () => { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('overlay').classList.toggle('show'); };
 
   return (
-    <div>
-      <nav className="navbar navbar-dark bg-dark d-lg-none px-3 fixed-top" style={{ zIndex: 1020 }}>
-        <button className="navbar-toggler border-0" onClick={toggleSidebar}>
-          <i className="bi bi-list"></i>
+    <>
+      <nav className="navbar navbar-dark d-lg-none fixed-top no-print" style={{ background: 'var(--bg-sidebar)', zIndex: 1060, padding: '8px 16px' }}>
+        <button className="btn text-white p-0" onClick={toggleSidebar}><i className="bi bi-list fs-4"></i></button>
+        <span className="navbar-brand mb-0 h6">نظام إدارة السفر</span>
+        <button className="btn text-white p-0 position-relative" onClick={() => navigate('/notifications')}>
+          <i className="bi bi-bell fs-5"></i>
+          {unreadCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{fontSize:'0.6rem'}}>{unreadCount}</span>}
         </button>
-        <span className="navbar-brand mb-0 h6">نظام السفر</span>
       </nav>
 
+      <div id="overlay" className="sidebar-overlay" onClick={toggleSidebar}></div>
+
       <div className="sidebar" id="sidebar">
-        <div className="p-3 border-bottom border-secondary">
-          <h6 className="mb-0">{user?.full_name}</h6>
-          <small className="text-secondary">{user?.email}</small>
+        <div className="logo">
+          <h5><i className="bi bi-airplane-engines me-2"></i>نظام السفر</h5>
+          <small>إدارة الحجوزات والسفر</small>
         </div>
-        <nav className="mt-2">
-          <NavLink to="/" end className="nav-link" onClick={() => toggleSidebar()}>
-            <i className="bi bi-speedometer2"></i> لوحة التحكم
+        <nav>
+          <div className="nav-section">الرئيسية</div>
+          <NavLink to="/" end className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-grid-1x2"></i> لوحة التحكم
           </NavLink>
-          <NavLink to="/bookings" className="nav-link" onClick={() => toggleSidebar()}>
-            <i className="bi bi-journal"></i> الحجوزات
+          
+          <div className="nav-section">العمليات</div>
+          <NavLink to="/bookings" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-journal-text"></i> الحجوزات
           </NavLink>
-          <NavLink to="/customers" className="nav-link" onClick={() => toggleSidebar()}>
+          <NavLink to="/customers" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-people"></i> العملاء
           </NavLink>
-          <NavLink to="/suppliers" className="nav-link" onClick={() => toggleSidebar()}>
+          <NavLink to="/suppliers" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-truck"></i> الموردين
           </NavLink>
-          <NavLink to="/invoices" className="nav-link" onClick={() => toggleSidebar()}>
-            <i className="bi bi-receipt"></i> الفواتير
+          <NavLink to="/quotations" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-file-earmark-text"></i> عروض الأسعار
           </NavLink>
-          <NavLink to="/payments" className="nav-link" onClick={() => toggleSidebar()}>
-            <i className="bi bi-cash"></i> المدفوعات
+          
+          <div className="nav-section">المالية</div>
+          <NavLink to="/invoices" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-receipt-cutoff"></i> الفواتير
           </NavLink>
-          <NavLink to="/expenses" className="nav-link" onClick={() => toggleSidebar()}>
-            <i className="bi bi-cart"></i> المصاريف
+          <NavLink to="/payments" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-cash-stack"></i> المدفوعات
           </NavLink>
-          <NavLink to="/settings" className="nav-link" onClick={() => toggleSidebar()}>
+          <NavLink to="/expenses" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-wallet2"></i> المصاريف
+          </NavLink>
+          <NavLink to="/reports" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-graph-up"></i> التقارير
+          </NavLink>
+
+          <div className="nav-section">الإدارة</div>
+          <NavLink to="/users" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-person-gear"></i> المستخدمون
+          </NavLink>
+          <NavLink to="/notifications" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-bell"></i> الإشعارات
+            {unreadCount > 0 && <span className="badge bg-danger me-auto" style={{fontSize:'0.65rem'}}>{unreadCount}</span>}
+          </NavLink>
+          <NavLink to="/settings" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-gear"></i> الإعدادات
           </NavLink>
-          <hr className="text-secondary mx-3" />
-          <button className="nav-link w-100 text-end border-0 bg-transparent" onClick={handleLogout}>
-            <i className="bi bi-box-arrow-right"></i> تسجيل خروج
-          </button>
         </nav>
+        <div className="sidebar-footer">
+          <div className="avatar">{user?.full_name?.charAt(0) || 'U'}</div>
+          <div className="user-info">
+            <div className="name">{user?.full_name}</div>
+            <div className="role">{user?.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</div>
+          </div>
+          <button className="theme-toggle" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+            <i className={`bi bi-${theme === 'light' ? 'moon-stars' : 'sun'}`}></i>
+          </button>
+        </div>
       </div>
 
-      <div className="main-content p-3 p-lg-4" style={{ paddingTop: '4rem' }}>
+      <div className="main-content">
         <Outlet />
       </div>
-    </div>
+    </>
   );
 }

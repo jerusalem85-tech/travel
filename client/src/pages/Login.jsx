@@ -7,6 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -25,25 +26,37 @@ export default function Login() {
   };
 
   return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-      <div className="card shadow-sm" style={{ width: '400px', maxWidth: '90%' }}>
-        <div className="card-body p-4">
+    <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div className="card border-0 shadow-lg" style={{ width: '420px', maxWidth: '92%', borderRadius: '16px' }}>
+        <div className="card-body p-5">
           <div className="text-center mb-4">
-            <i className="bi bi-airplane-engines text-primary" style={{ fontSize: '2.5rem' }}></i>
-            <h5 className="mt-2">نظام إدارة السفر</h5>
+            <div className="mx-auto mb-3 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
+              <i className="bi bi-airplane-engines text-white" style={{ fontSize: '1.8rem' }}></i>
+            </div>
+            <h4 className="fw-bold mb-1">نظام إدارة السفر</h4>
+            <small className="text-secondary">سجّل دخولك للمتابعة</small>
           </div>
-          {error && <div className="alert alert-danger py-2">{error}</div>}
+          {error && <div className="alert alert-danger py-2 text-center" style={{ borderRadius: '8px', fontSize: '0.85rem' }}>{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label">البريد الإلكتروني</label>
-              <input type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required />
+              <div className="input-group">
+                <span className="input-group-text"><i className="bi bi-envelope"></i></span>
+                <input type="email" className="form-control" placeholder="example@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+              </div>
             </div>
-            <div className="mb-3">
+            <div className="mb-4">
               <label className="form-label">كلمة المرور</label>
-              <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required />
+              <div className="input-group">
+                <span className="input-group-text"><i className="bi bi-lock"></i></span>
+                <input type={showPassword ? 'text' : 'password'} className="form-control" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
+                <button type="button" className="input-group-text" onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer' }}>
+                  <i className={`bi bi-eye${showPassword ? '-slash' : ''}`}></i>
+                </button>
+              </div>
             </div>
-            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-              {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+            <button type="submit" className="btn btn-primary w-100 py-2 fw-bold" disabled={loading} style={{ borderRadius: '10px', background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none' }}>
+              {loading ? <><span className="spinner-border spinner-border-sm ms-2"></span> جاري تسجيل الدخول...</> : <><i className="bi bi-box-arrow-in-right me-2"></i>تسجيل الدخول</>}
             </button>
           </form>
         </div>

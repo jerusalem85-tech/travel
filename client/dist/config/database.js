@@ -161,6 +161,33 @@ CREATE TABLE IF NOT EXISTS settings (
   key_name TEXT PRIMARY KEY,
   value TEXT
 );
+
+CREATE TABLE IF NOT EXISTS quotations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  quote_number TEXT NOT NULL,
+  customer_id INTEGER,
+  travel_date TEXT,
+  return_date TEXT,
+  from_destination TEXT,
+  to_destination TEXT,
+  airline TEXT,
+  flight_number TEXT,
+  service_type TEXT,
+  total_amount REAL DEFAULT 0,
+  cost_amount REAL DEFAULT 0,
+  notes TEXT,
+  status TEXT DEFAULT 'draft',
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  message TEXT,
+  is_read INTEGER DEFAULT 0,
+  link TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -266,6 +293,31 @@ async function init() {
     await d.run(`CREATE TABLE IF NOT EXISTS settings (
       \`key\` VARCHAR(255) PRIMARY KEY,
       \`value\` TEXT
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS quotations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      quote_number VARCHAR(50) NOT NULL,
+      customer_id INT,
+      travel_date DATE,
+      return_date DATE,
+      from_destination VARCHAR(255),
+      to_destination VARCHAR(255),
+      airline VARCHAR(255),
+      flight_number VARCHAR(100),
+      service_type VARCHAR(100),
+      total_amount DECIMAL(10,2) DEFAULT 0,
+      cost_amount DECIMAL(10,2) DEFAULT 0,
+      notes TEXT,
+      status ENUM('draft','sent','accepted','rejected') DEFAULT 'draft',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS notifications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      message TEXT,
+      is_read TINYINT DEFAULT 0,
+      link VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {
     db = sqliteDb();

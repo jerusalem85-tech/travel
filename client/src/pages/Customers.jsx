@@ -17,8 +17,8 @@ export default function Customers() {
   useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 300); return () => clearTimeout(t); }, [search]);
 
   const handleDelete = (id) => {
-    Swal.fire({ title: 'تأكيد الحذف', text: 'هل أنت متأكد؟', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
-      if (r.isConfirmed) api.delete(`/customers/${id}`).then(() => load()).catch(e => Swal.fire('خطأ', e.response?.data?.error || 'لا يمكن حذف العميل', 'error'));
+    Swal.fire({ title: 'تأكيد الحذف', text: 'سيتم حذف العميل وجميع حجوزاته', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
+      if (r.isConfirmed) api.delete(`/customers/${id}`).then(() => load());
     });
   };
 
@@ -32,23 +32,22 @@ export default function Customers() {
         <div className="card-body">
           <div className="search-box">
             <i className="bi bi-search"></i>
-            <input className="form-control" placeholder="بحث بالاسم أو الهاتف أو البريد..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="form-control" placeholder="بحث بالاسم أو رقم الهاتف..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
       <div className="card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>الجواز</th><th>حجوزات</th><th></th></tr></thead>
+            <thead><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>الجنسية</th><th>الحجوزات</th><th></th></tr></thead>
             <tbody>
               {data.rows.map(c => (
                 <tr key={c.id}>
-                  <td>{c.id}</td>
                   <td><Link to={`/customers/${c.id}`} className="text-decoration-none">{c.full_name}</Link></td>
                   <td>{c.phone || '-'}</td>
                   <td>{c.email || '-'}</td>
-                  <td>{c.passport_number || '-'}</td>
-                  <td><span className="badge bg-info">{c.booking_count}</span></td>
+                  <td>{c.nationality || '-'}</td>
+                  <td><span className="badge bg-secondary">{c.bookings_count || 0}</span></td>
                   <td>
                     <Link to={`/customers/${c.id}`} className="btn btn-sm btn-outline-primary me-1"><i className="bi bi-eye"></i></Link>
                     <Link to={`/customers/${c.id}/edit`} className="btn btn-sm btn-outline-warning me-1"><i className="bi bi-pencil"></i></Link>
