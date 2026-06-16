@@ -188,6 +188,151 @@ CREATE TABLE IF NOT EXISTS notifications (
   link TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS hotels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  address TEXT,
+  city TEXT,
+  country TEXT,
+  phone TEXT,
+  email TEXT,
+  star_rating INTEGER DEFAULT 3,
+  contact_person TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS hotel_room_types (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hotel_id INTEGER NOT NULL,
+  room_type TEXT,
+  board_basis TEXT,
+  price_per_night REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS hotel_bookings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER,
+  hotel_id INTEGER NOT NULL,
+  room_type_id INTEGER,
+  check_in TEXT,
+  check_out TEXT,
+  rooms_count INTEGER DEFAULT 1,
+  guests_count INTEGER DEFAULT 1,
+  total_cost REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS tour_packages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_code TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  destination TEXT,
+  duration_days INTEGER DEFAULT 1,
+  includes TEXT,
+  excludes TEXT,
+  price_per_person REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS tour_package_bookings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER,
+  package_id INTEGER NOT NULL,
+  persons_count INTEGER DEFAULT 1,
+  travel_date TEXT,
+  total_price REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS insurance_policies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  policy_number TEXT NOT NULL,
+  customer_id INTEGER,
+  booking_id INTEGER,
+  provider_name TEXT,
+  policy_type TEXT,
+  coverage_amount REAL DEFAULT 0,
+  premium_amount REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  start_date TEXT,
+  end_date TEXT,
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS contracts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  contract_number TEXT NOT NULL,
+  contract_type TEXT,
+  party_name TEXT NOT NULL,
+  party_phone TEXT,
+  party_email TEXT,
+  start_date TEXT,
+  end_date TEXT,
+  terms TEXT,
+  total_amount REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS commissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  booking_id INTEGER,
+  commission_type TEXT,
+  amount REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  percentage REAL DEFAULT 0,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS activity_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  user_name TEXT,
+  action TEXT,
+  entity_type TEXT,
+  entity_id INTEGER,
+  details TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS currencies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT NOT NULL UNIQUE,
+  name TEXT,
+  exchange_rate REAL DEFAULT 1.0000,
+  is_default INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS customer_communications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER,
+  communication_type TEXT,
+  subject TEXT,
+  message TEXT,
+  status TEXT DEFAULT 'sent',
+  sent_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -318,6 +463,140 @@ async function init() {
       is_read TINYINT DEFAULT 0,
       link VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS hotels (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      address TEXT,
+      city VARCHAR(100),
+      country VARCHAR(100),
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      star_rating INT DEFAULT 3,
+      contact_person VARCHAR(255),
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS hotel_room_types (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      hotel_id INT NOT NULL,
+      room_type VARCHAR(100),
+      board_basis VARCHAR(100),
+      price_per_night DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      notes TEXT
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS hotel_bookings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      booking_id INT,
+      hotel_id INT NOT NULL,
+      room_type_id INT,
+      check_in DATE,
+      check_out DATE,
+      rooms_count INT DEFAULT 1,
+      guests_count INT DEFAULT 1,
+      total_cost DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS tour_packages (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      package_code VARCHAR(50) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      destination VARCHAR(255),
+      duration_days INT DEFAULT 1,
+      includes TEXT,
+      excludes TEXT,
+      price_per_person DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      status VARCHAR(50) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS tour_package_bookings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      booking_id INT,
+      package_id INT NOT NULL,
+      persons_count INT DEFAULT 1,
+      travel_date DATE,
+      total_price DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS insurance_policies (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      policy_number VARCHAR(50) NOT NULL,
+      customer_id INT,
+      booking_id INT,
+      provider_name VARCHAR(255),
+      policy_type VARCHAR(100),
+      coverage_amount DECIMAL(10,2) DEFAULT 0,
+      premium_amount DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      start_date DATE,
+      end_date DATE,
+      status VARCHAR(50) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS contracts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      contract_number VARCHAR(50) NOT NULL,
+      contract_type VARCHAR(50),
+      party_name VARCHAR(255) NOT NULL,
+      party_phone VARCHAR(50),
+      party_email VARCHAR(255),
+      start_date DATE,
+      end_date DATE,
+      terms TEXT,
+      total_amount DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      status VARCHAR(50) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS commissions (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT,
+      booking_id INT,
+      commission_type VARCHAR(50),
+      amount DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      percentage DECIMAL(5,2) DEFAULT 0,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS activity_log (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT,
+      user_name VARCHAR(255),
+      action VARCHAR(50),
+      entity_type VARCHAR(50),
+      entity_id INT,
+      details TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS currencies (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      code VARCHAR(10) NOT NULL UNIQUE,
+      name VARCHAR(100),
+      exchange_rate DECIMAL(10,4) DEFAULT 1.0000,
+      is_default TINYINT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS customer_communications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT,
+      communication_type VARCHAR(50),
+      subject VARCHAR(255),
+      message TEXT,
+      status VARCHAR(50) DEFAULT 'sent',
+      sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {
     db = sqliteDb();

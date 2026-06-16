@@ -58,7 +58,7 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const month = today.substring(0, 7);
   const monthFilter = isMySQL() ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
-  const [bookingsCount, customersCount, suppliersCount, pendingBookings, todayBookings, monthPayments, monthExpenses, recentBookings] = await Promise.all([
+  const [bookingsCount, customersCount, suppliersCount, pendingBookings, todayBookings, monthPayments, monthExpenses, recentBookings, hotelsCount, contractsCount] = await Promise.all([
     db.get('SELECT COUNT(*) as count FROM bookings'),
     db.get('SELECT COUNT(*) as count FROM customers'),
     db.get('SELECT COUNT(*) as count FROM suppliers'),
@@ -67,6 +67,8 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE ${monthFilter}`, [month]),
     db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE ${monthFilter}`, [month]),
     db.all('SELECT b.*, c.full_name as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 10'),
+    db.get('SELECT COUNT(*) as count FROM hotels'),
+    db.get('SELECT COUNT(*) as count FROM contracts'),
   ]);
   res.json({
     bookingsCount: bookingsCount.count,
@@ -78,6 +80,8 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     monthExpenses: monthExpenses.total,
     monthProfit: monthPayments.total - monthExpenses.total,
     recentBookings,
+    hotelsCount: hotelsCount.count,
+    contractsCount: contractsCount.count,
   });
 });
 
@@ -100,6 +104,14 @@ import quotationsRoutes from './routes/quotations.js';
 import usersRoutes from './routes/users.js';
 import notificationsRoutes from './routes/notifications.js';
 import backupRoutes from './routes/backup.js';
+import hotelsRoutes from './routes/hotels.js';
+import tourPackagesRoutes from './routes/tourPackages.js';
+import insuranceRoutes from './routes/insurance.js';
+import contractsRoutes from './routes/contracts.js';
+import commissionsRoutes from './routes/commissions.js';
+import activityLogRoutes from './routes/activityLog.js';
+import currenciesRoutes from './routes/currencies.js';
+import communicationsRoutes from './routes/communications.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -114,6 +126,14 @@ app.use('/api/quotations', authMiddleware, quotationsRoutes);
 app.use('/api/users', authMiddleware, usersRoutes);
 app.use('/api/notifications', authMiddleware, notificationsRoutes);
 app.use('/api/backup', authMiddleware, backupRoutes);
+app.use('/api/hotels', authMiddleware, hotelsRoutes);
+app.use('/api/tour-packages', authMiddleware, tourPackagesRoutes);
+app.use('/api/insurance', authMiddleware, insuranceRoutes);
+app.use('/api/contracts', authMiddleware, contractsRoutes);
+app.use('/api/commissions', authMiddleware, commissionsRoutes);
+app.use('/api/activity-log', authMiddleware, activityLogRoutes);
+app.use('/api/currencies', authMiddleware, currenciesRoutes);
+app.use('/api/communications', authMiddleware, communicationsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

@@ -62,6 +62,15 @@ export default function Layout() {
           <NavLink to="/quotations" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-file-earmark-text"></i> عروض الأسعار
           </NavLink>
+          <NavLink to="/hotels" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-building"></i> الفنادق
+          </NavLink>
+          <NavLink to="/packages" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-box-seam"></i> الباقات السياحية
+          </NavLink>
+          <NavLink to="/insurance" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-shield-check"></i> التأمين
+          </NavLink>
           
           <div className="nav-section">المالية</div>
           <NavLink to="/invoices" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
@@ -77,6 +86,17 @@ export default function Layout() {
             <i className="bi bi-graph-up"></i> التقارير
           </NavLink>
 
+          <div className="nav-section">العقود والعمولات</div>
+          <NavLink to="/contracts" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-file-earmark-text"></i> العقود
+          </NavLink>
+          <NavLink to="/commissions" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-percent"></i> العمولات
+          </NavLink>
+          <NavLink to="/activity-log" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-clock-history"></i> سجل النشاط
+          </NavLink>
+
           <div className="nav-section">الإدارة</div>
           <NavLink to="/users" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-person-gear"></i> المستخدمون
@@ -84,6 +104,12 @@ export default function Layout() {
           <NavLink to="/notifications" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-bell"></i> الإشعارات
             {unreadCount > 0 && <span className="badge bg-danger me-auto" style={{fontSize:'0.65rem'}}>{unreadCount}</span>}
+          </NavLink>
+          <NavLink to="/currencies" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-currency-exchange"></i> العملات
+          </NavLink>
+          <NavLink to="/communications" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-chat-dots"></i> التواصل
           </NavLink>
           <NavLink to="/settings" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-gear"></i> الإعدادات
