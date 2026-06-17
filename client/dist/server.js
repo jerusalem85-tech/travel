@@ -112,6 +112,13 @@ import commissionsRoutes from './routes/commissions.js';
 import activityLogRoutes from './routes/activityLog.js';
 import currenciesRoutes from './routes/currencies.js';
 import communicationsRoutes from './routes/communications.js';
+import visasRoutes from './routes/visas.js';
+import documentsRoutes from './routes/documents.js';
+import tasksRoutes from './routes/tasks.js';
+import priceListsRoutes from './routes/priceLists.js';
+import checklistRoutes from './routes/checklist.js';
+import inventoryRoutes from './routes/inventory.js';
+import leadsRoutes from './routes/leads.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -134,6 +141,13 @@ app.use('/api/commissions', authMiddleware, commissionsRoutes);
 app.use('/api/activity-log', authMiddleware, activityLogRoutes);
 app.use('/api/currencies', authMiddleware, currenciesRoutes);
 app.use('/api/communications', authMiddleware, communicationsRoutes);
+app.use('/api/visas', authMiddleware, visasRoutes);
+app.use('/api/documents', authMiddleware, documentsRoutes);
+app.use('/api/tasks', authMiddleware, tasksRoutes);
+app.use('/api/price-lists', authMiddleware, priceListsRoutes);
+app.use('/api/checklist', authMiddleware, checklistRoutes);
+app.use('/api/inventory', authMiddleware, inventoryRoutes);
+app.use('/api/leads', authMiddleware, leadsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

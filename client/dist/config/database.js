@@ -333,6 +333,98 @@ CREATE TABLE IF NOT EXISTS customer_communications (
   status TEXT DEFAULT 'sent',
   sent_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS visas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  visa_number TEXT NOT NULL,
+  customer_id INTEGER,
+  booking_id INTEGER,
+  country TEXT,
+  visa_type TEXT,
+  application_date TEXT,
+  issue_date TEXT,
+  expiry_date TEXT,
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT,
+  entity_id INTEGER,
+  document_type TEXT,
+  file_name TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  assigned_to INTEGER,
+  related_to_type TEXT,
+  related_to_id INTEGER,
+  priority TEXT DEFAULT 'medium',
+  status TEXT DEFAULT 'pending',
+  due_date TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS price_lists (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  service_type TEXT,
+  destination TEXT,
+  season TEXT,
+  price REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  supplier_id INTEGER,
+  valid_from TEXT,
+  valid_to TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS booking_checklist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER NOT NULL,
+  step_name TEXT NOT NULL,
+  is_completed INTEGER DEFAULT 0,
+  completed_by INTEGER,
+  completed_at TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS inventory_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  category TEXT,
+  quantity INTEGER DEFAULT 0,
+  unit TEXT,
+  unit_cost REAL DEFAULT 0,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS leads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  email TEXT,
+  source TEXT,
+  destination TEXT,
+  travel_date TEXT,
+  persons_count INTEGER DEFAULT 1,
+  budget REAL DEFAULT 0,
+  status TEXT DEFAULT 'new',
+  assigned_to INTEGER,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -597,6 +689,91 @@ async function init() {
       message TEXT,
       status VARCHAR(50) DEFAULT 'sent',
       sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS visas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      visa_number VARCHAR(50) NOT NULL,
+      customer_id INT,
+      booking_id INT,
+      country VARCHAR(255),
+      visa_type VARCHAR(100),
+      application_date DATE,
+      issue_date DATE,
+      expiry_date DATE,
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS documents (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      entity_type VARCHAR(50),
+      entity_id INT,
+      document_type VARCHAR(100),
+      file_name VARCHAR(255),
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS tasks (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      assigned_to INT,
+      related_to_type VARCHAR(50),
+      related_to_id INT,
+      priority VARCHAR(50) DEFAULT 'medium',
+      status VARCHAR(50) DEFAULT 'pending',
+      due_date DATE,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS price_lists (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      service_type VARCHAR(100),
+      destination VARCHAR(255),
+      season VARCHAR(50),
+      price DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      supplier_id INT,
+      valid_from DATE,
+      valid_to DATE,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS booking_checklist (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      booking_id INT NOT NULL,
+      step_name VARCHAR(255) NOT NULL,
+      is_completed TINYINT DEFAULT 0,
+      completed_by INT,
+      completed_at TIMESTAMP NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS inventory_items (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      category VARCHAR(100),
+      quantity INT DEFAULT 0,
+      unit VARCHAR(50),
+      unit_cost DECIMAL(10,2) DEFAULT 0,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS leads (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      full_name VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      source VARCHAR(100),
+      destination VARCHAR(255),
+      travel_date DATE,
+      persons_count INT DEFAULT 1,
+      budget DECIMAL(10,2) DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'new',
+      assigned_to INT,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {
     db = sqliteDb();
