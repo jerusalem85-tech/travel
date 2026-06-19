@@ -37,19 +37,23 @@ const authMiddleware = (req, res, next) => {
 };
 
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  const db = await getDb();
-  const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-  const token = jwt.sign({ id: user.id, full_name: user.full_name, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-  const ua = req.headers['user-agent'] || '';
-  await db.run('INSERT INTO login_log (user_id, full_name, action, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-    [user.id, user.full_name, 'login', ip, ua]);
-  res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role } });
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    const db = await getDb();
+    const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    const token = jwt.sign({ id: user.id, full_name: user.full_name, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const ua = req.headers['user-agent'] || '';
+    await db.run('INSERT INTO login_log (user_id, full_name, action, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+      [user.id, user.full_name, 'login', ip, ua]);
+    res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role } });
+  } catch (e) {
+    res.status(500).json({ error: e.message, stack: e.stack?.split('\n')[0] });
+  }
 });
 
 app.get('/api/debug', (req, res) => {
