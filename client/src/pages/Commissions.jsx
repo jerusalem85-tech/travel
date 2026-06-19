@@ -152,7 +152,7 @@ const Commissions = () => {
               <select className="form-select" value={userIdFilter} onChange={(e) => setUserIdFilter(e.target.value)}>
                 <option value="">All Users</option>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name || u.username}</option>
+                  <option key={u.id} value={u.id}>{u.full_name || u.username}</option>
                 ))}
               </select>
             </div>
@@ -238,7 +238,7 @@ const Commissions = () => {
                     <select className="form-select" name="user_id" value={formData.user_id} onChange={handleChange} required>
                       <option value="">Select User</option>
                       {users.map((u) => (
-                        <option key={u.id} value={u.id}>{u.name || u.username}</option>
+                        <option key={u.id} value={u.id}>{u.full_name || u.username}</option>
                       ))}
                     </select>
                   </div>

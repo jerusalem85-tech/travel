@@ -167,7 +167,7 @@ const Communications = () => {
               <select className="form-select" value={customerFilter} onChange={(e) => { setCustomerFilter(e.target.value); setPage(1); }}>
                 <option value="">All Customers</option>
                 {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} - {c.phone}</option>
+                  <option key={c.id} value={c.id}>{c.full_name || c.name} - {c.phone}</option>
                 ))}
               </select>
             </div>
@@ -291,7 +291,7 @@ const Communications = () => {
                     <select className="form-select" name="customer_id" value={formData.customer_id} onChange={handleChange} required>
                       <option value="">Select Customer</option>
                       {customers.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name} - {c.phone}</option>
+                        <option key={c.id} value={c.id}>{c.full_name || c.name} - {c.phone}</option>
                       ))}
                     </select>
                   </div>

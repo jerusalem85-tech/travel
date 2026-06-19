@@ -119,7 +119,7 @@ const CreateInvoice = () => {
                     <option value="">Select Customer</option>
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name} - {c.phone}
+                        {c.full_name || c.name} - {c.phone}
                       </option>
                     ))}
                   </select>
@@ -156,7 +156,7 @@ const CreateInvoice = () => {
                       placeholder="0.00"
                       required
                     />
-                    <span className="input-group-text">ر.س</span>
+                    <span className="input-group-text">SAR</span>
                   </div>
                 </div>
 

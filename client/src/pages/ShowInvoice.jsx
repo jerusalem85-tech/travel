@@ -146,7 +146,7 @@ const ShowInvoice = () => {
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-muted">التاريخ:</td>
+                        <td className="text-muted">Date:</td>
                         <td>{new Date(invoice.created_at).toLocaleDateString('en-US')}</td>
                       </tr>
                       {invoice.notes && (
@@ -165,7 +165,7 @@ const ShowInvoice = () => {
                   <div className="card bg-primary text-white">
                     <div className="card-body">
                       <div className="small text-white-50">Total Amount</div>
-                      <h4 className="mb-0">{Number(invoice.total_amount).toLocaleString()} ر.س</h4>
+                      <h4 className="mb-0">{Number(invoice.total_amount).toLocaleString()} SAR</h4>
                     </div>
                   </div>
                 </div>
@@ -173,7 +173,7 @@ const ShowInvoice = () => {
                   <div className="card bg-success text-white">
                     <div className="card-body">
                       <div className="small text-white-50">Paid Amount</div>
-                      <h4 className="mb-0">{Number(invoice.paid_amount).toLocaleString()} ر.س</h4>
+                      <h4 className="mb-0">{Number(invoice.paid_amount).toLocaleString()} SAR</h4>
                     </div>
                   </div>
                 </div>
@@ -181,7 +181,7 @@ const ShowInvoice = () => {
                   <div className="card bg-danger text-white">
                     <div className="card-body">
                       <div className="small text-white-50">Remaining</div>
-                      <h4 className="mb-0">{remaining.toLocaleString()} ر.س</h4>
+                      <h4 className="mb-0">{remaining.toLocaleString()} SAR</h4>
                     </div>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ const ShowInvoice = () => {
                           <td>{idx + 1}</td>
                           <td><code>{payment.payment_number}</code></td>
                           <td className="fw-bold text-success">
-                            {Number(payment.amount).toLocaleString()} ر.س
+                            {Number(payment.amount).toLocaleString()} SAR
                           </td>
                           <td>{getPaymentMethodLabel(payment.payment_method)}</td>
                           <td>{payment.reference || '-'}</td>
@@ -261,16 +261,16 @@ const ShowInvoice = () => {
               </h6>
               <div className="d-flex justify-content-between mb-2">
                 <span>Total:</span>
-                <strong>{Number(invoice.total_amount).toLocaleString()} ر.س</strong>
+                <strong>{Number(invoice.total_amount).toLocaleString()} SAR</strong>
               </div>
               <div className="d-flex justify-content-between mb-2">
                 <span>Paid:</span>
-                <strong className="text-success">{Number(invoice.paid_amount).toLocaleString()} ر.س</strong>
+                <strong className="text-success">{Number(invoice.paid_amount).toLocaleString()} SAR</strong>
               </div>
               <hr />
               <div className="d-flex justify-content-between">
                 <span>Remaining:</span>
-                <strong className="text-danger">{remaining.toLocaleString()} ر.س</strong>
+                <strong className="text-danger">{remaining.toLocaleString()} SAR</strong>
               </div>
               <div className="progress mt-3" style={{ height: '10px' }}>
                 <div

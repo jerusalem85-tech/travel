@@ -175,8 +175,8 @@ const Invoices = () => {
                         </td>
                         <td>{inv.customer_name}</td>
                         <td>{inv.booking_number || '-'}</td>
-                        <td>{Number(inv.total_amount).toLocaleString()} ر.س</td>
-                        <td>{Number(inv.paid_amount).toLocaleString()} ر.س</td>
+                        <td>{Number(inv.total_amount).toLocaleString()} SAR</td>
+                        <td>{Number(inv.paid_amount).toLocaleString()} SAR</td>
                         <td>{getStatusBadge(inv.status)}</td>
                         <td>{new Date(inv.created_at).toLocaleDateString('en-US')}</td>
                         <td>

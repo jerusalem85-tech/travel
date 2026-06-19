@@ -493,7 +493,7 @@ const Quotations = () => {
                         <option value="">Select Customer</option>
                         {customers.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.name} - {c.phone}
+                            {c.full_name || c.name} - {c.phone}
                           </option>
                         ))}
                       </select>

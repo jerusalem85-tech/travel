@@ -314,11 +314,11 @@ export default function Hotels() {
                     <label className="form-label">Board Basis</label>
                     <select className="form-select" name="board_basis" value={rtForm.board_basis} onChange={e => setRtForm({ ...rtForm, board_basis: e.target.value })}>
                       <option value="">Select Basis</option>
-                      <option value="سرير وإفطار">Bed & Breakfast</option>
-                      <option value="نصف إقامة">Half Board</option>
-                      <option value="إقامة كاملة">Full Board</option>
-                      <option value="شامل">All Inclusive</option>
-                      <option value="بدون طعام">No Meals</option>
+                      <option value="Bed & Breakfast">Bed & Breakfast</option>
+                      <option value="Half Board">Half Board</option>
+                      <option value="Full Board">Full Board</option>
+                      <option value="All Inclusive">All Inclusive</option>
+                      <option value="No Meals">No Meals</option>
                     </select>
                   </div>
                   <div className="row">
