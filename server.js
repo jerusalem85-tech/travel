@@ -53,24 +53,17 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.post('/api/auth/reset-admin', async (req, res) => {
-  try {
-    const { key, email } = req.body;
-    if (key !== JWT_SECRET) return res.status(403).json({ error: 'Invalid reset key' });
-    const targetEmail = email || 'admin@travel.com';
-    const db = await getDb();
-    const hash = await bcrypt.hash('admin123', 10);
-    const existing = await db.get('SELECT id FROM users WHERE email = ?', [targetEmail]);
-    if (existing) {
-      await db.run('UPDATE users SET password = ? WHERE email = ?', [hash, targetEmail]);
-      res.json({ message: `Password reset to admin123 for ${targetEmail}` });
-    } else {
-      await db.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
-        ['Admin', targetEmail, hash, 'admin']);
-      res.json({ message: `Admin created: ${targetEmail} / admin123` });
-    }
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  const { key } = req.body;
+  if (key !== JWT_SECRET) return res.status(403).json({ error: 'Invalid reset key' });
+  const db = await getDb();
+  const hash = await bcrypt.hash('admin123', 10);
+  await db.run('UPDATE users SET password = ? WHERE email = ?', [hash, 'admin@travel.com']);
+  const exists = await db.get('SELECT id FROM users WHERE email = ?', ['admin@travel.com']);
+  if (!exists) {
+    await db.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
+      ['Admin', 'admin@travel.com', hash, 'admin']);
   }
+  res.json({ message: 'admin@travel.com / admin123' });
 });
 
 app.post('/api/auth/logout', authMiddleware, async (req, res) => {
