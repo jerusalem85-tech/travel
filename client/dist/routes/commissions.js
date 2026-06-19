@@ -28,6 +28,14 @@ router.post('/', async (req, res) => {
   res.json({ id: result.insertId || result.lastInsertRowid });
 });
 
+router.put('/:id', async (req, res) => {
+  const db = await getDb();
+  const { user_id, booking_id, commission_type, amount, currency, percentage, notes } = req.body;
+  await db.run('UPDATE commissions SET user_id=?, booking_id=?, commission_type=?, amount=?, currency=?, percentage=?, notes=? WHERE id=?',
+    [user_id, booking_id || null, commission_type || null, amount || 0, currency || 'USD', percentage || 0, notes || null, req.params.id]);
+  res.json({ message: 'Updated' });
+});
+
 router.delete('/:id', async (req, res) => {
   const db = await getDb();
   await moveToTrash(db, 'commissions', req.params.id, req.user?.id);
