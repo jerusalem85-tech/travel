@@ -1,3 +1,4 @@
+import fs from 'fs';
 import Database from 'better-sqlite3';
 import mysql from 'mysql2/promise';
 import path from 'path';
@@ -13,7 +14,9 @@ const useMySQL = process.env.USE_MYSQL === 'true';
 let db;
 
 function sqliteDb() {
-  const d = new Database(path.join(__dirname, '..', 'data', 'travel.db'));
+  const dataDir = path.join(__dirname, '..', 'data');
+  try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
+  const d = new Database(path.join(dataDir, 'travel.db'));
   d.pragma('journal_mode = WAL');
   d.pragma('foreign_keys = ON');
   return {
@@ -1815,6 +1818,8 @@ async function getDb() {
     return mysqlDb();
   }
   if (!db) {
+    const dataDir = path.join(__dirname, '..', 'data');
+    try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
     db = sqliteDb();
     db.run(schema);
   }

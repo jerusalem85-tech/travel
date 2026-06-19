@@ -52,6 +52,19 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role } });
 });
 
+app.get('/api/debug', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString(), node: process.version });
+});
+app.get('/api/debug/db', async (req, res) => {
+  try {
+    const db = await getDb();
+    const u = await db.get('SELECT COUNT(*) as c FROM users');
+    res.json({ db: 'connected', users: u.c, mysql: useMySQL });
+  } catch (e) {
+    res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
+  }
+});
+
 app.post('/api/auth/reset-admin', async (req, res) => {
   const { key } = req.body;
   if (key !== JWT_SECRET) return res.status(403).json({ error: 'Invalid reset key' });
