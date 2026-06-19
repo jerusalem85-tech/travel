@@ -134,7 +134,7 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     db.get('SELECT COUNT(*) as count FROM bookings WHERE date(travel_date) = ?', [today]),
     db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE ${monthFilter}`, [month]),
     db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE ${monthFilter}`, [month]),
-    db.all('SELECT b.* FROM bookings b ORDER BY b.created_at DESC LIMIT 10'),
+    db.all('SELECT b.*, COALESCE(c.full_name,c.name) as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 10'),
     db.get('SELECT COUNT(*) as count FROM hotels'),
     db.get('SELECT COUNT(*) as count FROM contracts'),
   ]);
@@ -190,7 +190,7 @@ app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
 
 app.get('/api/stats/top-customers', authMiddleware, async (req, res) => {
   const db = await getDb();
-  const rows = await db.all(`SELECT c.id, c.full_name, c.phone, c.email, COUNT(b.id) as booking_count, COALESCE(SUM(p.amount), 0) as total_paid
+  const rows = await db.all(`SELECT c.id, COALESCE(c.full_name,c.name) as full_name, c.phone, c.email, COUNT(b.id) as booking_count, COALESCE(SUM(p.amount), 0) as total_paid
     FROM customers c LEFT JOIN bookings b ON c.id = b.customer_id
     LEFT JOIN payments p ON b.id = p.booking_id
     GROUP BY c.id ORDER BY total_paid DESC LIMIT 5`);
