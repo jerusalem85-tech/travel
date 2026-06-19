@@ -46,10 +46,15 @@ app.post('/api/auth/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
     const token = jwt.sign({ id: user.id, full_name: user.full_name, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-    const ua = req.headers['user-agent'] || '';
-    await db.run('INSERT INTO login_log (user_id, full_name, action, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
-      [user.id, user.full_name, 'login', ip, ua]);
+    try {
+      const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.ip || '').toString().substring(0,45);
+      const ua = (req.headers['user-agent'] || '').toString().substring(0,255);
+      const name = user.full_name || '';
+      await db.run('INSERT INTO login_log (user_id, full_name, action, ip_address, user_agent) VALUES (?,?,?,?,?)',
+        [user.id, name, 'login', ip, ua]);
+    } catch (logErr) {
+      console.error('Login log insert failed:', logErr.message);
+    }
     res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role } });
   } catch (e) {
     res.status(500).json({ error: e.message, stack: e.stack?.split('\n')[0] });
