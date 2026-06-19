@@ -531,6 +531,106 @@ CREATE TABLE IF NOT EXISTS reviews (
   reviewer_name TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS brokers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  email TEXT,
+  company TEXT,
+  commission_rate REAL DEFAULT 0,
+  contract_start TEXT,
+  contract_end TEXT,
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS broker_commissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  broker_id INTEGER NOT NULL,
+  booking_id INTEGER,
+  commission REAL DEFAULT 0,
+  paid INTEGER DEFAULT 0,
+  paid_at TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS transfers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER,
+  booking_id INTEGER,
+  pickup_location TEXT,
+  dropoff_location TEXT,
+  transfer_date TEXT,
+  transfer_time TEXT,
+  vehicle_id INTEGER,
+  guide_id INTEGER,
+  passenger_count INTEGER DEFAULT 1,
+  price REAL DEFAULT 0,
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS services_catalog (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  category TEXT,
+  description TEXT,
+  price REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  supplier_id INTEGER,
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS restaurant_bookings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER,
+  booking_id INTEGER,
+  restaurant_name TEXT NOT NULL,
+  guest_count INTEGER DEFAULT 2,
+  reservation_date TEXT,
+  reservation_time TEXT,
+  table_type TEXT,
+  special_requests TEXT,
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS properties (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT,
+  location TEXT,
+  bedrooms INTEGER DEFAULT 1,
+  capacity INTEGER DEFAULT 2,
+  price_per_night REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  owner_name TEXT,
+  owner_phone TEXT,
+  status TEXT DEFAULT 'available',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS referrals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  referrer_name TEXT NOT NULL,
+  referrer_phone TEXT,
+  referred_name TEXT,
+  referred_phone TEXT,
+  booking_id INTEGER,
+  reward_amount REAL DEFAULT 0,
+  reward_paid INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -977,6 +1077,99 @@ async function init() {
       rating INT DEFAULT 5,
       review_text TEXT,
       reviewer_name VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS brokers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      full_name VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      company VARCHAR(255),
+      commission_rate DECIMAL(5,2) DEFAULT 0,
+      contract_start DATE,
+      contract_end DATE,
+      status VARCHAR(50) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS broker_commissions (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      broker_id INT NOT NULL,
+      booking_id INT,
+      commission DECIMAL(10,2) DEFAULT 0,
+      paid TINYINT DEFAULT 0,
+      paid_at TIMESTAMP NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS transfers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT,
+      booking_id INT,
+      pickup_location VARCHAR(255),
+      dropoff_location VARCHAR(255),
+      transfer_date DATE,
+      transfer_time TIME,
+      vehicle_id INT,
+      guide_id INT,
+      passenger_count INT DEFAULT 1,
+      price DECIMAL(10,2) DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS services_catalog (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      category VARCHAR(100),
+      description TEXT,
+      price DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      supplier_id INT,
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS restaurant_bookings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT,
+      booking_id INT,
+      restaurant_name VARCHAR(255) NOT NULL,
+      guest_count INT DEFAULT 2,
+      reservation_date DATE,
+      reservation_time TIME,
+      table_type VARCHAR(100),
+      special_requests TEXT,
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS properties (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      type VARCHAR(100),
+      location VARCHAR(255),
+      bedrooms INT DEFAULT 1,
+      capacity INT DEFAULT 2,
+      price_per_night DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      owner_name VARCHAR(255),
+      owner_phone VARCHAR(50),
+      status VARCHAR(50) DEFAULT 'available',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS referrals (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      referrer_name VARCHAR(255) NOT NULL,
+      referrer_phone VARCHAR(50),
+      referred_name VARCHAR(255),
+      referred_phone VARCHAR(50),
+      booking_id INT,
+      reward_amount DECIMAL(10,2) DEFAULT 0,
+      reward_paid TINYINT DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

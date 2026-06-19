@@ -127,6 +127,13 @@ import guidesRoutes from './routes/guides.js';
 import discountsRoutes from './routes/discounts.js';
 import taxRatesRoutes from './routes/taxRates.js';
 import reviewsRoutes from './routes/reviews.js';
+import brokersRoutes from './routes/brokers.js';
+import brokerCommissionsRoutes from './routes/brokerCommissions.js';
+import transfersRoutes from './routes/transfers.js';
+import servicesCatalogRoutes from './routes/servicesCatalog.js';
+import restaurantBookingsRoutes from './routes/restaurantBookings.js';
+import propertiesRoutes from './routes/properties.js';
+import referralsRoutes from './routes/referrals.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -164,6 +171,13 @@ app.use('/api/guides', authMiddleware, guidesRoutes);
 app.use('/api/discounts', authMiddleware, discountsRoutes);
 app.use('/api/tax-rates', authMiddleware, taxRatesRoutes);
 app.use('/api/reviews', authMiddleware, reviewsRoutes);
+app.use('/api/brokers', authMiddleware, brokersRoutes);
+app.use('/api/broker-commissions', authMiddleware, brokerCommissionsRoutes);
+app.use('/api/transfers', authMiddleware, transfersRoutes);
+app.use('/api/services-catalog', authMiddleware, servicesCatalogRoutes);
+app.use('/api/restaurant-bookings', authMiddleware, restaurantBookingsRoutes);
+app.use('/api/properties', authMiddleware, propertiesRoutes);
+app.use('/api/referrals', authMiddleware, referralsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
