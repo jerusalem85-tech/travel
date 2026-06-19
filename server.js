@@ -120,7 +120,8 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   const db = await getDb();
   const today = new Date().toISOString().split('T')[0];
   const month = today.substring(0, 7);
-  const monthFilter = isMySQLConnected() ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
+  const isMysql = typeof isMySQLConnected === 'function' ? isMySQLConnected() : false;
+  const monthFilter = isMysql ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
   const [bookingsCount, customersCount, suppliersCount, pendingBookings, todayBookings, monthPayments, monthExpenses, recentBookings, hotelsCount, contractsCount] = await Promise.all([
     db.get('SELECT COUNT(*) as count FROM bookings'),
     db.get('SELECT COUNT(*) as count FROM customers'),
@@ -152,7 +153,8 @@ app.get('/api/stats/overview', authMiddleware, async (req, res) => {
   const db = await getDb();
   const today = new Date().toISOString().split('T')[0];
   const month = today.substring(0, 7);
-  const monthFilter = isMySQLConnected() ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
+  const isMysql = typeof isMySQLConnected === 'function' ? isMySQLConnected() : false;
+  const monthFilter = isMysql ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
   const [totalBookings, totalCustomers, totalRevenue, totalExpenses, pendingTasks, activeInstallments, dueInstallments, recentActivity] = await Promise.all([
     db.get('SELECT COUNT(*) as c FROM bookings'),
     db.get('SELECT COUNT(*) as c FROM customers'),
