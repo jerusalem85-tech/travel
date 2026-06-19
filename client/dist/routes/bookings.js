@@ -113,4 +113,13 @@ router.delete('/services/:id', async (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
+router.delete('/all', async (req, res) => {
+  const db = await getDb();
+  await db.run('DELETE FROM booking_services');
+  await db.run('DELETE FROM booking_passengers');
+  await db.run('DELETE FROM payments');
+  await db.run('DELETE FROM bookings');
+  res.json({ message: 'All bookings and related data deleted' });
+});
+
 export default router;

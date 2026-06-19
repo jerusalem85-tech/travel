@@ -461,6 +461,212 @@ app.post('/api/seed-flights', authMiddleware, async (req, res) => {
   }
 });
 
+app.post('/api/seed-full', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    const db = await getDb();
+
+    // Delete all existing bookings first
+    await db.run('DELETE FROM booking_services');
+    await db.run('DELETE FROM booking_passengers');
+    await db.run('DELETE FROM payments');
+    await db.run('DELETE FROM bookings');
+
+    // Seed airports
+    if ((await db.get('SELECT COUNT(*) as c FROM airports')).c === 0) {
+      const airports = [
+        ['TLV', 'Ben Gurion Airport', 'Tel Aviv', 'Israel'],
+        ['DXB', 'Dubai International Airport', 'Dubai', 'UAE'],
+        ['IST', 'Istanbul Airport', 'Istanbul', 'Turkey'],
+        ['CAI', 'Cairo International Airport', 'Cairo', 'Egypt'],
+        ['AMM', 'Queen Alia International Airport', 'Amman', 'Jordan'],
+        ['LHR', 'Heathrow Airport', 'London', 'UK'],
+        ['CDG', 'Charles de Gaulle Airport', 'Paris', 'France'],
+        ['JED', 'King Abdulaziz International Airport', 'Jeddah', 'Saudi Arabia'],
+        ['DOH', 'Hamad International Airport', 'Doha', 'Qatar'],
+        ['RUH', 'King Khalid International Airport', 'Riyadh', 'Saudi Arabia'],
+        ['ATH', 'Athens International Airport', 'Athens', 'Greece'],
+        ['FCO', 'Leonardo da Vinci Fiumicino Airport', 'Rome', 'Italy'],
+        ['BCN', 'Barcelona-El Prat Airport', 'Barcelona', 'Spain'],
+        ['BKK', 'Suvarnabhumi Airport', 'Bangkok', 'Thailand'],
+        ['KUL', 'Kuala Lumpur International Airport', 'Kuala Lumpur', 'Malaysia'],
+      ];
+      for (const a of airports) await db.run('INSERT INTO airports (code, name, city, country) VALUES (?,?,?,?)', a);
+    }
+
+    // Seed airlines
+    if ((await db.get('SELECT COUNT(*) as c FROM airlines')).c === 0) {
+      const airlines = [
+        ['EK', 'Emirates', 'UAE'],
+        ['TK', 'Turkish Airlines', 'Turkey'],
+        ['LY', 'El Al Israel Airlines', 'Israel'],
+        ['MS', 'EgyptAir', 'Egypt'],
+        ['RJ', 'Royal Jordanian', 'Jordan'],
+        ['BA', 'British Airways', 'UK'],
+        ['AF', 'Air France', 'France'],
+        ['SV', 'Saudia', 'Saudi Arabia'],
+        ['QR', 'Qatar Airways', 'Qatar'],
+        ['W6', 'Wizz Air', 'Hungary'],
+        ['FR', 'Ryanair', 'Ireland'],
+        ['LH', 'Lufthansa', 'Germany'],
+      ];
+      for (const a of airlines) await db.run('INSERT INTO airlines (code, name, country) VALUES (?,?,?)', a);
+    }
+
+    // Seed customers if needed
+    if ((await db.get('SELECT COUNT(*) as c FROM customers')).c < 10) {
+      const customers = [
+        ['Ahmad Hassan', '0599123456', 'ahmad@mail.com'],
+        ['Sara Mahmoud', '0599234567', 'sara@mail.com'],
+        ['Mohammad Ali', '0599345678', 'mohd@mail.com'],
+        ['Noor Hasan', '0599456789', 'noor@mail.com'],
+        ['Khaled Omar', '0599567890', 'khaled@mail.com'],
+        ['Lina Ibrahim', '0599678901', 'lina@mail.com'],
+        ['Abdullah Yousif', '0599789012', 'abd@mail.com'],
+        ['Maryam Sami', '0599890123', 'maryam@mail.com'],
+        ['Yousif Rami', '0599901234', 'yousif@mail.com'],
+        ['Hind Adel', '0599012345', 'hind@mail.com'],
+      ];
+      for (const c of customers) await db.run('INSERT OR IGNORE INTO customers (full_name, phone, email) VALUES (?,?,?)', c);
+    }
+
+    const airportMap = {}; (await db.all('SELECT id, code, name FROM airports')).forEach(a => { airportMap[a.code] = a; });
+    const airlineMap = {}; (await db.all('SELECT id, code, name FROM airlines')).forEach(a => { airlineMap[a.code] = a; });
+    const customerIds = (await db.all('SELECT id FROM customers')).map(c => c.id);
+    const today = new Date();
+    const fmt = (d) => d.toISOString().split('T')[0];
+
+    const bookingTemplates = [
+      {
+        note: 'Round trip Dubai',
+        passengers: [{ name: 'Ahmad Hassan', passport: 'P12345678', nationality: 'Palestinian', type: 'adult' }, { name: 'Sara Hassan', passport: 'P12345679', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→DXB', price: 1800, cost: 1200, supplier: 'Emirates Office', details: { airline_id: airlineMap['EK']?.id, airline: 'Emirates', flight_number: 'EK501', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['DXB']?.id, destination_airport: 'DXB - Dubai International Airport', departure_date: '2026-07-15', departure_time: '12:10', departure_next_day: false, arrival_date: '2026-07-15', arrival_time: '19:25', arrival_next_day: false, ticket_number: 'TKT-001', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'flight', desc: 'Flight DXB→TLV return', price: 1600, cost: 1100, supplier: 'Emirates Office', details: { airline_id: airlineMap['EK']?.id, airline: 'Emirates', flight_number: 'EK500', origin_airport_id: airportMap['DXB']?.id, origin_airport: 'DXB - Dubai International Airport', destination_airport_id: airportMap['TLV']?.id, destination_airport: 'TLV - Ben Gurion Airport', departure_date: '2026-07-22', departure_time: '08:00', departure_next_day: false, arrival_date: '2026-07-22', arrival_time: '10:45', arrival_next_day: false, ticket_number: 'TKT-002', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel accommodation', price: 2500, cost: 1800, supplier: 'Hilton Dubai', details: { hotel_name: 'Hilton Dubai Jumeirah', room_type: 'Deluxe Sea View', board_basis: 'breakfast', check_in: '2026-07-15', check_out: '2026-07-22' } },
+        ],
+      },
+      {
+        note: 'Istanbul package - flight + hotel + visa',
+        passengers: [{ name: 'Mohammad Ali', passport: 'P23456789', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→IST', price: 900, cost: 600, supplier: 'Turkish Airlines', details: { airline_id: airlineMap['TK']?.id, airline: 'Turkish Airlines', flight_number: 'TK789', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['IST']?.id, destination_airport: 'IST - Istanbul Airport', departure_date: '2026-08-01', departure_time: '06:30', departure_next_day: false, arrival_date: '2026-08-01', arrival_time: '09:15', arrival_next_day: false, ticket_number: 'TKT-003', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel accommodation', price: 1200, cost: 800, supplier: 'Hilton Istanbul', details: { hotel_name: 'Hilton Istanbul Bosphorus', room_type: 'Standard', board_basis: 'full_board', check_in: '2026-08-01', check_out: '2026-08-08' } },
+          { cat: 'visa', desc: 'Visa processing', price: 200, cost: 120, supplier: 'Visa Express', details: { country: 'Turkey', visa_type: 'tourist', processing_time: '3 days' } },
+        ],
+      },
+      {
+        note: 'Umrah trip - flight + hotel + transport',
+        passengers: [{ name: 'Khaled Omar', passport: 'P34567890', nationality: 'Palestinian', type: 'adult' }, { name: 'Fatima Omar', passport: 'P34567891', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→JED', price: 1500, cost: 1000, supplier: 'Saudia Airlines', details: { airline_id: airlineMap['SV']?.id, airline: 'Saudia', flight_number: 'SV101', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['JED']?.id, destination_airport: 'JED - King Abdulaziz Intl', departure_date: '2026-06-25', departure_time: '05:00', departure_next_day: false, arrival_date: '2026-06-25', arrival_time: '09:30', arrival_next_day: false, ticket_number: 'TKT-004', checked_baggage: '30', cabin_baggage: '7' } },
+          { cat: 'flight', desc: 'Flight JED→TLV return', price: 1500, cost: 1000, supplier: 'Saudia Airlines', details: { airline_id: airlineMap['SV']?.id, airline: 'Saudia', flight_number: 'SV102', origin_airport_id: airportMap['JED']?.id, origin_airport: 'JED - King Abdulaziz Intl', destination_airport_id: airportMap['TLV']?.id, destination_airport: 'TLV - Ben Gurion Airport', departure_date: '2026-07-05', departure_time: '21:00', departure_next_day: false, arrival_date: '2026-07-05', arrival_time: '23:30', arrival_next_day: false, ticket_number: 'TKT-005', checked_baggage: '30', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel in Mecca', price: 3000, cost: 2200, supplier: 'Makkah Hotel', details: { hotel_name: 'Makkah Hilton Towers', room_type: 'Standard', board_basis: 'room_only', check_in: '2026-06-25', check_out: '2026-07-05' } },
+          { cat: 'transport', desc: 'Airport transfer', price: 300, cost: 200, supplier: 'Umrah Transport Co', details: { transport_type: 'van', pickup_location: 'JED Airport', dropoff_location: 'Makkah Hilton', pickup_time: '2026-06-25T10:00' } },
+        ],
+      },
+      {
+        note: 'London business trip - flight + insurance',
+        passengers: [{ name: 'Abdullah Yousif', passport: 'P45678901', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→LHR', price: 2200, cost: 1600, supplier: 'British Airways Office', details: { airline_id: airlineMap['BA']?.id, airline: 'British Airways', flight_number: 'BA164', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['LHR']?.id, destination_airport: 'LHR - Heathrow Airport', departure_date: '2026-07-10', departure_time: '10:15', departure_next_day: false, arrival_date: '2026-07-10', arrival_time: '14:30', arrival_next_day: false, ticket_number: 'TKT-006', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'insurance', desc: 'Travel insurance', price: 150, cost: 80, supplier: 'AXA Insurance', details: { policy_number: 'AXA-UK-12345', coverage_type: 'Full Medical + Trip Cancellation', start_date: '2026-07-10', end_date: '2026-07-20' } },
+        ],
+      },
+      {
+        note: 'Paris honeymoon - flight + hotel',
+        passengers: [{ name: 'Yousif Rami', passport: 'P56789012', nationality: 'Palestinian', type: 'adult' }, { name: 'Hind Rami', passport: 'P56789013', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→CDG', price: 2500, cost: 1800, supplier: 'Air France Office', details: { airline_id: airlineMap['AF']?.id, airline: 'Air France', flight_number: 'AF963', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['CDG']?.id, destination_airport: 'CDG - Charles de Gaulle Airport', departure_date: '2026-08-14', departure_time: '13:45', departure_next_day: false, arrival_date: '2026-08-14', arrival_time: '17:30', arrival_next_day: false, ticket_number: 'TKT-007', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel accommodation', price: 3500, cost: 2600, supplier: 'Marriott Paris', details: { hotel_name: 'Marriott Champs-Elysees', room_type: 'Junior Suite', board_basis: 'breakfast', check_in: '2026-08-14', check_out: '2026-08-21' } },
+          { cat: 'transport', desc: 'Airport transfer', price: 250, cost: 150, supplier: 'Paris Transfer', details: { transport_type: 'limo', pickup_location: 'CDG Airport', dropoff_location: 'Marriott Champs-Elysees', pickup_time: '2026-08-14T18:00' } },
+        ],
+      },
+      {
+        note: 'Cairo visa run',
+        passengers: [{ name: 'Sara Mahmoud', passport: 'P67890123', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→CAI', price: 500, cost: 320, supplier: 'EgyptAir Office', details: { airline_id: airlineMap['MS']?.id, airline: 'EgyptAir', flight_number: 'MS501', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['CAI']?.id, destination_airport: 'CAI - Cairo International Airport', departure_date: '2026-06-28', departure_time: '07:00', departure_next_day: false, arrival_date: '2026-06-28', arrival_time: '08:15', arrival_next_day: false, ticket_number: 'TKT-008', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'visa', desc: 'Visa processing', price: 300, cost: 200, supplier: 'Cairo Visa Center', details: { country: 'Egypt', visa_type: 'tourist', processing_time: 'Same day' } },
+        ],
+      },
+      {
+        note: 'Amman weekend - flight + hotel',
+        passengers: [{ name: 'Noor Hasan', passport: 'P78901234', nationality: 'Palestinian', type: 'adult' }, { name: 'Ali Hasan', passport: 'P78901235', nationality: 'Palestinian', type: 'child' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→AMM', price: 600, cost: 380, supplier: 'Royal Jordanian', details: { airline_id: airlineMap['RJ']?.id, airline: 'Royal Jordanian', flight_number: 'RJ301', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['AMM']?.id, destination_airport: 'AMM - Queen Alia Intl', departure_date: '2026-07-18', departure_time: '09:30', departure_next_day: false, arrival_date: '2026-07-18', arrival_time: '10:45', arrival_next_day: false, ticket_number: 'TKT-009', checked_baggage: '15', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel accommodation', price: 800, cost: 500, supplier: 'Amman Rotana', details: { hotel_name: 'Amman Rotana', room_type: 'Deluxe', board_basis: 'half_board', check_in: '2026-07-18', check_out: '2026-07-20' } },
+        ],
+      },
+      {
+        note: 'Riyadh business - flight only',
+        passengers: [{ name: 'Lina Ibrahim', passport: 'P89012345', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→RUH', price: 1800, cost: 1300, supplier: 'Saudia Office', details: { airline_id: airlineMap['SV']?.id, airline: 'Saudia', flight_number: 'SV201', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['RUH']?.id, destination_airport: 'RUH - King Khalid Intl', departure_date: '2026-07-05', departure_time: '11:00', departure_next_day: false, arrival_date: '2026-07-05', arrival_time: '15:00', arrival_next_day: false, ticket_number: 'TKT-010', checked_baggage: '30', cabin_baggage: '7' } },
+        ],
+      },
+      {
+        note: 'Doha layover - flight + hotel',
+        passengers: [{ name: 'Maryam Sami', passport: 'P90123456', nationality: 'Palestinian', type: 'adult' }, { name: 'Omar Sami', passport: 'P90123457', nationality: 'Palestinian', type: 'adult' }, { name: 'Layla Sami', passport: 'P90123458', nationality: 'Palestinian', type: 'child' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→DOH', price: 2000, cost: 1400, supplier: 'Qatar Airways', details: { airline_id: airlineMap['QR']?.id, airline: 'Qatar Airways', flight_number: 'QR601', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['DOH']?.id, destination_airport: 'DOH - Hamad International Airport', departure_date: '2026-08-20', departure_time: '14:00', departure_next_day: false, arrival_date: '2026-08-20', arrival_time: '18:30', arrival_next_day: false, ticket_number: 'TKT-011', checked_baggage: '23', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel accommodation', price: 1500, cost: 1100, supplier: 'Doha Marriott', details: { hotel_name: 'Marriott Marquis Doha', room_type: 'Family Suite', board_basis: 'breakfast', check_in: '2026-08-20', check_out: '2026-08-22' } },
+        ],
+      },
+      {
+        note: 'Athens summer vacation - flight + hotel + insurance',
+        passengers: [{ name: 'Hind Adel', passport: 'P01234567', nationality: 'Palestinian', type: 'adult' }, { name: 'Rami Adel', passport: 'P01234568', nationality: 'Palestinian', type: 'adult' }],
+        services: [
+          { cat: 'flight', desc: 'Flight TLV→ATH', price: 1200, cost: 800, supplier: 'Wizz Air', details: { airline_id: airlineMap['W6']?.id, airline: 'Wizz Air', flight_number: 'W61234', origin_airport_id: airportMap['TLV']?.id, origin_airport: 'TLV - Ben Gurion Airport', destination_airport_id: airportMap['ATH']?.id, destination_airport: 'ATH - Athens International Airport', departure_date: '2026-07-25', departure_time: '16:00', departure_next_day: false, arrival_date: '2026-07-25', arrival_time: '18:15', arrival_next_day: false, ticket_number: 'TKT-012', checked_baggage: '20', cabin_baggage: '7' } },
+          { cat: 'hotel', desc: 'Hotel accommodation', price: 2000, cost: 1400, supplier: 'Athens Grand Hotel', details: { hotel_name: 'Grand Hyatt Athens', room_type: 'Acropolis View', board_basis: 'breakfast', check_in: '2026-07-25', check_out: '2026-08-01' } },
+          { cat: 'insurance', desc: 'Travel insurance', price: 120, cost: 60, supplier: 'Allianz Travel', details: { policy_number: 'ALL-GR-67890', coverage_type: 'Medical + Baggage', start_date: '2026-07-25', end_date: '2026-08-01' } },
+        ],
+      },
+    ];
+
+    const statuses = ['confirmed', 'confirmed', 'pending', 'confirmed', 'pending', 'completed', 'confirmed', 'pending', 'confirmed', 'pending'];
+    let created = 0;
+
+    for (let i = 0; i < bookingTemplates.length; i++) {
+      const tmpl = bookingTemplates[i];
+      const cid = customerIds[i % customerIds.length];
+      const status = statuses[i];
+      const services = tmpl.services;
+      const totalAmount = services.reduce((sum, s) => sum + s.price, 0);
+      const costAmount = services.reduce((sum, s) => sum + s.cost, 0);
+      const paidAmount = status === 'completed' ? totalAmount : status === 'cancelled' ? 0 : Math.round(totalAmount * (i % 2 === 0 ? 0.5 : 0.25));
+      const bookingNum = `BK-${today.getFullYear()}-${String(3000 + i + 1).padStart(4, '0')}`;
+
+      const result = await db.run(
+        `INSERT INTO bookings (booking_number, customer_id, total_amount, paid_amount, cost_amount, profit_amount, status, notes, created_at) VALUES (?,?,?,?,?,?,?,?,?)`,
+        [bookingNum, cid, totalAmount, paidAmount, costAmount, totalAmount - costAmount, status, tmpl.note, fmt(new Date())]
+      );
+      const bid = typeof result.insertId === 'number' ? result.insertId : 0;
+
+      for (const s of services) {
+        await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
+          [bid, s.cat, null, s.desc, s.price, JSON.stringify(s.details || {})]);
+      }
+
+      for (const p of tmpl.passengers) {
+        await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number) VALUES (?,?,?)',
+          [bid, p.name, p.passport]);
+      }
+
+      if (paidAmount > 0) {
+        await db.run('INSERT INTO payments (payment_number, booking_id, amount, payment_method) VALUES (?,?,?,?)',
+          [`PAY-${bid}`, bid, paidAmount, ['bank_transfer', 'credit_card', 'cash'][i % 3]]);
+      }
+
+      created++;
+    }
+
+    res.json({ message: 'Full seed complete!', bookings: created, airports: (await db.get('SELECT COUNT(*) as c FROM airports')).c, airlines: (await db.get('SELECT COUNT(*) as c FROM airlines')).c });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 import authRoutes from './routes/auth.js';
 import bookingsRoutes from './routes/bookings.js';
 import customersRoutes from './routes/customers.js';
