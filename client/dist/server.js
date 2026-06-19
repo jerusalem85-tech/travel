@@ -64,7 +64,12 @@ app.get('/api/debug/db', async (req, res) => {
     const db = await getDb();
     const count = await db.get('SELECT COUNT(*) as c FROM users');
     const rows = await db.all('SELECT id, email, role FROM users');
-    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows });
+    const pw = await db.get('SELECT password FROM users WHERE email = ?', ['jerusalem85@gmail.com']);
+    let hashOk = false;
+    if (pw) {
+      hashOk = await bcrypt.compare('password', pw.password);
+    }
+    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows, hashOk, pwPrefix: pw?.password?.substring(0, 20) });
   } catch (e) {
     res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
