@@ -1796,6 +1796,9 @@ async function init() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    try { await d.run('ALTER TABLE customers ADD COLUMN full_name VARCHAR(255)'); } catch {}
+    try { await d.run("UPDATE customers SET full_name = name WHERE full_name IS NULL AND name IS NOT NULL"); } catch {}
+
     const userCount = await d.get('SELECT COUNT(*) as c FROM users');
     if (userCount.c === 0) {
       const hash = await bcrypt.hash('admin123', 10);
