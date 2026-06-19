@@ -74,11 +74,11 @@ app.get('/api/debug/db', async (req, res) => {
     if (pw) {
       hashOk = await bcrypt.compare('password', pw.password);
     }
-    let custCols = [];
+    let custSample = [];
     try {
-      custCols = await db.all("SHOW COLUMNS FROM customers");
-    } catch { custCols = [{error: 'cannot read columns'}]; }
-    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows, hashOk, pwPrefix: pw?.password?.substring(0, 20), custCols });
+      custSample = await db.all("SELECT * FROM customers LIMIT 1");
+    } catch (e) { custSample = [{error: e.message}]; }
+    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows, hashOk, pwPrefix: pw?.password?.substring(0, 20), custSample });
   } catch (e) {
     res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
@@ -134,7 +134,7 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     db.get('SELECT COUNT(*) as count FROM bookings WHERE date(travel_date) = ?', [today]),
     db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE ${monthFilter}`, [month]),
     db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE ${monthFilter}`, [month]),
-    db.all('SELECT b.*, c.full_name as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 10'),
+    db.all('SELECT b.* FROM bookings b ORDER BY b.created_at DESC LIMIT 10'),
     db.get('SELECT COUNT(*) as count FROM hotels'),
     db.get('SELECT COUNT(*) as count FROM contracts'),
   ]);
