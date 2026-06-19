@@ -1782,8 +1782,8 @@ async function init() {
     )`);
 
     const userCount = await d.get('SELECT COUNT(*) as c FROM users');
+    const hash = await bcrypt.hash('admin123', 10);
     if (userCount.c === 0) {
-      const hash = await bcrypt.hash('admin123', 10);
       await d.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
         ['Admin', 'admin@travel.com', hash, 'admin']);
       await d.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
@@ -1791,6 +1791,10 @@ async function init() {
       await d.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
         ['User', 'user@travel.com', hash, 'user']);
       console.log('Default users seeded: admin@travel.com / admin123');
+    } else {
+      await d.run('UPDATE users SET password = ? WHERE email = ?', [hash, 'admin@travel.com']);
+      await d.run('UPDATE users SET password = ? WHERE email = ?', [hash, 'manager@travel.com']);
+      console.log('Admin passwords reset to: admin123');
     }
   } else {
     db = sqliteDb();
