@@ -562,6 +562,40 @@ CREATE TABLE IF NOT EXISTS templates (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS installment_plans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INT,
+  customer_id INT,
+  total_amount REAL DEFAULT 0,
+  down_payment REAL DEFAULT 0,
+  installments_count INTEGER DEFAULT 1,
+  remaining_amount REAL DEFAULT 0,
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS installment_payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  plan_id INT NOT NULL,
+  amount REAL DEFAULT 0,
+  due_date TEXT,
+  paid_date TEXT,
+  paid_amount REAL DEFAULT 0,
+  status TEXT DEFAULT 'pending',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INT NOT NULL UNIQUE,
+  theme_color TEXT DEFAULT 'indigo',
+  sidebar_collapsed INTEGER DEFAULT 0,
+  date_format TEXT DEFAULT 'YYYY-MM-DD',
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 CREATE TABLE IF NOT EXISTS brokers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   full_name TEXT NOT NULL,
@@ -1134,6 +1168,37 @@ async function init() {
       body TEXT NOT NULL,
       variables TEXT,
       is_active TINYINT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS installment_plans (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      booking_id INT,
+      customer_id INT,
+      total_amount DECIMAL(10,2) DEFAULT 0,
+      down_payment DECIMAL(10,2) DEFAULT 0,
+      installments_count INT DEFAULT 1,
+      remaining_amount DECIMAL(10,2) DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS installment_payments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      plan_id INT NOT NULL,
+      amount DECIMAL(10,2) DEFAULT 0,
+      due_date DATE,
+      paid_date DATE,
+      paid_amount DECIMAL(10,2) DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS user_preferences (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL UNIQUE,
+      theme_color VARCHAR(50) DEFAULT 'indigo',
+      sidebar_collapsed TINYINT DEFAULT 0,
+      date_format VARCHAR(20) DEFAULT 'YYYY-MM-DD',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS brokers (

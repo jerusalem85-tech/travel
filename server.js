@@ -98,6 +98,34 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   });
 });
 
+app.get('/api/stats/overview', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const today = new Date().toISOString().split('T')[0];
+  const month = today.substring(0, 7);
+  const monthFilter = isMySQL() ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
+  const [totalBookings, totalCustomers, totalRevenue, totalExpenses, pendingTasks, activeInstallments, dueInstallments, recentActivity] = await Promise.all([
+    db.get('SELECT COUNT(*) as c FROM bookings'),
+    db.get('SELECT COUNT(*) as c FROM customers'),
+    db.get(`SELECT COALESCE(SUM(amount), 0) as t FROM payments WHERE ${monthFilter}`, [month]),
+    db.get(`SELECT COALESCE(SUM(amount), 0) as t FROM expenses WHERE ${monthFilter}`, [month]),
+    db.get("SELECT COUNT(*) as c FROM tasks WHERE status != 'completed'"),
+    db.get("SELECT COUNT(*) as c FROM installment_plans WHERE status = 'active'"),
+    db.get("SELECT COUNT(*) as c FROM installment_payments WHERE status = 'pending' AND due_date <= ?", [today]),
+    db.all('SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 5'),
+  ]);
+  res.json({
+    totalBookings: totalBookings.c,
+    totalCustomers: totalCustomers.c,
+    totalRevenue: totalRevenue.t,
+    totalExpenses: totalExpenses.t,
+    netProfit: totalRevenue.t - totalExpenses.t,
+    pendingTasks: pendingTasks.c,
+    activeInstallments: activeInstallments.c,
+    dueInstallments: dueInstallments.c,
+    recentActivity,
+  });
+});
+
 app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
   const db = await getDb();
   const result = await db.get('SELECT COUNT(*) as count FROM notifications WHERE is_read = 0');
@@ -150,6 +178,8 @@ import servicesCatalogRoutes from './routes/servicesCatalog.js';
 import restaurantBookingsRoutes from './routes/restaurantBookings.js';
 import propertiesRoutes from './routes/properties.js';
 import referralsRoutes from './routes/referrals.js';
+import installmentsRoutes from './routes/installments.js';
+import userPreferencesRoutes from './routes/userPreferences.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -197,6 +227,8 @@ app.use('/api/services-catalog', authMiddleware, servicesCatalogRoutes);
 app.use('/api/restaurant-bookings', authMiddleware, restaurantBookingsRoutes);
 app.use('/api/properties', authMiddleware, propertiesRoutes);
 app.use('/api/referrals', authMiddleware, referralsRoutes);
+app.use('/api/installments', authMiddleware, installmentsRoutes);
+app.use('/api/user-preferences', authMiddleware, userPreferencesRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
