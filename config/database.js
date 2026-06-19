@@ -849,6 +849,39 @@ CREATE TABLE IF NOT EXISTS loyalty_points (
   notes TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS gallery_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,
+  entity_id INT,
+  image_url TEXT NOT NULL,
+  caption TEXT,
+  category TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS contract_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT DEFAULT 'booking',
+  content TEXT NOT NULL,
+  variables TEXT,
+  is_active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS signed_contracts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  template_id INT,
+  booking_id INT,
+  customer_id INT,
+  contract_data TEXT,
+  signature_data TEXT,
+  signed_at TEXT,
+  status TEXT DEFAULT 'draft',
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -1589,6 +1622,36 @@ async function init() {
       reference_type VARCHAR(50),
       reference_id INT,
       notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS gallery_images (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      entity_type VARCHAR(50) NOT NULL,
+      entity_id INT,
+      image_url VARCHAR(500) NOT NULL,
+      caption VARCHAR(255),
+      category VARCHAR(100),
+      sort_order INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS contract_templates (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      type VARCHAR(50) DEFAULT 'booking',
+      content TEXT NOT NULL,
+      variables TEXT,
+      is_active TINYINT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS signed_contracts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      template_id INT,
+      booking_id INT,
+      customer_id INT,
+      contract_data TEXT,
+      signature_data TEXT,
+      signed_at TIMESTAMP NULL,
+      status VARCHAR(50) DEFAULT 'draft',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

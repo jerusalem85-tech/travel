@@ -208,6 +208,10 @@ import complaintsRoutes from './routes/complaints.js';
 import giftVouchersRoutes from './routes/giftVouchers.js';
 import campaignsRoutes from './routes/campaigns.js';
 import loyaltyPointsRoutes from './routes/loyaltyPoints.js';
+import galleryRoutes from './routes/gallery.js';
+import contractTemplatesRoutes from './routes/contractTemplates.js';
+import signedContractsRoutes from './routes/signedContracts.js';
+import execDashboardRoutes from './routes/execDashboard.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -270,6 +274,10 @@ app.use('/api/complaints', authMiddleware, complaintsRoutes);
 app.use('/api/gift-vouchers', authMiddleware, giftVouchersRoutes);
 app.use('/api/campaigns', authMiddleware, campaignsRoutes);
 app.use('/api/loyalty-points', authMiddleware, loyaltyPointsRoutes);
+app.use('/api/gallery', authMiddleware, galleryRoutes);
+app.use('/api/contract-templates', authMiddleware, contractTemplatesRoutes);
+app.use('/api/signed-contracts', authMiddleware, signedContractsRoutes);
+app.use('/api/exec-dashboard', authMiddleware, execDashboardRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
