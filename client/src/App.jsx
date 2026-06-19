@@ -28,6 +28,9 @@ import Notifications from './pages/Notifications';
 import Hotels from './pages/Hotels';
 import Packages from './pages/Packages';
 import Insurance from './pages/Insurance';
+import Airlines from './pages/Airlines';
+import Airports from './pages/Airports';
+import Flights from './pages/Flights';
 import Contracts from './pages/Contracts';
 import Commissions from './pages/Commissions';
 import ActivityLog from './pages/ActivityLog';
@@ -71,6 +74,9 @@ function App() {
             <Route path="users" element={<Users />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="airlines" element={<Airlines />} />
+            <Route path="airports" element={<Airports />} />
+            <Route path="flights" element={<Flights />} />
             <Route path="hotels" element={<Hotels />} />
             <Route path="packages" element={<Packages />} />
             <Route path="insurance" element={<Insurance />} />

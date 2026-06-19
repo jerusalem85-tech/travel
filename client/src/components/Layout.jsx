@@ -59,6 +59,15 @@ export default function Layout() {
           <NavLink to="/suppliers" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-truck"></i> Suppliers
           </NavLink>
+          <NavLink to="/airlines" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-airplane"></i> Airlines
+          </NavLink>
+          <NavLink to="/airports" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-geo-alt"></i> Airports
+          </NavLink>
+          <NavLink to="/flights" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-airplane-engines"></i> Flights
+          </NavLink>
           <NavLink to="/quotations" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-file-earmark-text"></i> Quotations
           </NavLink>
