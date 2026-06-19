@@ -197,6 +197,83 @@ app.get('/api/trash/count', authMiddleware, async (req, res) => {
   res.json({ count: result.count });
 });
 
+app.post('/api/seed', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    const db = await getDb();
+    const existing = await db.get('SELECT COUNT(*) as c FROM bookings');
+    if (existing.c >= 40) return res.json({ message: `Already have ${existing.c} bookings`, count: existing.c });
+    const custCount = await db.get('SELECT COUNT(*) as c FROM customers');
+    if (custCount.c < 15) {
+      const customers = [
+        ['Ahmad Hassan', '0599123456', 'ahmad@mail.com'],
+        ['Sara Mahmoud', '0599234567', 'sara@mail.com'],
+        ['Mohammad Ali', '0599345678', 'mohd@mail.com'],
+        ['Noor Hasan', '0599456789', 'noor@mail.com'],
+        ['Khaled Omar', '0599567890', 'khaled@mail.com'],
+        ['Lina Ibrahim', '0599678901', 'lina@mail.com'],
+        ['Abdullah Yousif', '0599789012', 'abd@mail.com'],
+        ['Maryam Sami', '0599890123', 'maryam@mail.com'],
+        ['Yousif Rami', '0599901234', 'yousif@mail.com'],
+        ['Hind Adel', '0599012345', 'hind@mail.com'],
+        ['Tariq Ziyad', '0599112233', 'tariq@mail.com'],
+        ['Dina Waleed', '0599223344', 'dina@mail.com'],
+        ['Sami Jamal', '0599334455', 'sami@mail.com'],
+        ['Rana Fouad', '0599445566', 'rana@mail.com'],
+        ['Basem Kamal', '0599556677', 'basem@mail.com'],
+      ];
+      for (const c of customers) {
+        await db.run('INSERT INTO customers (full_name, phone, email) VALUES (?,?,?)', c);
+      }
+    }
+    const services = ['flight', 'hotel', 'package', 'visa', 'transfer', 'umrah', 'hajj'];
+    const statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+    const fromDests = ['Jerusalem', 'Ramallah', 'Nablus', 'Hebron', 'Gaza'];
+    const toDests = ['Dubai', 'Istanbul', 'Cairo', 'Amman', 'London', 'Paris', 'Kuala Lumpur', 'Riyadh', 'Doha', 'Casablanca'];
+    const amounts = [1200, 2500, 4500, 800, 1800, 3000, 5500, 1500, 900, 4200];
+    const today = new Date();
+    for (let i = 0; i < 40; i++) {
+      const customerId = (i % 15) + 1;
+      const svc = services[i % services.length];
+      const fromDest = fromDests[i % fromDests.length];
+      const toDest = toDests[i % toDests.length];
+      const status = statuses[i % statuses.length];
+      const total = amounts[i % 10];
+      const paid = status === 'completed' ? total : status === 'cancelled' ? 0 : Math.round(total * [0, 0.25, 0.5, 0.75][i % 4]);
+      const bookingNum = `BK-${today.getFullYear()}-${String(1000 + i + 1).padStart(4, '0')}`;
+      const daysAgo = Math.floor(Math.random() * 180);
+      const bDate = new Date(today); bDate.setDate(bDate.getDate() - daysAgo);
+      const tDate = new Date(bDate); tDate.setDate(tDate.getDate() + Math.floor(Math.random() * 60) + 1);
+      const rDate = new Date(tDate); rDate.setDate(rDate.getDate() + 7);
+      const fmt = (d) => d.toISOString().split('T')[0];
+      const result = await db.run(
+        `INSERT INTO bookings (booking_number, customer_id, service_type, from_destination, to_destination, travel_date, return_date, total_amount, paid_amount, status, notes, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [bookingNum, customerId, svc, fromDest, toDest, fmt(tDate), fmt(rDate), total, paid, status, `Booking #${i+1} - ${svc}`, fmt(bDate)]
+      );
+      const bid = typeof result.insertId === 'number' ? result.insertId : 0;
+      if (i % 3 !== 0) {
+        const pax = [1, 2, 3, 4][i % 4];
+        for (let p = 1; p <= pax; p++) {
+          await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number) VALUES (?,?,?)',
+            [bid, `Passenger ${p}`, `P${100000 + bid * 10 + p}`]);
+        }
+      }
+      if (paid > 0) {
+        const methods = ['cash', 'credit_card', 'bank_transfer', 'cheque'];
+        await db.run('INSERT INTO payments (payment_number, booking_id, amount, payment_method) VALUES (?,?,?,?)',
+          [`PAY-${bid}`, bid, paid, methods[i % 4]]);
+      }
+      await db.run('INSERT INTO activity_log (user_id, action, entity_type, entity_id, details) VALUES (?,?,?,?,?)',
+        [1, 'create', 'booking', bid, `Create booking #${bid}`]);
+    }
+    await db.run("INSERT INTO notifications (title, message) VALUES (?,?)", ['Bookings Added', '40 bookings have been seeded']);
+    const newCount = await db.get('SELECT COUNT(*) as c FROM bookings');
+    res.json({ message: 'Seed complete!', bookingsCreated: 40, totalBookings: newCount.c });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 import authRoutes from './routes/auth.js';
 import bookingsRoutes from './routes/bookings.js';
 import customersRoutes from './routes/customers.js';
