@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../config/database.js';
+import { moveToTrash } from './trashHelper.js';
 
 const router = Router();
 
@@ -53,6 +54,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const db = await getDb();
+  await moveToTrash(db, 'bookings', req.params.id, req.user?.id);
   await db.run('DELETE FROM booking_passengers WHERE booking_id = ?', [req.params.id]);
   await db.run('DELETE FROM booking_services WHERE booking_id = ?', [req.params.id]);
   await db.run('DELETE FROM payments WHERE booking_id = ?', [req.params.id]);

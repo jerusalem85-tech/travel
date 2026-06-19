@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../config/database.js';
+import { moveToTrash } from './trashHelper.js';
 
 const router = Router();
 
@@ -48,6 +49,7 @@ router.delete('/:id', async (req, res) => {
   const db = await getDb();
   const bookings = await db.get('SELECT COUNT(*) as count FROM bookings WHERE customer_id = ?', [req.params.id]);
   if (bookings.count > 0) return res.status(400).json({ error: 'Cannot delete customer with bookings' });
+  await moveToTrash(db, 'customers', req.params.id, req.user?.id);
   await db.run('DELETE FROM customers WHERE id = ?', [req.params.id]);
   res.json({ message: 'Deleted' });
 });

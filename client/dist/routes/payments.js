@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../config/database.js';
+import { moveToTrash } from './trashHelper.js';
 
 const router = Router();
 
@@ -39,6 +40,7 @@ router.delete('/:id', async (req, res) => {
   const db = await getDb();
   const payment = await db.get('SELECT * FROM payments WHERE id = ?', [req.params.id]);
   if (!payment) return res.status(404).json({ error: 'Payment not found' });
+  await moveToTrash(db, 'payments', req.params.id, req.user?.id);
   await db.run('DELETE FROM payments WHERE id = ?', [req.params.id]);
   if (payment.booking_id) {
     const paid = await db.get('SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE booking_id = ?', [payment.booking_id]);

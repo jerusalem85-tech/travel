@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../config/database.js';
+import { moveToTrash } from './trashHelper.js';
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.delete('/:id', async (req, res) => {
   const currency = await db.get('SELECT * FROM currencies WHERE id = ?', [req.params.id]);
   if (!currency) return res.status(404).json({ error: 'Currency not found' });
   if (currency.is_default) return res.status(400).json({ error: 'Cannot delete default currency' });
+  await moveToTrash(db, 'currencies', req.params.id, req.user?.id);
   await db.run('DELETE FROM currencies WHERE id = ?', [req.params.id]);
   res.json({ message: 'Deleted' });
 });

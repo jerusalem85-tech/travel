@@ -44,7 +44,20 @@ app.post('/api/auth/login', async (req, res) => {
   const match = await bcrypt.compare(password, user.password);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
   const token = jwt.sign({ id: user.id, full_name: user.full_name, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const ua = req.headers['user-agent'] || '';
+  await db.run('INSERT INTO login_log (user_id, full_name, action, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+    [user.id, user.full_name, 'login', ip, ua]);
   res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email, role: user.role } });
+});
+
+app.post('/api/auth/logout', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const ua = req.headers['user-agent'] || '';
+  await db.run('INSERT INTO login_log (user_id, full_name, action, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+    [req.user.id, req.user.full_name, 'logout', ip, ua]);
+  res.json({ success: true });
 });
 
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
@@ -127,6 +140,9 @@ import guidesRoutes from './routes/guides.js';
 import discountsRoutes from './routes/discounts.js';
 import taxRatesRoutes from './routes/taxRates.js';
 import reviewsRoutes from './routes/reviews.js';
+import trashRoutes from './routes/trash.js';
+import loginLogRoutes from './routes/loginLog.js';
+import templatesRoutes from './routes/templates.js';
 import brokersRoutes from './routes/brokers.js';
 import brokerCommissionsRoutes from './routes/brokerCommissions.js';
 import transfersRoutes from './routes/transfers.js';
@@ -171,6 +187,9 @@ app.use('/api/guides', authMiddleware, guidesRoutes);
 app.use('/api/discounts', authMiddleware, discountsRoutes);
 app.use('/api/tax-rates', authMiddleware, taxRatesRoutes);
 app.use('/api/reviews', authMiddleware, reviewsRoutes);
+app.use('/api/trash', authMiddleware, trashRoutes);
+app.use('/api/login-log', authMiddleware, loginLogRoutes);
+app.use('/api/templates', authMiddleware, templatesRoutes);
 app.use('/api/brokers', authMiddleware, brokersRoutes);
 app.use('/api/broker-commissions', authMiddleware, brokerCommissionsRoutes);
 app.use('/api/transfers', authMiddleware, transfersRoutes);

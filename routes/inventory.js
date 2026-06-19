@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../config/database.js';
+import { moveToTrash } from './trashHelper.js';
 
 const router = Router();
 
@@ -47,6 +48,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const db = await getDb();
+  await moveToTrash(db, 'inventory_items', req.params.id, req.user?.id);
   await db.run('DELETE FROM inventory_items WHERE id = ?', [req.params.id]);
   res.json({ message: 'Deleted' });
 });

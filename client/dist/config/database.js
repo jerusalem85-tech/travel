@@ -532,6 +532,36 @@ CREATE TABLE IF NOT EXISTS reviews (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS trash (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,
+  entity_id INTEGER NOT NULL,
+  entity_data TEXT,
+  deleted_by INTEGER,
+  deleted_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS login_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  full_name TEXT,
+  action TEXT DEFAULT 'login',
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT DEFAULT 'whatsapp',
+  subject TEXT,
+  body TEXT NOT NULL,
+  variables TEXT,
+  is_active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 CREATE TABLE IF NOT EXISTS brokers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   full_name TEXT NOT NULL,
@@ -1077,6 +1107,33 @@ async function init() {
       rating INT DEFAULT 5,
       review_text TEXT,
       reviewer_name VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS trash (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      entity_type VARCHAR(100) NOT NULL,
+      entity_id INT NOT NULL,
+      entity_data JSON,
+      deleted_by INT,
+      deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS login_log (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT,
+      full_name VARCHAR(255),
+      action VARCHAR(50) DEFAULT 'login',
+      ip_address VARCHAR(50),
+      user_agent TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS templates (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      type VARCHAR(50) DEFAULT 'whatsapp',
+      subject TEXT,
+      body TEXT NOT NULL,
+      variables TEXT,
+      is_active TINYINT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS brokers (
