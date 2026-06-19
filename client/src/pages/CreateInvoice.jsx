@@ -156,7 +156,7 @@ const CreateInvoice = () => {
                       placeholder="0.00"
                       required
                     />
-                    <span className="input-group-text">SAR</span>
+                    <span className="input-group-text">USD</span>
                   </div>
                 </div>
 

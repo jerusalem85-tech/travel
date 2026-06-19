@@ -22,7 +22,7 @@ const Contracts = () => {
     end_date: '',
     terms: '',
     total_amount: '',
-    currency: 'SAR',
+    currency: 'USD',
     status: 'active',
     notes: ''
   });
@@ -66,7 +66,7 @@ const Contracts = () => {
       end_date: '',
       terms: '',
       total_amount: '',
-      currency: 'SAR',
+      currency: 'USD',
       status: 'active',
       notes: ''
     });
@@ -89,7 +89,7 @@ const Contracts = () => {
       end_date: contract.end_date ? contract.end_date.split('T')[0] : '',
       terms: contract.terms || '',
       total_amount: contract.total_amount || '',
-      currency: contract.currency || 'SAR',
+      currency: contract.currency || 'USD',
       status: contract.status || 'active',
       notes: contract.notes || ''
     });
@@ -271,7 +271,7 @@ const Contracts = () => {
                         <td>{c.party_phone || '-'}</td>
                         <td>{c.start_date ? new Date(c.start_date).toLocaleDateString('en-US') : '-'}</td>
                         <td>{c.end_date ? new Date(c.end_date).toLocaleDateString('en-US') : '-'}</td>
-                        <td className="fw-bold">{Number(c.total_amount).toLocaleString()} {c.currency || 'SAR'}</td>
+                        <td className="fw-bold">{Number(c.total_amount).toLocaleString()} {c.currency || 'USD'}</td>
                         <td>{getStatusBadge(c.status)}</td>
                         <td>
                           <div className="d-flex gap-1">
@@ -310,7 +310,7 @@ const Contracts = () => {
                         <div className="col-md-6 mb-2"><strong>Type:</strong> {getTypeLabel(contract.contract_type)}</div>
                         <div className="col-md-6 mb-2"><strong>Start Date:</strong> {contract.start_date ? new Date(contract.start_date).toLocaleDateString('en-US') : '-'}</div>
                         <div className="col-md-6 mb-2"><strong>End Date:</strong> {contract.end_date ? new Date(contract.end_date).toLocaleDateString('en-US') : '-'}</div>
-                        <div className="col-md-6 mb-2"><strong>Amount:</strong> {Number(contract.total_amount).toLocaleString()} {contract.currency || 'SAR'}</div>
+                        <div className="col-md-6 mb-2"><strong>Amount:</strong> {Number(contract.total_amount).toLocaleString()} {contract.currency || 'USD'}</div>
                         <div className="col-md-6 mb-2"><strong>Status:</strong> {getStatusBadge(contract.status)}</div>
                       </div>
                       {contract.terms && (
@@ -433,16 +433,18 @@ const Contracts = () => {
                       <label className="form-label">Total Amount <span className="text-danger">*</span></label>
                       <div className="input-group">
                         <input type="number" className="form-control" name="total_amount" value={formData.total_amount} onChange={handleChange} min="0" step="0.01" placeholder="0.00" required />
-                        <span className="input-group-text">SAR</span>
+                        <span className="input-group-text">USD</span>
                       </div>
                     </div>
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={handleChange}>
-                        <option value="SAR">Saudi Riyal</option>
                         <option value="USD">US Dollar</option>
+                        <option value="ILS">Israeli Shekel</option>
+                        <option value="SAR">Saudi Riyal</option>
                         <option value="EUR">Euro</option>
                         <option value="GBP">British Pound</option>
+                        <option value="EGP">Egyptian Pound</option>
                       </select>
                     </div>
                   </div>

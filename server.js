@@ -250,7 +250,6 @@ app.post('/api/seed', authMiddleware, async (req, res) => {
         await db.run('INSERT INTO customers (full_name, phone, email) VALUES (?,?,?)', c);
       }
     }
-    const services = ['flight', 'hotel', 'package', 'visa', 'transfer', 'umrah', 'hajj'];
     const statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
     const fromDests = ['Jerusalem', 'Ramallah', 'Nablus', 'Hebron', 'Gaza'];
     const toDests = ['Dubai', 'Istanbul', 'Cairo', 'Amman', 'London', 'Paris', 'Kuala Lumpur', 'Riyadh', 'Doha', 'Casablanca'];
@@ -258,7 +257,6 @@ app.post('/api/seed', authMiddleware, async (req, res) => {
     const today = new Date();
     for (let i = 0; i < 40; i++) {
       const customerId = (i % 15) + 1;
-      const svc = services[i % services.length];
       const fromDest = fromDests[i % fromDests.length];
       const toDest = toDests[i % toDests.length];
       const status = statuses[i % statuses.length];
@@ -271,8 +269,8 @@ app.post('/api/seed', authMiddleware, async (req, res) => {
       const rDate = new Date(tDate); rDate.setDate(rDate.getDate() + 7);
       const fmt = (d) => d.toISOString().split('T')[0];
       const result = await db.run(
-        `INSERT INTO bookings (booking_number, customer_id, service_type, from_destination, to_destination, travel_date, return_date, total_amount, paid_amount, status, notes, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [bookingNum, customerId, svc, fromDest, toDest, fmt(tDate), fmt(rDate), total, paid, status, `Booking #${i+1} - ${svc}`, fmt(bDate)]
+        `INSERT INTO bookings (booking_number, customer_id, from_destination, to_destination, travel_date, return_date, total_amount, paid_amount, status, notes, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [bookingNum, customerId, fromDest, toDest, fmt(tDate), fmt(rDate), total, paid, status, `Booking #${i+1}`, fmt(bDate)]
       );
       const bid = typeof result.insertId === 'number' ? result.insertId : 0;
       if (i % 3 !== 0) {
@@ -293,6 +291,171 @@ app.post('/api/seed', authMiddleware, async (req, res) => {
     await db.run("INSERT INTO notifications (title, message) VALUES (?,?)", ['Bookings Added', '40 bookings have been seeded']);
     const newCount = await db.get('SELECT COUNT(*) as c FROM bookings');
     res.json({ message: 'Seed complete!', bookingsCreated: 40, totalBookings: newCount.c });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/seed-flights', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    const db = await getDb();
+
+    const airportCount = await db.get('SELECT COUNT(*) as c FROM airports');
+    if (airportCount.c === 0) {
+      const airports = [
+        ['TLV', 'Ben Gurion Airport', 'Tel Aviv', 'Israel'],
+        ['DXB', 'Dubai International Airport', 'Dubai', 'UAE'],
+        ['IST', 'Istanbul Airport', 'Istanbul', 'Turkey'],
+        ['CAI', 'Cairo International Airport', 'Cairo', 'Egypt'],
+        ['AMM', 'Queen Alia International Airport', 'Amman', 'Jordan'],
+        ['LHR', 'Heathrow Airport', 'London', 'UK'],
+        ['CDG', 'Charles de Gaulle Airport', 'Paris', 'France'],
+        ['KUL', 'Kuala Lumpur International Airport', 'Kuala Lumpur', 'Malaysia'],
+        ['RUH', 'King Khalid International Airport', 'Riyadh', 'Saudi Arabia'],
+        ['DOH', 'Hamad International Airport', 'Doha', 'Qatar'],
+        ['CMN', 'Mohammed V International Airport', 'Casablanca', 'Morocco'],
+        ['JED', 'King Abdulaziz International Airport', 'Jeddah', 'Saudi Arabia'],
+        ['ETH', 'Eilat Ramon Airport', 'Eilat', 'Israel'],
+        ['AYT', 'Antalya Airport', 'Antalya', 'Turkey'],
+        ['FCO', 'Leonardo da Vinci–Fiumicino Airport', 'Rome', 'Italy'],
+        ['BCN', 'Barcelona–El Prat Airport', 'Barcelona', 'Spain'],
+        ['MUC', 'Munich Airport', 'Munich', 'Germany'],
+        ['ATH', 'Athens International Airport', 'Athens', 'Greece'],
+        ['BKK', 'Suvarnabhumi Airport', 'Bangkok', 'Thailand'],
+        ['NBO', 'Jomo Kenyatta International Airport', 'Nairobi', 'Kenya'],
+      ];
+      for (const a of airports) {
+        await db.run('INSERT INTO airports (code, name, city, country) VALUES (?,?,?,?)', a);
+      }
+    }
+
+    const airlineCount = await db.get('SELECT COUNT(*) as c FROM airlines');
+    if (airlineCount.c === 0) {
+      const airlines = [
+        ['LY', 'El Al Israel Airlines', 'Israel'],
+        ['EK', 'Emirates', 'UAE'],
+        ['TK', 'Turkish Airlines', 'Turkey'],
+        ['MS', 'EgyptAir', 'Egypt'],
+        ['RJ', 'Royal Jordanian', 'Jordan'],
+        ['BA', 'British Airways', 'UK'],
+        ['AF', 'Air France', 'France'],
+        ['MH', 'Malaysia Airlines', 'Malaysia'],
+        ['SV', 'Saudia', 'Saudi Arabia'],
+        ['QR', 'Qatar Airways', 'Qatar'],
+        ['AT', 'Royal Air Maroc', 'Morocco'],
+        ['W6', 'Wizz Air', 'Hungary'],
+        ['FR', 'Ryanair', 'Ireland'],
+        ['LH', 'Lufthansa', 'Germany'],
+        ['AZ', 'ITA Airways', 'Italy'],
+      ];
+      for (const a of airlines) {
+        await db.run('INSERT INTO airlines (code, name, country) VALUES (?,?,?)', a);
+      }
+    }
+
+    const airports = await db.all('SELECT id, code, name FROM airports');
+    const airlines = await db.all('SELECT id, code, name FROM airlines');
+    const airportMap = {};
+    airports.forEach(a => { airportMap[a.code] = a; });
+    const airlineMap = {};
+    airlines.forEach(a => { airlineMap[a.code] = a; });
+
+    const existingFlights = await db.get('SELECT COUNT(*) as c FROM bookings WHERE service_type = ?', ['flight']);
+    if (existingFlights.c >= 20) return res.json({ message: `Already have ${existingFlights.c} flight bookings`, count: existingFlights.c });
+
+    const routes = [
+      { from: 'TLV', to: 'DXB', airline: 'EK', flight: 'EK501', dep: '12:10', arr: '19:25', depNext: true, arrNext: false },
+      { from: 'DXB', to: 'TLV', airline: 'EK', flight: 'EK500', dep: '08:00', arr: '10:45', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'IST', airline: 'TK', flight: 'TK789', dep: '06:30', arr: '09:15', depNext: false, arrNext: false },
+      { from: 'IST', to: 'TLV', airline: 'TK', flight: 'TK790', dep: '22:00', arr: '00:45', depNext: false, arrNext: true },
+      { from: 'TLV', to: 'LHR', airline: 'BA', flight: 'BA164', dep: '10:15', arr: '14:30', depNext: false, arrNext: false },
+      { from: 'LHR', to: 'TLV', airline: 'BA', flight: 'BA165', dep: '16:00', arr: '22:45', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'CDG', airline: 'AF', flight: 'AF963', dep: '13:45', arr: '17:30', depNext: false, arrNext: false },
+      { from: 'CDG', to: 'TLV', airline: 'AF', flight: 'AF962', dep: '20:00', arr: '01:30', depNext: false, arrNext: true },
+      { from: 'TLV', to: 'CAI', airline: 'MS', flight: 'MS501', dep: '07:00', arr: '08:15', depNext: false, arrNext: false },
+      { from: 'CAI', to: 'TLV', airline: 'MS', flight: 'MS502', dep: '18:00', arr: '19:15', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'AMM', airline: 'RJ', flight: 'RJ301', dep: '09:30', arr: '10:45', depNext: false, arrNext: false },
+      { from: 'AMM', to: 'TLV', airline: 'RJ', flight: 'RJ302', dep: '15:00', arr: '16:15', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'JED', airline: 'SV', flight: 'SV101', dep: '05:00', arr: '09:30', depNext: false, arrNext: false },
+      { from: 'JED', to: 'TLV', airline: 'SV', flight: 'SV102', dep: '21:00', arr: '23:30', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'RUH', airline: 'SV', flight: 'SV201', dep: '11:00', arr: '15:00', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'DOH', airline: 'QR', flight: 'QR601', dep: '14:00', arr: '18:30', depNext: false, arrNext: false },
+      { from: 'DOH', to: 'TLV', airline: 'QR', flight: 'QR602', dep: '20:00', arr: '22:30', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'CMN', airline: 'AT', flight: 'AT201', dep: '23:00', arr: '03:30', depNext: false, arrNext: true },
+      { from: 'TLV', to: 'KUL', airline: 'MH', flight: 'MH151', dep: '01:00', arr: '16:30', depNext: true, arrNext: false },
+      { from: 'KUL', to: 'TLV', airline: 'MH', flight: 'MH152', dep: '22:00', arr: '03:30', depNext: false, arrNext: true },
+      { from: 'TLV', to: 'ATH', airline: 'A3', flight: 'A3121', dep: '07:45', arr: '10:00', depNext: false, arrNext: false },
+      { from: 'ATH', to: 'TLV', airline: 'A3', flight: 'A3122', dep: '12:00', arr: '14:15', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'AYT', airline: 'TK', flight: 'TK300', dep: '15:30', arr: '18:00', depNext: false, arrNext: false },
+      { from: 'TLV', to: 'FCO', airline: 'AZ', flight: 'AZ801', dep: '10:30', arr: '13:15', depNext: false, arrNext: false },
+      { from: 'FCO', to: 'TLV', airline: 'AZ', flight: 'AZ802', dep: '14:30', arr: '19:00', depNext: false, arrNext: false },
+    ];
+
+    const customers = await db.all('SELECT id FROM customers ORDER BY RANDOM() LIMIT 25');
+    if (customers.length === 0) return res.status(400).json({ error: 'No customers found. Run regular seed first.' });
+    const statuses = ['pending', 'confirmed', 'confirmed', 'completed', 'confirmed', 'cancelled'];
+    const today = new Date();
+    let created = 0;
+
+    for (let i = 0; i < Math.min(routes.length, 25); i++) {
+      const route = routes[i];
+      const customerId = customers[i % customers.length].id;
+      const cust = await db.get('SELECT full_name FROM customers WHERE id = ?', [customerId]);
+      const status = statuses[i % statuses.length];
+      const total = [1200, 1800, 2500, 3200, 4500, 800, 5500][i % 7];
+      const paid = status === 'completed' ? total : status === 'cancelled' ? 0 : Math.round(total * [0.25, 0.5][i % 2]);
+      const daysAgo = Math.floor(Math.random() * 90);
+      const bDate = new Date(today); bDate.setDate(bDate.getDate() - daysAgo);
+      const tDate = new Date(bDate); tDate.setDate(tDate.getDate() + Math.floor(Math.random() * 14) + 2);
+      const fmt = (d) => d.toISOString().split('T')[0];
+      const bookingNum = `FL-${today.getFullYear()}-${String(2000 + i + 1).padStart(4, '0')}`;
+      const fromAirport = airportMap[route.from];
+      const toAirport = airportMap[route.to];
+      if (!fromAirport || !toAirport) continue;
+
+      const result = await db.run(
+        `INSERT INTO bookings (booking_number, customer_id, from_destination, to_destination, travel_date, total_amount, paid_amount, status, airline, flight_number, notes, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [bookingNum, customerId, `${fromAirport.code} - ${fromAirport.name}`, `${toAirport.code} - ${toAirport.name}`, fmt(tDate), total, paid, status, route.airline, route.flight, `Flight booking: ${fromAirport.code} → ${toAirport.code}`, fmt(bDate)]
+      );
+      const bid = typeof result.insertId === 'number' ? result.insertId : 0;
+      if (bid) {
+        const details = {
+          airline_id: airlineMap[route.airline]?.id || '',
+          airline: airlineMap[route.airline]?.name || route.airline,
+          flight_number: route.flight,
+          origin_airport_id: fromAirport.id,
+          destination_airport_id: toAirport.id,
+          origin_airport: `${fromAirport.code} - ${fromAirport.name}`,
+          destination_airport: `${toAirport.code} - ${toAirport.name}`,
+          departure_date: fmt(tDate),
+          departure_time: route.dep,
+          departure_next_day: route.depNext,
+          arrival_date: fmt(tDate),
+          arrival_time: route.arr,
+          arrival_next_day: route.arrNext,
+          ticket_number: `TKT-${bid}-${String(i).padStart(3, '0')}`,
+          checked_baggage: '23',
+          cabin_baggage: '7',
+        };
+        await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
+          [bid, 'flight', null, `Flight ${route.airline} ${route.flight}: ${route.from} → ${route.to}`, total, JSON.stringify(details)]);
+      }
+      if (i % 2 === 0) {
+        for (let p = 1; p <= 2; p++) {
+          await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number) VALUES (?,?,?)',
+            [bid, `Passenger ${p}`, `P${100000 + bid * 10 + p}`]);
+        }
+      }
+      if (paid > 0) {
+        await db.run('INSERT INTO payments (payment_number, booking_id, amount, payment_method) VALUES (?,?,?,?)',
+          [`PAY-${bid}`, bid, paid, ['cash', 'bank_transfer', 'credit_card'][i % 3]]);
+      }
+      created++;
+    }
+
+    const newCount = await db.get('SELECT COUNT(*) as c FROM bookings');
+    res.json({ message: 'Flight seed complete!', bookingsCreated: created, totalBookings: newCount.c });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

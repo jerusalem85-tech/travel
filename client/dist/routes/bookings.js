@@ -29,26 +29,47 @@ router.get('/:id', async (req, res) => {
     db.all('SELECT s.*, sup.name as supplier_name FROM booking_services s LEFT JOIN suppliers sup ON s.supplier_id = sup.id WHERE s.booking_id = ? ORDER BY s.id', [req.params.id]),
     db.all('SELECT * FROM payments WHERE booking_id = ? ORDER BY created_at DESC', [req.params.id]),
   ]);
+  services.forEach(s => { if (s.details && typeof s.details === 'string') { try { s.details = JSON.parse(s.details); } catch {} } });
   res.json({ ...booking, passengers, services, payments });
 });
 
 router.post('/', async (req, res) => {
   const db = await getDb();
-  const { customer_id, service_type, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes } = req.body;
+  const { customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes, passengers, services } = req.body;
   if (!customer_id) return res.status(400).json({ error: 'Customer is required' });
   const max = await db.get("SELECT MAX(CAST(booking_number AS INTEGER)) as max_num FROM bookings");
   const booking_number = String((max?.max_num || 0) + 1);
-  const result = await db.run(`INSERT INTO bookings (booking_number, customer_id, service_type, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, profit_amount, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [booking_number, customer_id, service_type || null, travel_date || null, return_date || null, from_destination || null, to_destination || null, airline || null, flight_number || null, ticket_number || null, status || 'pending', total_amount || 0, cost_amount || 0, (total_amount || 0) - (cost_amount || 0), notes || null]);
-  res.json({ id: result.insertId || result.lastInsertRowid, booking_number });
+  const result = await db.run(`INSERT INTO bookings (booking_number, customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, profit_amount, notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [booking_number, customer_id, travel_date || null, return_date || null, from_destination || null, to_destination || null, airline || null, flight_number || null, ticket_number || null, status || 'pending', total_amount || 0, cost_amount || 0, (total_amount || 0) - (cost_amount || 0), notes || null]);
+  const bookingId = result.insertId || result.lastInsertRowid;
+  if (passengers && passengers.length > 0) {
+    for (const p of passengers) {
+      await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number, id_number, seat_number) VALUES (?,?,?,?,?)',
+        [bookingId, p.name || null, p.passport || null, p.idNumber || null, p.seat || null]);
+    }
+  }
+  if (services && services.length > 0) {
+    for (const s of services) {
+      await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
+        [bookingId, s.service_category || s.service_type || null, s.supplier_id || null, s.description || null, s.price || 0, s.details ? JSON.stringify(s.details) : '{}']);
+    }
+  }
+  res.json({ id: bookingId, booking_number });
 });
 
 router.put('/:id', async (req, res) => {
   const db = await getDb();
-  const { customer_id, service_type, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes } = req.body;
+  const { customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes, services } = req.body;
   const profit = (total_amount || 0) - (cost_amount || 0);
-  await db.run(`UPDATE bookings SET customer_id=?, service_type=?, travel_date=?, return_date=?, from_destination=?, to_destination=?, airline=?, flight_number=?, ticket_number=?, status=?, total_amount=?, cost_amount=?, profit_amount=?, notes=? WHERE id=?`,
+  await db.run(`UPDATE bookings SET customer_id=?, travel_date=?, return_date=?, from_destination=?, to_destination=?, airline=?, flight_number=?, ticket_number=?, status=?, total_amount=?, cost_amount=?, profit_amount=?, notes=? WHERE id=?`,
     [customer_id, service_type, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount || 0, cost_amount || 0, profit, notes, req.params.id]);
+  if (services && services.length > 0) {
+    await db.run('DELETE FROM booking_services WHERE booking_id = ?', [req.params.id]);
+    for (const s of services) {
+      await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
+        [req.params.id, s.service_category || s.service_type || null, s.supplier_id || null, s.description || null, s.price || 0, s.details ? JSON.stringify(s.details) : '{}']);
+    }
+  }
   res.json({ message: 'Updated' });
 });
 
@@ -79,10 +100,10 @@ router.delete('/passengers/:id', async (req, res) => {
 
 router.post('/:id/services', async (req, res) => {
   const db = await getDb();
-  const { service_type, supplier_id, description, amount } = req.body;
+  const { service_type, supplier_id, description, amount, details } = req.body;
   if (!service_type) return res.status(400).json({ error: 'Service type is required' });
-  const result = await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount) VALUES (?,?,?,?,?)',
-    [req.params.id, service_type, supplier_id || null, description || null, amount || 0]);
+  const result = await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
+    [req.params.id, service_type, supplier_id || null, description || null, amount || 0, details ? JSON.stringify(details) : '{}']);
   res.json({ id: result.insertId || result.lastInsertRowid });
 });
 

@@ -25,6 +25,7 @@ export default function Bookings() {
     });
   };
 
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
   const statusBadge = (status) => {
     const colors = { confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'info' };
     const labels = { confirmed: 'Confirmed', pending: 'Pending', cancelled: 'Cancelled', completed: 'Completed' };
@@ -36,7 +37,7 @@ export default function Bookings() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Bookings</h5>
         <div className="d-flex gap-2">
-          <button className="btn btn-outline-secondary btn-sm" onClick={() => exportCSV(data.rows, 'bookings.csv', ['booking_number','customer_name','service_type','from_destination','to_destination','travel_date','total_amount','status'])}>
+          <button className="btn btn-outline-secondary btn-sm" onClick={() => exportCSV(data.rows, 'bookings.csv', ['booking_number','customer_name','from_destination','to_destination','travel_date','total_amount','status'])}>
             <i className="bi bi-download"></i> Export CSV
           </button>
           <Link to="/bookings/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> New Booking</Link>
@@ -66,15 +67,14 @@ export default function Bookings() {
       <div className="card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th>Booking #</th><th>Customer</th><th>Service Type</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Booking #</th><th>Customer</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {data.rows.map(b => (
                 <tr key={b.id}>
                   <td><Link to={`/bookings/${b.id}`} className="text-decoration-none">{b.booking_number}</Link></td>
                   <td>{b.customer_name}</td>
-                  <td>{b.service_type || '-'}</td>
                   <td>{b.from_destination && b.to_destination ? `${b.from_destination} → ${b.to_destination}` : '-'}</td>
-                  <td>{b.travel_date || '-'}</td>
+                  <td>{formatDate(b.travel_date)}</td>
                   <td>{b.total_amount?.toLocaleString()}</td>
                   <td>{statusBadge(b.status)}</td>
                   <td>

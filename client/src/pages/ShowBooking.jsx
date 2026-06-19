@@ -2,16 +2,34 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 
+const emptyServiceDetails = {
+  airline: '', airline_id: '', flight_number: '', origin_airport_id: '', destination_airport_id: '', origin_airport: '', destination_airport: '', departure_date: '', departure_time: '', departure_next_day: false, arrival_date: '', arrival_time: '', arrival_next_day: false, ticket_number: '', checked_baggage: '', cabin_baggage: '',
+  hotel_name: '', room_type: '', board_basis: '', check_in: '', check_out: '',
+  transport_type: '', pickup_location: '', dropoff_location: '', pickup_time: '',
+  country: '', visa_type: '', processing_time: '',
+  policy_number: '', coverage_type: '', start_date: '', end_date: '',
+};
+
 export default function ShowBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [showPayModal, setShowPayModal] = useState(false);
   const [payForm, setPayForm] = useState({ amount: '', payment_method: 'Cash', notes: '' });
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [serviceForm, setServiceForm] = useState({ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyServiceDetails } });
+  const [airports, setAirports] = useState([]);
+  const [airlines, setAirlines] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const load = () => api.get(`/bookings/${id}`).then(res => setBooking(res.data));
 
   useEffect(() => { load(); }, [id]);
+
+  useEffect(() => {
+    api.get('/airports', { params: { limit: 1000 } }).then(res => setAirports(res.data.rows || res.data || []));
+    api.get('/airlines', { params: { limit: 1000 } }).then(res => setAirlines(res.data.rows || res.data || []));
+  }, []);
 
   const handleDelete = () => {
     Swal.fire({ title: 'Confirm Deletion', text: 'The booking and all related data will be deleted', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' }).then(r => {
@@ -27,15 +45,59 @@ export default function ShowBooking() {
     load();
   };
 
+  const handlePrint = () => window.print();
+
   const statusBadge = (status) => {
     const colors = { confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'info' };
     const labels = { confirmed: 'Confirmed', pending: 'Pending', cancelled: 'Cancelled', completed: 'Completed' };
     return <span className={`badge bg-${colors[status] || 'secondary'}`}>{labels[status] || status}</span>;
   };
 
-  const serviceTypeLabel = (type) => {
-    const labels = { flight: 'Flight', hotel: 'Hotel', visa: 'Visa', tour: 'Tour', transport: 'Transport', other: 'Other' };
-    return labels[type] || type || '-';
+  const openAddService = () => {
+    setServiceForm({ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyServiceDetails } });
+    setShowServiceModal(true);
+  };
+
+  const handleServiceCategoryChange = (value) => {
+    const updated = { ...serviceForm, service_category: value, details: { ...emptyServiceDetails } };
+    if (value === 'flight') updated.description = 'Flight ticket';
+    else if (value === 'hotel') updated.description = 'Hotel accommodation';
+    else if (value === 'transport') updated.description = 'Transport service';
+    else if (value === 'visa') updated.description = 'Visa processing';
+    else if (value === 'insurance') updated.description = 'Travel insurance';
+    else updated.description = '';
+    setServiceForm(updated);
+  };
+
+  const handleServiceDetail = (field, value) => {
+    setServiceForm({ ...serviceForm, details: { ...serviceForm.details, [field]: value } });
+  };
+
+  const addService = async () => {
+    if (!serviceForm.service_category) { Swal.fire('Warning', 'Select a service category', 'warning'); return; }
+    setSubmitting(true);
+    try {
+      await api.post(`/bookings/${id}/services`, {
+        service_type: serviceForm.service_category,
+        supplier_id: serviceForm.supplier_id || null,
+        description: serviceForm.description || null,
+        amount: serviceForm.price ? parseFloat(serviceForm.price) : 0,
+        details: serviceForm.details,
+      });
+      setShowServiceModal(false);
+      Swal.fire({ icon: 'success', title: 'Service added', timer: 1500, showConfirmButton: false });
+      load();
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.error || 'Failed to add service', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteService = async (serviceId) => {
+    Swal.fire({ title: 'Delete service?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' }).then(r => {
+      if (r.isConfirmed) api.delete(`/bookings/services/${serviceId}`).then(() => load());
+    });
   };
 
   if (!booking) return <div className="text-center py-5"><div className="spinner-border text-primary"></div></div>;
@@ -47,6 +109,7 @@ export default function ShowBooking() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Booking #{booking.booking_number}</h5>
         <div>
+          <button className="btn btn-outline-primary me-2" onClick={handlePrint}><i className="bi bi-printer"></i> Print</button>
           <button className="btn btn-success me-2" onClick={() => setShowPayModal(true)}><i className="bi bi-cash"></i> Record Payment</button>
           <Link to={`/bookings/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
           <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> Delete</button>
@@ -64,10 +127,7 @@ export default function ShowBooking() {
                   <small className="text-secondary">Customer</small>
                   <p className="mb-0">{booking.customer_name}</p>
                 </div>
-                <div className="col-6 col-md-3">
-                  <small className="text-secondary">Service Type</small>
-                  <p className="mb-0">{serviceTypeLabel(booking.service_type)}</p>
-                </div>
+
                 <div className="col-6 col-md-3">
                   <small className="text-secondary">Status</small>
                   <p className="mb-0">{statusBadge(booking.status)}</p>
@@ -78,11 +138,11 @@ export default function ShowBooking() {
                 </div>
                 <div className="col-6 col-md-3">
                   <small className="text-secondary">Travel Date</small>
-                  <p className="mb-0">{booking.travel_date || '-'}</p>
+                  <p className="mb-0">{booking.travel_date ? new Date(booking.travel_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</p>
                 </div>
                 <div className="col-6 col-md-3">
                   <small className="text-secondary">Return Date</small>
-                  <p className="mb-0">{booking.return_date || '-'}</p>
+                  <p className="mb-0">{booking.return_date ? new Date(booking.return_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</p>
                 </div>
                 <div className="col-6 col-md-3">
                   <small className="text-secondary">Airline</small>
@@ -137,7 +197,7 @@ export default function ShowBooking() {
               {booking.passengers?.map((p, i) => (
                 <div key={i} className="d-flex justify-content-between align-items-center border-bottom py-2">
                   <div>
-                    <strong>{p.name}</strong>
+                    <strong>{p.full_name || p.name}</strong>
                     <br />
                     <small className="text-secondary">
                       {p.passport && `Passport: ${p.passport}`}
@@ -154,20 +214,51 @@ export default function ShowBooking() {
         <div className="col-md-6">
           <div className="card">
             <div className="card-body">
-              <h6>Services ({booking.services?.length || 0})</h6>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="mb-0">Services ({booking.services?.length || 0})</h6>
+                <button className="btn btn-sm btn-outline-primary" onClick={openAddService}><i className="bi bi-plus"></i> Add Service</button>
+              </div>
               {booking.services?.length === 0 && <p className="text-secondary mb-0">No services</p>}
-              {booking.services?.map((s, i) => (
-                <div key={i} className="d-flex justify-content-between align-items-center border-bottom py-2">
-                  <div>
-                    <strong>{s.description}</strong>
-                    {s.supplier_name && <><br /><small className="text-secondary">Supplier: {s.supplier_name}</small></>}
+              {booking.services?.map((s, i) => {
+                const d = s.details || {};
+                return (
+                <div key={s.id || i} className="border-bottom py-2">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{s.description}</strong>
+                      {s.supplier_name && <><br /><small className="text-secondary">Supplier: {s.supplier_name}</small></>}
+                    </div>
+                    <div className="text-end d-flex align-items-center gap-2">
+                      <div>
+                        {s.cost > 0 && <div><small className="text-danger">Cost: {s.cost?.toLocaleString()}</small></div>}
+                        {s.price > 0 && <div><small className="text-success">Price: {s.price?.toLocaleString()}</small></div>}
+                      </div>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => deleteService(s.id)}><i className="bi bi-x"></i></button>
+                    </div>
                   </div>
-                  <div className="text-end">
-                    {s.cost > 0 && <div><small className="text-danger">Cost: {s.cost?.toLocaleString()}</small></div>}
-                    {s.price > 0 && <div><small className="text-success">Price: {s.price?.toLocaleString()}</small></div>}
-                  </div>
+                  {s.service_type === 'flight' && d.origin_airport && (
+                    <div className="mt-1">
+                      <small className="text-muted d-block"><strong>{d.airline}</strong>{d.flight_number ? ` • ${d.flight_number}` : ''} {d.ticket_number ? ` • Ticket: ${d.ticket_number}` : ''}</small>
+                      <small className="text-muted d-block">Departure: {d.departure_date || ''} {d.departure_time ? `${d.departure_time}${d.departure_next_day ? '+1' : ''}` : ''}  {d.origin_airport}</small>
+                      <small className="text-muted d-block">Arrival:   {d.arrival_date || ''} {d.arrival_time ? `${d.arrival_time}${d.arrival_next_day ? '+1' : ''}` : ''}  {d.destination_airport}</small>
+                      {(d.checked_baggage || d.cabin_baggage) && <small className="text-muted d-block">Baggage: {d.checked_baggage ? `Checked: ${d.checked_baggage}kg` : ''}{d.checked_baggage && d.cabin_baggage ? ' | ' : ''}{d.cabin_baggage ? `Cabin: ${d.cabin_baggage}kg` : ''}</small>}
+                    </div>
+                  )}
+                  {s.service_type === 'hotel' && d.hotel_name && (
+                    <div><small className="text-muted">{d.hotel_name}{d.room_type ? ` • ${d.room_type}` : ''}{d.check_in ? ` • ${new Date(d.check_in).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}{d.check_out ? ` - ${new Date(d.check_out).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</small></div>
+                  )}
+                  {s.service_type === 'transport' && d.pickup_location && (
+                    <div><small className="text-muted">{d.transport_type ? `${d.transport_type}: ` : ''}{d.pickup_location} → {d.dropoff_location}{d.pickup_time ? ` • ${new Date(d.pickup_time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : ''}</small></div>
+                  )}
+                  {s.service_type === 'visa' && d.country && (
+                    <div><small className="text-muted">{d.country}{d.visa_type ? ` • ${d.visa_type}` : ''}{d.processing_time ? ` • ${d.processing_time}` : ''}</small></div>
+                  )}
+                  {s.service_type === 'insurance' && d.policy_number && (
+                    <div><small className="text-muted">Policy: {d.policy_number}{d.coverage_type ? ` • ${d.coverage_type}` : ''}{d.start_date ? ` • ${new Date(d.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}{d.end_date ? ` - ${new Date(d.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</small></div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -207,6 +298,306 @@ export default function ShowBooking() {
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setShowPayModal(false)}>Cancel</button>
                 <button className="btn btn-primary" onClick={recordPayment}>Record Payment</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showServiceModal && (
+        <div className="modal d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header"><h6 className="modal-title">Add Service</h6><button className="btn-close" onClick={() => setShowServiceModal(false)}></button></div>
+              <div className="modal-body">
+                <div className="row g-2 mb-2">
+                  <div className="col-md-3">
+                    <label className="form-label">Category <span className="text-danger">*</span></label>
+                    <select className="form-select" value={serviceForm.service_category} onChange={e => handleServiceCategoryChange(e.target.value)}>
+                      <option value="">Select category...</option>
+                      <option value="flight">Flight</option>
+                      <option value="hotel">Hotel</option>
+                      <option value="transport">Transport</option>
+                      <option value="visa">Visa</option>
+                      <option value="insurance">Insurance</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  {serviceForm.service_category === 'other' && (
+                    <div className="col-md-9">
+                      <label className="form-label">Description</label>
+                      <input type="text" className="form-control" placeholder="Service description" value={serviceForm.description} onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })} />
+                    </div>
+                  )}
+                </div>
+
+                {serviceForm.service_category === 'flight' && (
+                  <>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Airline</label>
+                        <select className="form-select" value={serviceForm.details.airline_id} onChange={e => {
+                          const opt = airlines.find(a => a.id == e.target.value);
+                          handleServiceDetail('airline_id', e.target.value);
+                          handleServiceDetail('airline', opt ? opt.name : '');
+                        }}>
+                          <option value="">Select airline...</option>
+                          {airlines.map(a => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                        </select>
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Flight #</label>
+                        <input type="text" className="form-control" value={serviceForm.details.flight_number} onChange={e => handleServiceDetail('flight_number', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">From Airport</label>
+                        <select className="form-select" value={serviceForm.details.origin_airport_id} onChange={e => {
+                          const opt = airports.find(a => a.id == e.target.value);
+                          handleServiceDetail('origin_airport_id', e.target.value);
+                          handleServiceDetail('origin_airport', opt ? `${opt.code} - ${opt.name}` : '');
+                        }}>
+                          <option value="">Select...</option>
+                          {airports.map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">To Airport</label>
+                        <select className="form-select" value={serviceForm.details.destination_airport_id} onChange={e => {
+                          const opt = airports.find(a => a.id == e.target.value);
+                          handleServiceDetail('destination_airport_id', e.target.value);
+                          handleServiceDetail('destination_airport', opt ? `${opt.code} - ${opt.name}` : '');
+                        }}>
+                          <option value="">Select...</option>
+                          {airports.map(a => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="col-md-1">
+                        <label className="form-label small">Ticket #</label>
+                        <input type="text" className="form-control" value={serviceForm.details.ticket_number} onChange={e => handleServiceDetail('ticket_number', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Supplier</label>
+                        <input type="text" className="form-control" value={serviceForm.supplier_id} onChange={e => setServiceForm({ ...serviceForm, supplier_id: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-2">
+                        <label className="form-label small">Dep. Date</label>
+                        <input type="date" className="form-control" value={serviceForm.details.departure_date} onChange={e => handleServiceDetail('departure_date', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Dep. Time</label>
+                        <input type="time" className="form-control" value={serviceForm.details.departure_time} onChange={e => handleServiceDetail('departure_time', e.target.value)} />
+                      </div>
+                      <div className="col-md-1 d-flex align-items-end pb-1">
+                        <label className="form-check-label small"><input type="checkbox" className="form-check-input me-1" checked={serviceForm.details.departure_next_day} onChange={e => handleServiceDetail('departure_next_day', e.target.checked)} />+1</label>
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Arr. Date</label>
+                        <input type="date" className="form-control" value={serviceForm.details.arrival_date} onChange={e => handleServiceDetail('arrival_date', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Arr. Time</label>
+                        <input type="time" className="form-control" value={serviceForm.details.arrival_time} onChange={e => handleServiceDetail('arrival_time', e.target.value)} />
+                      </div>
+                      <div className="col-md-1 d-flex align-items-end pb-1">
+                        <label className="form-check-label small"><input type="checkbox" className="form-check-input me-1" checked={serviceForm.details.arrival_next_day} onChange={e => handleServiceDetail('arrival_next_day', e.target.checked)} />+1</label>
+                      </div>
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-2">
+                        <label className="form-label small">Checked (kg)</label>
+                        <input type="number" className="form-control" placeholder="23" value={serviceForm.details.checked_baggage} onChange={e => handleServiceDetail('checked_baggage', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Cabin (kg)</label>
+                        <input type="number" className="form-control" placeholder="7" value={serviceForm.details.cabin_baggage} onChange={e => handleServiceDetail('cabin_baggage', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Cost</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.cost} onChange={e => setServiceForm({ ...serviceForm, cost: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Price</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.price} onChange={e => setServiceForm({ ...serviceForm, price: e.target.value })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {serviceForm.service_category === 'hotel' && (
+                  <>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Hotel Name</label>
+                        <input type="text" className="form-control" value={serviceForm.details.hotel_name} onChange={e => handleServiceDetail('hotel_name', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Room Type</label>
+                        <input type="text" className="form-control" value={serviceForm.details.room_type} onChange={e => handleServiceDetail('room_type', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Board Basis</label>
+                        <select className="form-select" value={serviceForm.details.board_basis} onChange={e => handleServiceDetail('board_basis', e.target.value)}>
+                          <option value="">Select...</option>
+                          <option value="room_only">Room Only</option>
+                          <option value="breakfast">Breakfast</option>
+                          <option value="half_board">Half Board</option>
+                          <option value="full_board">Full Board</option>
+                          <option value="all_inclusive">All Inclusive</option>
+                        </select>
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Check In</label>
+                        <input type="date" className="form-control" value={serviceForm.details.check_in} onChange={e => handleServiceDetail('check_in', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Check Out</label>
+                        <input type="date" className="form-control" value={serviceForm.details.check_out} onChange={e => handleServiceDetail('check_out', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Supplier</label>
+                        <input type="text" className="form-control" value={serviceForm.supplier_id} onChange={e => setServiceForm({ ...serviceForm, supplier_id: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Cost</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.cost} onChange={e => setServiceForm({ ...serviceForm, cost: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Price</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.price} onChange={e => setServiceForm({ ...serviceForm, price: e.target.value })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {serviceForm.service_category === 'transport' && (
+                  <>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-2">
+                        <label className="form-label small">Type</label>
+                        <select className="form-select" value={serviceForm.details.transport_type} onChange={e => handleServiceDetail('transport_type', e.target.value)}>
+                          <option value="">Select...</option>
+                          <option value="car">Car</option>
+                          <option value="bus">Bus</option>
+                          <option value="van">Van</option>
+                          <option value="limo">Limousine</option>
+                        </select>
+                      </div>
+                      <div className="col-md-3">
+                        <label className="form-label small">Pickup</label>
+                        <input type="text" className="form-control" value={serviceForm.details.pickup_location} onChange={e => handleServiceDetail('pickup_location', e.target.value)} />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="form-label small">Dropoff</label>
+                        <input type="text" className="form-control" value={serviceForm.details.dropoff_location} onChange={e => handleServiceDetail('dropoff_location', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Pickup Time</label>
+                        <input type="datetime-local" className="form-control" value={serviceForm.details.pickup_time} onChange={e => handleServiceDetail('pickup_time', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Supplier</label>
+                        <input type="text" className="form-control" value={serviceForm.supplier_id} onChange={e => setServiceForm({ ...serviceForm, supplier_id: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Cost</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.cost} onChange={e => setServiceForm({ ...serviceForm, cost: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Price</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.price} onChange={e => setServiceForm({ ...serviceForm, price: e.target.value })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {serviceForm.service_category === 'visa' && (
+                  <>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Country</label>
+                        <input type="text" className="form-control" value={serviceForm.details.country} onChange={e => handleServiceDetail('country', e.target.value)} />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="form-label small">Visa Type</label>
+                        <select className="form-select" value={serviceForm.details.visa_type} onChange={e => handleServiceDetail('visa_type', e.target.value)}>
+                          <option value="">Select...</option>
+                          <option value="tourist">Tourist</option>
+                          <option value="business">Business</option>
+                          <option value="transit">Transit</option>
+                          <option value="student">Student</option>
+                          <option value="work">Work</option>
+                        </select>
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Processing</label>
+                        <input type="text" className="form-control" value={serviceForm.details.processing_time} onChange={e => handleServiceDetail('processing_time', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Supplier</label>
+                        <input type="text" className="form-control" value={serviceForm.supplier_id} onChange={e => setServiceForm({ ...serviceForm, supplier_id: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Cost</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.cost} onChange={e => setServiceForm({ ...serviceForm, cost: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Price</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.price} onChange={e => setServiceForm({ ...serviceForm, price: e.target.value })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {serviceForm.service_category === 'insurance' && (
+                  <>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Policy #</label>
+                        <input type="text" className="form-control" value={serviceForm.details.policy_number} onChange={e => handleServiceDetail('policy_number', e.target.value)} />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="form-label small">Coverage</label>
+                        <input type="text" className="form-control" value={serviceForm.details.coverage_type} onChange={e => handleServiceDetail('coverage_type', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Start</label>
+                        <input type="date" className="form-control" value={serviceForm.details.start_date} onChange={e => handleServiceDetail('start_date', e.target.value)} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">End</label>
+                        <input type="date" className="form-control" value={serviceForm.details.end_date} onChange={e => handleServiceDetail('end_date', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="row g-2 mb-2">
+                      <div className="col-md-3">
+                        <label className="form-label small">Supplier</label>
+                        <input type="text" className="form-control" value={serviceForm.supplier_id} onChange={e => setServiceForm({ ...serviceForm, supplier_id: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Cost</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.cost} onChange={e => setServiceForm({ ...serviceForm, cost: e.target.value })} />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label small">Price</label>
+                        <input type="number" step="0.01" className="form-control" value={serviceForm.price} onChange={e => setServiceForm({ ...serviceForm, price: e.target.value })} />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowServiceModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={addService} disabled={submitting}>
+                  {submitting ? 'Adding...' : 'Add Service'}
+                </button>
               </div>
             </div>
           </div>

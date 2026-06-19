@@ -447,9 +447,14 @@ body {
 
 /* Print */
 @media print {
-  .sidebar, .mobile-nav, .no-print, .btn, .sidebar-overlay { display: none !important; }
-  .main-content { margin: 0 !important; padding: 10px !important; }
-  .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+  body { background: #fff !important; font-size: 12pt; }
+  .sidebar, .mobile-nav, .no-print, .btn, .sidebar-overlay, nav, footer, .btn-group { display: none !important; }
+  .main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  .card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
+  .card-body { padding: 12px !important; }
+  .page-title { font-size: 18pt; font-weight: bold; }
+  .table { font-size: 10pt; }
+  .badge { border: 1px solid #333 !important; color: #333 !important; background: #fff !important; }
 }
 
 /* Responsive */

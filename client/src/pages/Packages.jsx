@@ -12,7 +12,7 @@ export default function Packages() {
   const [detailItem, setDetailItem] = useState(null);
   const [formData, setFormData] = useState({
     name: '', description: '', destination: '', duration_days: '', includes: '', excludes: '',
-    price_per_person: '', currency: 'SAR', status: 'active', notes: ''
+    price_per_person: '', currency: 'USD', status: 'active', notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,7 +29,7 @@ export default function Packages() {
   const resetForm = () => {
     setFormData({
       name: '', description: '', destination: '', duration_days: '', includes: '', excludes: '',
-      price_per_person: '', currency: 'SAR', status: 'active', notes: ''
+      price_per_person: '', currency: 'USD', status: 'active', notes: ''
     });
     setEditItem(null);
   };
@@ -39,7 +39,7 @@ export default function Packages() {
     setFormData({
       name: item.name || '', description: item.description || '', destination: item.destination || '',
       duration_days: item.duration_days || '', includes: item.includes || '', excludes: item.excludes || '',
-      price_per_person: item.price_per_person || '', currency: item.currency || 'SAR',
+      price_per_person: item.price_per_person || '', currency: item.currency || 'USD',
       status: item.status || 'active', notes: item.notes || ''
     });
     setShowModal(true);
@@ -134,7 +134,7 @@ export default function Packages() {
                   <td>{p.destination || '-'}</td>
                   <td>{p.duration_days || '-'}</td>
                   <td>{p.price_per_person ? Number(p.price_per_person).toLocaleString() : '-'}</td>
-                  <td>{p.currency || 'SAR'}</td>
+                  <td>{p.currency || 'USD'}</td>
                   <td>{statusBadge(p.status)}</td>
                   <td>
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => setDetailItem(p)}><i className="bi bi-eye"></i></button>
@@ -191,7 +191,7 @@ export default function Packages() {
                   </div>
                   <div className="col-md-6">
                     <h6 className="text-muted mb-1">Price per Person</h6>
-                    <p className="text-primary fw-bold">{detailItem.price_per_person ? `${Number(detailItem.price_per_person).toLocaleString()} ${detailItem.currency || 'SAR'}` : '-'}</p>
+                    <p className="text-primary fw-bold">{detailItem.price_per_person ? `${Number(detailItem.price_per_person).toLocaleString()} ${detailItem.currency || 'USD'}` : '-'}</p>
                   </div>
                   <div className="col-md-6">
                     <h6 className="text-muted mb-1">Status</h6>
@@ -266,9 +266,10 @@ export default function Packages() {
                     <div className="col-md-4 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
+                        <option value="USD">US Dollar</option>
+                        <option value="ILS">Israeli Shekel</option>
                         <option value="SAR">Saudi Riyal</option>
                         <option value="AED">UAE Dirham</option>
-                        <option value="USD">US Dollar</option>
                         <option value="EUR">Euro</option>
                         <option value="EGP">Egyptian Pound</option>
                       </select>

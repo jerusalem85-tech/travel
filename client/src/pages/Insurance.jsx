@@ -11,7 +11,7 @@ export default function Insurance() {
   const [editItem, setEditItem] = useState(null);
   const [formData, setFormData] = useState({
     customer_id: '', booking_id: '', provider_name: '', policy_type: '',
-    coverage_amount: '', premium_amount: '', currency: 'SAR',
+    coverage_amount: '', premium_amount: '', currency: 'USD',
     start_date: '', end_date: '', status: 'active', notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
@@ -35,7 +35,7 @@ export default function Insurance() {
   const resetForm = () => {
     setFormData({
       customer_id: '', booking_id: '', provider_name: '', policy_type: '',
-      coverage_amount: '', premium_amount: '', currency: 'SAR',
+      coverage_amount: '', premium_amount: '', currency: 'USD',
       start_date: '', end_date: '', status: 'active', notes: ''
     });
     setEditItem(null);
@@ -50,7 +50,7 @@ export default function Insurance() {
       policy_type: item.policy_type || '',
       coverage_amount: item.coverage_amount || '',
       premium_amount: item.premium_amount || '',
-      currency: item.currency || 'SAR',
+      currency: item.currency || 'USD',
       start_date: item.start_date ? item.start_date.split('T')[0] : '',
       end_date: item.end_date ? item.end_date.split('T')[0] : '',
       status: item.status || 'active',
@@ -241,9 +241,10 @@ export default function Insurance() {
                     <div className="col-md-4 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
+                        <option value="USD">US Dollar</option>
+                        <option value="ILS">Israeli Shekel</option>
                         <option value="SAR">Saudi Riyal</option>
                         <option value="AED">UAE Dirham</option>
-                        <option value="USD">US Dollar</option>
                         <option value="EUR">Euro</option>
                         <option value="EGP">Egyptian Pound</option>
                       </select>

@@ -10,7 +10,7 @@ const Commissions = () => {
   const [editItem, setEditItem] = useState(null);
   const [userIdFilter, setUserIdFilter] = useState('');
   const [formData, setFormData] = useState({
-    user_id: '', booking_id: '', commission_type: 'sales', amount: '', currency: 'SAR', percentage: '', notes: ''
+    user_id: '', booking_id: '', commission_type: 'sales', amount: '', currency: 'USD', percentage: '', notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const limit = 10;
@@ -44,7 +44,7 @@ const Commissions = () => {
   };
 
   const resetForm = () => {
-    setFormData({ user_id: '', booking_id: '', commission_type: 'sales', amount: '', currency: 'SAR', percentage: '', notes: '' });
+    setFormData({ user_id: '', booking_id: '', commission_type: 'sales', amount: '', currency: 'USD', percentage: '', notes: '' });
     setEditItem(null);
   };
 
@@ -55,7 +55,7 @@ const Commissions = () => {
       booking_id: c.booking_id ?? '',
       commission_type: c.commission_type || 'sales',
       amount: c.amount ?? '',
-      currency: c.currency || 'SAR',
+      currency: c.currency || 'USD',
       percentage: c.percentage ?? '',
       notes: c.notes || ''
     });
@@ -157,7 +157,7 @@ const Commissions = () => {
                       <td><code>{c.booking_number || '-'}</code></td>
                       <td><span className="badge bg-light text-dark">{getTypeLabel(c.commission_type)}</span></td>
                       <td>{c.percentage ? `${Number(c.percentage).toFixed(2)}%` : '-'}</td>
-                      <td className="fw-bold text-success">{Number(c.amount).toLocaleString()} {c.currency || 'SAR'}</td>
+                      <td className="fw-bold text-success">{Number(c.amount).toLocaleString()} {c.currency || 'USD'}</td>
                       <td>{new Date(c.created_at).toLocaleDateString('en-US')}</td>
                       <td>
                         <button className="btn btn-sm btn-outline-warning me-1" onClick={() => openEdit(c)} title="Edit"><i className="bi bi-pencil"></i></button>
@@ -206,15 +206,17 @@ const Commissions = () => {
                       <label className="form-label">Amount <span className="text-danger">*</span></label>
                       <div className="input-group">
                         <input type="number" className="form-control" name="amount" value={formData.amount} onChange={handleChange} min="0" step="0.01" placeholder="0.00" required />
-                        <span className="input-group-text">SAR</span>
+                        <span className="input-group-text">{formData.currency || 'USD'}</span>
                       </div>
                     </div>
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={handleChange}>
-                        <option value="SAR">Saudi Riyal</option>
                         <option value="USD">US Dollar</option>
+                        <option value="ILS">Israeli Shekel</option>
+                        <option value="SAR">Saudi Riyal</option>
                         <option value="EUR">Euro</option>
+                        <option value="EGP">Egyptian Pound</option>
                       </select>
                     </div>
                   </div>

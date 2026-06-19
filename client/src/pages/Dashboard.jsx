@@ -316,7 +316,7 @@ export default function Dashboard() {
                   <tr key={b.id}>
                     <td><Link to={`/bookings/${b.id}`} className="text-decoration-none fw-semibold">{b.booking_number}</Link></td>
                     <td>{b.customer_name}</td>
-                    <td>{b.travel_date}</td>
+                    <td>{new Date(b.travel_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                     <td>{b.from_destination} → {b.to_destination}</td>
                     <td>
                       <span className={`badge bg-${b.status === 'confirmed' ? 'success' : b.status === 'cancelled' ? 'danger' : b.status === 'completed' ? 'secondary' : 'warning'}`}>

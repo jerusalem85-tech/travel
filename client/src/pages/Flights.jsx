@@ -12,7 +12,7 @@ export default function Flights() {
   const [editItem, setEditItem] = useState(null);
   const [formData, setFormData] = useState({
     airline_id: '', flight_number: '', origin_airport_id: '', destination_airport_id: '',
-    departure_time: '', arrival_time: '', price: '', currency: 'SAR', notes: ''
+    departure_time: '', arrival_time: '', price: '', currency: 'USD', notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,7 +39,7 @@ export default function Flights() {
   const resetForm = () => {
     setFormData({
       airline_id: '', flight_number: '', origin_airport_id: '', destination_airport_id: '',
-      departure_time: '', arrival_time: '', price: '', currency: 'SAR', notes: ''
+      departure_time: '', arrival_time: '', price: '', currency: 'USD', notes: ''
     });
     setEditItem(null);
   };
@@ -54,7 +54,7 @@ export default function Flights() {
       departure_time: item.departure_time || '',
       arrival_time: item.arrival_time || '',
       price: item.price ?? '',
-      currency: item.currency || 'SAR',
+      currency: item.currency || 'USD',
       notes: item.notes || ''
     });
     setShowModal(true);
@@ -219,9 +219,10 @@ export default function Flights() {
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
+                        <option value="USD">US Dollar</option>
+                        <option value="ILS">Israeli Shekel</option>
                         <option value="SAR">Saudi Riyal</option>
                         <option value="AED">UAE Dirham</option>
-                        <option value="USD">US Dollar</option>
                         <option value="EUR">Euro</option>
                         <option value="EGP">Egyptian Pound</option>
                       </select>

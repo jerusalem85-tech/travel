@@ -16,7 +16,7 @@ export default function Hotels() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [showRtModal, setShowRtModal] = useState(false);
-  const [rtForm, setRtForm] = useState({ room_type: '', board_basis: '', price_per_night: '', currency: 'SAR' });
+  const [rtForm, setRtForm] = useState({ room_type: '', board_basis: '', price_per_night: '', currency: 'USD' });
   const [rtSubmitting, setRtSubmitting] = useState(false);
 
   const load = () => {
@@ -86,7 +86,7 @@ export default function Hotels() {
     }
   };
 
-  const resetRtForm = () => setRtForm({ room_type: '', board_basis: '', price_per_night: '', currency: 'SAR' });
+  const resetRtForm = () => setRtForm({ room_type: '', board_basis: '', price_per_night: '', currency: 'USD' });
 
   const handleAddRt = async (e) => {
     e.preventDefault();
@@ -194,7 +194,7 @@ export default function Hotels() {
                         <td>{rt.room_type}</td>
                         <td>{rt.board_basis || '-'}</td>
                         <td>{Number(rt.price_per_night).toLocaleString()}</td>
-                        <td>{rt.currency || 'SAR'}</td>
+                        <td>{rt.currency || 'USD'}</td>
                         <td>
                           <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteRt(rt.id)}>
                             <i className="bi bi-trash"></i>
@@ -329,9 +329,10 @@ export default function Hotels() {
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={rtForm.currency} onChange={e => setRtForm({ ...rtForm, currency: e.target.value })}>
+                        <option value="USD">US Dollar</option>
+                        <option value="ILS">Israeli Shekel</option>
                         <option value="SAR">Saudi Riyal</option>
                         <option value="AED">UAE Dirham</option>
-                        <option value="USD">US Dollar</option>
                         <option value="EUR">Euro</option>
                         <option value="EGP">Egyptian Pound</option>
                       </select>

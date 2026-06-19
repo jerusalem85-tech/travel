@@ -1801,6 +1801,7 @@ async function init() {
     try { await d.run('ALTER TABLE tasks ADD COLUMN status VARCHAR(50) DEFAULT \'pending\''); } catch {}
     try { await d.run('ALTER TABLE installment_plans ADD COLUMN status VARCHAR(50) DEFAULT \'active\''); } catch {}
     try { await d.run('ALTER TABLE installment_payments ADD COLUMN status VARCHAR(50) DEFAULT \'pending\''); } catch {}
+    try { await d.run("ALTER TABLE booking_services ADD COLUMN details TEXT DEFAULT '{}'"); } catch {}
 
     const userCount = await d.get('SELECT COUNT(*) as c FROM users');
     if (userCount.c === 0) {

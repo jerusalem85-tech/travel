@@ -83,14 +83,13 @@ export default function ShowCustomer() {
           {customer.bookings?.length > 0 && (
             <div className="table-responsive">
               <table className="table table-hover mb-0">
-                <thead><tr><th>Booking #</th><th>Service</th><th>Destination</th><th>Date</th><th>Amount</th><th>Paid</th><th>Status</th></tr></thead>
+                <thead><tr><th>Booking #</th><th>Destination</th><th>Date</th><th>Amount</th><th>Paid</th><th>Status</th></tr></thead>
                 <tbody>
                   {customer.bookings.map(b => (
                     <tr key={b.id}>
                       <td><Link to={`/bookings/${b.id}`} className="text-decoration-none">{b.booking_number}</Link></td>
-                      <td>{b.service_type || '-'}</td>
                       <td>{b.from_destination && b.to_destination ? `${b.from_destination} → ${b.to_destination}` : '-'}</td>
-                      <td>{b.travel_date || '-'}</td>
+                      <td>{b.travel_date ? new Date(b.travel_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
                       <td>{b.total_amount?.toLocaleString()}</td>
                       <td className="text-success">{b.paid_amount?.toLocaleString()}</td>
                       <td>{statusBadge(b.status)}</td>
