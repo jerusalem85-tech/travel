@@ -425,6 +425,112 @@ CREATE TABLE IF NOT EXISTS leads (
   notes TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS employees (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  email TEXT,
+  position TEXT,
+  department TEXT,
+  base_salary REAL DEFAULT 0,
+  hire_date TEXT,
+  status TEXT DEFAULT 'active',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS attendance (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  date TEXT NOT NULL,
+  clock_in TEXT,
+  clock_out TEXT,
+  status TEXT DEFAULT 'present',
+  notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS salaries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  month TEXT NOT NULL,
+  amount REAL DEFAULT 0,
+  bonuses REAL DEFAULT 0,
+  deductions REAL DEFAULT 0,
+  net_amount REAL DEFAULT 0,
+  paid INTEGER DEFAULT 0,
+  paid_at TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS vehicles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  plate_number TEXT NOT NULL,
+  brand TEXT,
+  model TEXT,
+  year INTEGER,
+  capacity INTEGER DEFAULT 4,
+  vehicle_type TEXT,
+  fuel_type TEXT,
+  status TEXT DEFAULT 'available',
+  daily_rate REAL DEFAULT 0,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS guides (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  email TEXT,
+  languages TEXT,
+  specializations TEXT,
+  rating REAL DEFAULT 0,
+  daily_rate REAL DEFAULT 0,
+  status TEXT DEFAULT 'available',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS discounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  code TEXT UNIQUE,
+  type TEXT DEFAULT 'percentage',
+  value REAL DEFAULT 0,
+  applies_to TEXT DEFAULT 'all',
+  min_amount REAL DEFAULT 0,
+  max_uses INTEGER DEFAULT 0,
+  use_count INTEGER DEFAULT 0,
+  valid_from TEXT,
+  valid_to TEXT,
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS tax_rates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  rate REAL DEFAULT 0,
+  applies_to TEXT DEFAULT 'all',
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,
+  entity_id INTEGER NOT NULL,
+  customer_id INTEGER,
+  booking_id INTEGER,
+  rating INTEGER DEFAULT 5,
+  review_text TEXT,
+  reviewer_name TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -773,6 +879,104 @@ async function init() {
       status VARCHAR(50) DEFAULT 'new',
       assigned_to INT,
       notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS employees (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      full_name VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      position VARCHAR(255),
+      department VARCHAR(255),
+      base_salary DECIMAL(10,2) DEFAULT 0,
+      hire_date DATE,
+      status VARCHAR(50) DEFAULT 'active',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS attendance (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      employee_id INT NOT NULL,
+      date DATE NOT NULL,
+      clock_in TIME,
+      clock_out TIME,
+      status VARCHAR(50) DEFAULT 'present',
+      notes TEXT
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS salaries (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      employee_id INT NOT NULL,
+      month VARCHAR(7) NOT NULL,
+      amount DECIMAL(10,2) DEFAULT 0,
+      bonuses DECIMAL(10,2) DEFAULT 0,
+      deductions DECIMAL(10,2) DEFAULT 0,
+      net_amount DECIMAL(10,2) DEFAULT 0,
+      paid TINYINT DEFAULT 0,
+      paid_at TIMESTAMP NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS vehicles (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      plate_number VARCHAR(50) NOT NULL,
+      brand VARCHAR(255),
+      model VARCHAR(255),
+      year INT,
+      capacity INT DEFAULT 4,
+      vehicle_type VARCHAR(100),
+      fuel_type VARCHAR(50),
+      status VARCHAR(50) DEFAULT 'available',
+      daily_rate DECIMAL(10,2) DEFAULT 0,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS guides (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      full_name VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      languages TEXT,
+      specializations TEXT,
+      rating DECIMAL(2,1) DEFAULT 0,
+      daily_rate DECIMAL(10,2) DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'available',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS discounts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      code VARCHAR(50) UNIQUE,
+      type VARCHAR(50) DEFAULT 'percentage',
+      value DECIMAL(10,2) DEFAULT 0,
+      applies_to VARCHAR(50) DEFAULT 'all',
+      min_amount DECIMAL(10,2) DEFAULT 0,
+      max_uses INT DEFAULT 0,
+      use_count INT DEFAULT 0,
+      valid_from DATE,
+      valid_to DATE,
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS tax_rates (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      rate DECIMAL(5,2) DEFAULT 0,
+      applies_to VARCHAR(50) DEFAULT 'all',
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS reviews (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      entity_type VARCHAR(50) NOT NULL,
+      entity_id INT NOT NULL,
+      customer_id INT,
+      booking_id INT,
+      rating INT DEFAULT 5,
+      review_text TEXT,
+      reviewer_name VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

@@ -119,6 +119,14 @@ import priceListsRoutes from './routes/priceLists.js';
 import checklistRoutes from './routes/checklist.js';
 import inventoryRoutes from './routes/inventory.js';
 import leadsRoutes from './routes/leads.js';
+import employeesRoutes from './routes/employees.js';
+import attendanceRoutes from './routes/attendance.js';
+import salariesRoutes from './routes/salaries.js';
+import vehiclesRoutes from './routes/vehicles.js';
+import guidesRoutes from './routes/guides.js';
+import discountsRoutes from './routes/discounts.js';
+import taxRatesRoutes from './routes/taxRates.js';
+import reviewsRoutes from './routes/reviews.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -148,6 +156,14 @@ app.use('/api/price-lists', authMiddleware, priceListsRoutes);
 app.use('/api/checklist', authMiddleware, checklistRoutes);
 app.use('/api/inventory', authMiddleware, inventoryRoutes);
 app.use('/api/leads', authMiddleware, leadsRoutes);
+app.use('/api/employees', authMiddleware, employeesRoutes);
+app.use('/api/attendance', authMiddleware, attendanceRoutes);
+app.use('/api/salaries', authMiddleware, salariesRoutes);
+app.use('/api/vehicles', authMiddleware, vehiclesRoutes);
+app.use('/api/guides', authMiddleware, guidesRoutes);
+app.use('/api/discounts', authMiddleware, discountsRoutes);
+app.use('/api/tax-rates', authMiddleware, taxRatesRoutes);
+app.use('/api/reviews', authMiddleware, reviewsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
