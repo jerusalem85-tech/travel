@@ -180,6 +180,10 @@ import propertiesRoutes from './routes/properties.js';
 import referralsRoutes from './routes/referrals.js';
 import installmentsRoutes from './routes/installments.js';
 import userPreferencesRoutes from './routes/userPreferences.js';
+import airportsRoutes from './routes/airports.js';
+import airlinesRoutes from './routes/airlines.js';
+import destinationsRoutes from './routes/destinations.js';
+import flightSchedulesRoutes from './routes/flightSchedules.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -229,6 +233,10 @@ app.use('/api/properties', authMiddleware, propertiesRoutes);
 app.use('/api/referrals', authMiddleware, referralsRoutes);
 app.use('/api/installments', authMiddleware, installmentsRoutes);
 app.use('/api/user-preferences', authMiddleware, userPreferencesRoutes);
+app.use('/api/airports', authMiddleware, airportsRoutes);
+app.use('/api/airlines', authMiddleware, airlinesRoutes);
+app.use('/api/destinations', authMiddleware, destinationsRoutes);
+app.use('/api/flight-schedules', authMiddleware, flightSchedulesRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

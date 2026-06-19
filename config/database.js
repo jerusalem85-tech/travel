@@ -596,6 +596,63 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS airports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  city TEXT,
+  country TEXT,
+  terminal_info TEXT,
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS airlines (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  country TEXT,
+  website TEXT,
+  phone TEXT,
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS destinations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  country TEXT,
+  description TEXT,
+  attractions TEXT,
+  best_season TEXT,
+  currency TEXT,
+  language TEXT,
+  timezone TEXT,
+  visa_info TEXT,
+  health_info TEXT,
+  image_url TEXT,
+  is_active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS flight_schedules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  airline_id INT,
+  flight_number TEXT NOT NULL,
+  origin_airport_id INT,
+  destination_airport_id INT,
+  departure_time TEXT,
+  arrival_time TEXT,
+  days_of_week TEXT,
+  price REAL DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 CREATE TABLE IF NOT EXISTS brokers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   full_name TEXT NOT NULL,
@@ -1199,6 +1256,59 @@ async function init() {
       theme_color VARCHAR(50) DEFAULT 'indigo',
       sidebar_collapsed TINYINT DEFAULT 0,
       date_format VARCHAR(20) DEFAULT 'YYYY-MM-DD',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS airports (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      code VARCHAR(10) NOT NULL UNIQUE,
+      name VARCHAR(255) NOT NULL,
+      city VARCHAR(255),
+      country VARCHAR(255),
+      terminal_info TEXT,
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS airlines (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      code VARCHAR(10) NOT NULL UNIQUE,
+      name VARCHAR(255) NOT NULL,
+      country VARCHAR(255),
+      website VARCHAR(255),
+      phone VARCHAR(50),
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS destinations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      country VARCHAR(255),
+      description TEXT,
+      attractions TEXT,
+      best_season VARCHAR(255),
+      currency VARCHAR(10),
+      language VARCHAR(100),
+      timezone VARCHAR(100),
+      visa_info TEXT,
+      health_info TEXT,
+      image_url VARCHAR(500),
+      is_active TINYINT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS flight_schedules (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      airline_id INT,
+      flight_number VARCHAR(50) NOT NULL,
+      origin_airport_id INT,
+      destination_airport_id INT,
+      departure_time TIME,
+      arrival_time TIME,
+      days_of_week VARCHAR(50),
+      price DECIMAL(10,2) DEFAULT 0,
+      currency VARCHAR(10) DEFAULT 'USD',
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS brokers (
