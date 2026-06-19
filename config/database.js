@@ -3,6 +3,7 @@ import mysql from 'mysql2/promise';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -1779,6 +1780,18 @@ async function init() {
       created_by INT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    const userCount = await d.get('SELECT COUNT(*) as c FROM users');
+    if (userCount.c === 0) {
+      const hash = await bcrypt.hash('admin123', 10);
+      await d.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
+        ['Admin', 'admin@travel.com', hash, 'admin']);
+      await d.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
+        ['Manager', 'manager@travel.com', hash, 'manager']);
+      await d.run('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
+        ['User', 'user@travel.com', hash, 'user']);
+      console.log('Default users seeded: admin@travel.com / admin123');
+    }
   } else {
     db = sqliteDb();
     db.exec(schema);
