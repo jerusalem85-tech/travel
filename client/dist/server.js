@@ -125,18 +125,19 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const month = today.substring(0, 7);
   const isMysql = typeof isMySQLConnected === 'function' ? isMySQLConnected() : false;
-  const monthFilter = isMysql ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
-  const [bookingsCount, customersCount, suppliersCount, pendingBookings, todayBookings, monthPayments, monthExpenses, recentBookings, hotelsCount, contractsCount] = await Promise.all([
+  const monthFilter = isMysql ? "DATE_FORMAT(created_at, '%Y-%m') LIKE ?" : "strftime('%Y-%m', created_at) = ?";
+  let pendingBookings, todayBookings, monthPayments, monthExpenses, recentBookings, hotelsCount, contractsCount;
+  try { pendingBookings = await db.get("SELECT COUNT(*) as count FROM bookings WHERE status IN ('pending','confirmed')"); } catch { pendingBookings = { count: 0 }; }
+  try { todayBookings = await db.get('SELECT COUNT(*) as count FROM bookings WHERE date(travel_date) = ?', [today]); } catch { todayBookings = { count: 0 }; }
+  try { monthPayments = await db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE ${monthFilter}`, [month]); } catch { monthPayments = { total: 0 }; }
+  try { monthExpenses = await db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE ${monthFilter}`, [month]); } catch { monthExpenses = { total: 0 }; }
+  try { recentBookings = await db.all('SELECT b.*, COALESCE(c.full_name,c.name) as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 10'); } catch { recentBookings = []; }
+  try { hotelsCount = await db.get('SELECT COUNT(*) as count FROM hotels'); } catch { hotelsCount = { count: 0 }; }
+  try { contractsCount = await db.get('SELECT COUNT(*) as count FROM contracts'); } catch { contractsCount = { count: 0 }; }
+  const [bookingsCount, customersCount, suppliersCount] = await Promise.all([
     db.get('SELECT COUNT(*) as count FROM bookings'),
     db.get('SELECT COUNT(*) as count FROM customers'),
     db.get('SELECT COUNT(*) as count FROM suppliers'),
-    db.get("SELECT COUNT(*) as count FROM bookings WHERE status IN ('pending','confirmed')"),
-    db.get('SELECT COUNT(*) as count FROM bookings WHERE date(travel_date) = ?', [today]),
-    db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE ${monthFilter}`, [month]),
-    db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE ${monthFilter}`, [month]),
-    db.all('SELECT b.*, COALESCE(c.full_name,c.name) as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 10'),
-    db.get('SELECT COUNT(*) as count FROM hotels'),
-    db.get('SELECT COUNT(*) as count FROM contracts'),
   ]);
   res.json({
     bookingsCount: bookingsCount.count,
@@ -146,7 +147,7 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     todayBookings: todayBookings.count,
     monthPayments: monthPayments.total,
     monthExpenses: monthExpenses.total,
-    monthProfit: monthPayments.total - monthExpenses.total,
+    monthProfit: (monthPayments.total || 0) - (monthExpenses.total || 0),
     recentBookings,
     hotelsCount: hotelsCount.count,
     contractsCount: contractsCount.count,
@@ -158,23 +159,24 @@ app.get('/api/stats/overview', authMiddleware, async (req, res) => {
   const today = new Date().toISOString().split('T')[0];
   const month = today.substring(0, 7);
   const isMysql = typeof isMySQLConnected === 'function' ? isMySQLConnected() : false;
-  const monthFilter = isMysql ? "DATE_FORMAT(created_at, '%Y-%m') = ?" : "strftime('%Y-%m', created_at) = ?";
-  const [totalBookings, totalCustomers, totalRevenue, totalExpenses, pendingTasks, activeInstallments, dueInstallments, recentActivity] = await Promise.all([
+  const monthFilter = isMysql ? "DATE_FORMAT(created_at, '%Y-%m') LIKE ?" : "strftime('%Y-%m', created_at) = ?";
+  let totalRevenue, totalExpenses, pendingTasks, activeInstallments, dueInstallments, recentActivity;
+  try { totalRevenue = await db.get(`SELECT COALESCE(SUM(amount), 0) as t FROM payments WHERE ${monthFilter}`, [month]); } catch { totalRevenue = { t: 0 }; }
+  try { totalExpenses = await db.get(`SELECT COALESCE(SUM(amount), 0) as t FROM expenses WHERE ${monthFilter}`, [month]); } catch { totalExpenses = { t: 0 }; }
+  try { pendingTasks = await db.get("SELECT COUNT(*) as c FROM tasks WHERE status != 'completed'"); } catch { pendingTasks = { c: 0 }; }
+  try { activeInstallments = await db.get("SELECT COUNT(*) as c FROM installment_plans WHERE status = 'active'"); } catch { activeInstallments = { c: 0 }; }
+  try { dueInstallments = await db.get("SELECT COUNT(*) as c FROM installment_payments WHERE status = 'pending' AND due_date <= ?", [today]); } catch { dueInstallments = { c: 0 }; }
+  try { recentActivity = await db.all('SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 5'); } catch { recentActivity = []; }
+  const [totalBookings, totalCustomers] = await Promise.all([
     db.get('SELECT COUNT(*) as c FROM bookings'),
     db.get('SELECT COUNT(*) as c FROM customers'),
-    db.get(`SELECT COALESCE(SUM(amount), 0) as t FROM payments WHERE ${monthFilter}`, [month]),
-    db.get(`SELECT COALESCE(SUM(amount), 0) as t FROM expenses WHERE ${monthFilter}`, [month]),
-    db.get("SELECT COUNT(*) as c FROM tasks WHERE status != 'completed'"),
-    db.get("SELECT COUNT(*) as c FROM installment_plans WHERE status = 'active'"),
-    db.get("SELECT COUNT(*) as c FROM installment_payments WHERE status = 'pending' AND due_date <= ?", [today]),
-    db.all('SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 5'),
   ]);
   res.json({
     totalBookings: totalBookings.c,
     totalCustomers: totalCustomers.c,
     totalRevenue: totalRevenue.t,
     totalExpenses: totalExpenses.t,
-    netProfit: totalRevenue.t - totalExpenses.t,
+    netProfit: (totalRevenue.t || 0) - (totalExpenses.t || 0),
     pendingTasks: pendingTasks.c,
     activeInstallments: activeInstallments.c,
     dueInstallments: dueInstallments.c,

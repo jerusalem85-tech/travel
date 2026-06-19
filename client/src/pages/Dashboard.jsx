@@ -297,7 +297,7 @@ export default function Dashboard() {
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between mb-3">
             <h6 className="fw-bold mb-0"><i className="bi bi-clock-history me-2 text-primary"></i>Recent Bookings</h6>
-            <Link to="/bookings" className="btn btn-sm btn-outline-primary">View All <i className="bi bi-arrow-left me-1"></i></Link>
+            <Link to="/bookings" className="btn btn-sm btn-outline-primary">View All <i className="bi bi-arrow-right me-1"></i></Link>
           </div>
           <div className="table-responsive">
             <table className="table table-hover mb-0">
