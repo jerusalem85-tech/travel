@@ -152,6 +152,26 @@ CREATE TABLE IF NOT EXISTS payments (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS supplier_payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  payment_number TEXT NOT NULL,
+  booking_id INTEGER,
+  supplier_id INTEGER,
+  amount REAL NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  exchange_rate REAL DEFAULT 1,
+  payment_date TEXT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS exchange_rates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  currency_code TEXT NOT NULL,
+  rate_to_usd REAL NOT NULL DEFAULT 1,
+  effective_date TEXT DEFAULT (date('now'))
+);
+
 CREATE TABLE IF NOT EXISTS expenses (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   description TEXT NOT NULL,
@@ -1056,6 +1076,24 @@ async function init() {
       reference VARCHAR(255),
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS supplier_payments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      payment_number VARCHAR(50) NOT NULL,
+      booking_id INT,
+      supplier_id INT,
+      amount DECIMAL(10,2) NOT NULL,
+      currency VARCHAR(3) DEFAULT 'USD',
+      exchange_rate DECIMAL(10,4) DEFAULT 1,
+      payment_date DATE,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS exchange_rates (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      currency_code VARCHAR(3) NOT NULL,
+      rate_to_usd DECIMAL(10,6) NOT NULL DEFAULT 1,
+      effective_date DATE DEFAULT (CURRENT_DATE)
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS expenses (
       id INT AUTO_INCREMENT PRIMARY KEY,

@@ -32,6 +32,7 @@ import Airlines from './pages/Airlines';
 import Airports from './pages/Airports';
 import Flights from './pages/Flights';
 import Services from './pages/Services';
+import SupplierPayments from './pages/SupplierPayments';
 import Contracts from './pages/Contracts';
 import Commissions from './pages/Commissions';
 import ActivityLog from './pages/ActivityLog';
@@ -76,6 +77,7 @@ function App() {
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
             <Route path="services" element={<Services />} />
+            <Route path="supplier-payments" element={<SupplierPayments />} />
             <Route path="airlines" element={<Airlines />} />
             <Route path="airports" element={<Airports />} />
             <Route path="flights" element={<Flights />} />

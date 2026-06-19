@@ -737,6 +737,8 @@ import approvalsRoutes from './routes/approvals.js';
 import phoneDirectoryRoutes from './routes/phoneDirectory.js';
 import uploadsRoutes from './routes/uploads.js';
 import dailyLogsRoutes from './routes/dailyLogs.js';
+import supplierPaymentsRoutes from './routes/supplierPayments.js';
+import exchangeRatesRoutes from './routes/exchangeRates.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -808,6 +810,8 @@ app.use('/api/approvals', authMiddleware, approvalsRoutes);
 app.use('/api/phone-directory', authMiddleware, phoneDirectoryRoutes);
 app.use('/api/uploads', authMiddleware, uploadsRoutes);
 app.use('/api/daily-logs', authMiddleware, dailyLogsRoutes);
+app.use('/api/supplier-payments', authMiddleware, supplierPaymentsRoutes);
+app.use('/api/exchange-rates', authMiddleware, exchangeRatesRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
@@ -831,6 +835,12 @@ async function start() {
     } else {
       await db.run('INSERT INTO users (full_name, email, password, role) VALUES (?,?,?,?)', ['Admin', 'jerusalem85@gmail.com', hash, 'admin']);
       console.log('Default admin user created');
+    }
+    const rateCount = await db.get('SELECT COUNT(*) as c FROM exchange_rates');
+    if (rateCount.c === 0) {
+      const rates = [['USD',1],['EUR',1.085],['ILS',0.267],['JOD',1.41],['AED',0.2723],['THB',0.028],['EGP',0.02],['GBP',1.27]];
+      for (const [c,r] of rates) await db.run('INSERT INTO exchange_rates (currency_code, rate_to_usd, effective_date) VALUES (?,?,date(\'now\'))', [c, r]);
+      console.log('Exchange rates seeded');
     }
   } catch (e) {
     console.error('Startup error (non-fatal):', e.message);

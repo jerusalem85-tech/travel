@@ -91,6 +91,9 @@ export default function Layout() {
           <NavLink to="/payments" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-cash-stack"></i> Payments
           </NavLink>
+          <NavLink to="/supplier-payments" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-building"></i> Supplier Payments
+          </NavLink>
           <NavLink to="/expenses" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-wallet2"></i> Expenses
           </NavLink>
