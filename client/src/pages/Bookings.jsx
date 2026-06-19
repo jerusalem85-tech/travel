@@ -7,16 +7,20 @@ export default function Bookings() {
   const [data, setData] = useState({ rows: [], total: 0, page: 1 });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
 
   const load = () => {
     const params = { page, limit: 20 };
     if (search) params.search = search;
     if (status) params.status = status;
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
     api.get('/bookings', { params }).then(res => setData(res.data));
   };
 
-  useEffect(() => { load(); }, [page, status]);
+  useEffect(() => { load(); }, [page, status, dateFrom, dateTo]);
   useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 300); return () => clearTimeout(t); }, [search]);
 
   const handleDelete = (id) => {
@@ -46,13 +50,13 @@ export default function Bookings() {
       <div className="card mb-3">
         <div className="card-body">
           <div className="row g-2">
-            <div className="col-md-8">
+            <div className="col-md-4">
               <div className="search-box">
                 <i className="bi bi-search"></i>
-                <input className="form-control" placeholder="Search by booking number or customer name..." value={search} onChange={e => setSearch(e.target.value)} />
+                <input className="form-control" placeholder="Search booking or customer..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-2">
               <select className="form-select" value={status} onChange={e => setStatus(e.target.value)}>
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -60,6 +64,15 @@ export default function Bookings() {
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
+            </div>
+            <div className="col-md-2">
+              <input type="date" className="form-control" value={dateFrom} onChange={e => setDateFrom(e.target.value)} placeholder="From" />
+            </div>
+            <div className="col-md-2">
+              <input type="date" className="form-control" value={dateTo} onChange={e => setDateTo(e.target.value)} placeholder="To" />
+            </div>
+            <div className="col-md-2">
+              <button className="btn btn-outline-secondary btn-sm w-100" onClick={() => { setSearch(''); setStatus(''); setDateFrom(''); setDateTo(''); }}>Clear</button>
             </div>
           </div>
         </div>

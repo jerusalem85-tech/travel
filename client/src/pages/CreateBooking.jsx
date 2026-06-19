@@ -17,8 +17,10 @@ export default function CreateBooking() {
   const [customers, setCustomers] = useState([]);
   const [airports, setAirports] = useState([]);
   const [airlines, setAirlines] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [saving, setSaving] = useState(false);
   const [customerId, setCustomerId] = useState('');
+  const [customerSearch, setCustomerSearch] = useState('');
   const [notes, setNotes] = useState('');
   const [passengers, setPassengers] = useState([{ name: '', passport: '', nationality: '', type: 'adult' }]);
   const [services, setServices] = useState([{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
@@ -27,6 +29,7 @@ export default function CreateBooking() {
     api.get('/customers', { params: { limit: 1000 } }).then(res => setCustomers(res.data.rows));
     api.get('/airports', { params: { limit: 1000 } }).then(res => setAirports(res.data.rows || res.data || []));
     api.get('/airlines', { params: { limit: 1000 } }).then(res => setAirlines(res.data.rows || res.data || []));
+    api.get('/suppliers', { params: { limit: 1000 } }).then(res => setSuppliers(res.data.rows || res.data || []));
   }, []);
 
   const pax = (i, field, value) => { const u = [...passengers]; u[i][field] = value; setPassengers(u); };
@@ -132,7 +135,10 @@ export default function CreateBooking() {
     <div className="row g-2 mb-1">
       <div className="col-md-3">
         <label className="form-label small mb-1">Supplier</label>
-        <input className="form-control" placeholder="Supplier name" value={s.supplier_id} onChange={e => svc(i, 'supplier_id', e.target.value)} />
+        <select className="form-select" value={s.supplier_id} onChange={e => svc(i, 'supplier_id', e.target.value)}>
+          <option value="">None</option>
+          {suppliers.map(sp => <option key={sp.id} value={sp.name}>{sp.name}</option>)}
+        </select>
       </div>
       <div className="col-md-2">
         <label className="form-label small mb-1">Cost</label>
@@ -234,10 +240,21 @@ export default function CreateBooking() {
             <h6 className="card-title mb-3">Customer</h6>
             <div className="row">
               <div className="col-md-6">
-                <select className="form-select form-select-lg" value={customerId} onChange={e => setCustomerId(e.target.value)} required>
-                  <option value="">Select customer...</option>
-                  {customers.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-                </select>
+                <div className="input-group">
+                  <span className="input-group-text"><i className="bi bi-search"></i></span>
+                  <input className="form-control" placeholder="Search customer..." value={customerSearch} onChange={e => { setCustomerSearch(e.target.value); setCustomerId(''); }}
+                    autoComplete="off" />
+                </div>
+                {customerSearch && (
+                  <div className="list-group mt-1 position-absolute z-3 shadow" style={{ maxHeight: '200px', overflow: 'auto', width: 'calc(50% - 24px)' }}>
+                    {customers.filter(c => (c.full_name || '').toLowerCase().includes(customerSearch.toLowerCase())).slice(0, 8).map(c => (
+                      <button type="button" key={c.id} className="list-group-item list-group-item-action py-1 px-2 small"
+                        onClick={() => { setCustomerId(c.id); setCustomerSearch(c.full_name); }}>
+                        {c.full_name} {c.phone && <span className="text-muted">- {c.phone}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

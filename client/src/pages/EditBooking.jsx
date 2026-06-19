@@ -27,6 +27,7 @@ export default function EditBooking() {
   const [customers, setCustomers] = useState([]);
   const [airports, setAirports] = useState([]);
   const [airlines, setAirlines] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [customerId, setCustomerId] = useState('');
@@ -42,7 +43,8 @@ export default function EditBooking() {
       api.get('/customers', { params: { limit: 1000 } }),
       api.get('/airports', { params: { limit: 1000 } }),
       api.get('/airlines', { params: { limit: 1000 } }),
-    ]).then(([b, c, ap, al]) => {
+      api.get('/suppliers', { params: { limit: 1000 } }),
+    ]).then(([b, c, ap, al, sp]) => {
       const bk = b.data;
       setCustomerId(bk.customer_id || '');
       setStatus(bk.status || 'pending');
@@ -51,6 +53,7 @@ export default function EditBooking() {
       setCustomers(c.data.rows);
       setAirports(ap.data.rows || ap.data || []);
       setAirlines(al.data.rows || al.data || []);
+      setSuppliers(sp.data.rows || sp.data || []);
       setPassengers(bk.passengers?.length > 0 ? bk.passengers.map(p => ({ name: p.full_name || p.name, passport: p.passport_number || p.passport, nationality: p.nationality, type: p.type || 'adult' })) : [{ name: '', passport: '', nationality: '', type: 'adult' }]);
       setServices(bk.services?.length > 0 ? bk.services.map(normalizeService) : [{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
     }).finally(() => setLoading(false));
@@ -160,7 +163,10 @@ export default function EditBooking() {
     <div className="row g-2 mb-1">
       <div className="col-md-3">
         <label className="form-label small mb-1">Supplier</label>
-        <input className="form-control" placeholder="Supplier name" value={s.supplier_id} onChange={e => svc(i, 'supplier_id', e.target.value)} />
+        <select className="form-select" value={s.supplier_id} onChange={e => svc(i, 'supplier_id', e.target.value)}>
+          <option value="">None</option>
+          {suppliers.map(sp => <option key={sp.id} value={sp.name}>{sp.name}</option>)}
+        </select>
       </div>
       <div className="col-md-2">
         <label className="form-label small mb-1">Cost</label>
