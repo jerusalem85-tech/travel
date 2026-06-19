@@ -7,7 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { init, getDb, isMySQL } from './config/database.js';
+import { init, getDb, isMySQL as isMySQLConnected } from './config/database.js';
 
 dotenv.config();
 
@@ -59,7 +59,7 @@ app.get('/api/debug/db', async (req, res) => {
   try {
     const db = await getDb();
     const u = await db.get('SELECT COUNT(*) as c FROM users');
-    res.json({ db: 'connected', users: u.c, mysql: useMySQL });
+    res.json({ db: 'connected', users: u.c, mysql: isMySQLConnected() });
   } catch (e) {
     res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
