@@ -64,12 +64,7 @@ app.get('/api/debug/db', async (req, res) => {
     const db = await getDb();
     const count = await db.get('SELECT COUNT(*) as c FROM users');
     const rows = await db.all('SELECT id, email, role FROM users');
-    const pw = await db.get('SELECT password FROM users WHERE email = ?', ['jerusalem85@gmail.com']);
-    let hashOk = false;
-    if (pw) {
-      hashOk = await bcrypt.compare('password', pw.password);
-    }
-    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows, pwHashOk: hashOk, pwLen: pw?.password?.length });
+    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows });
   } catch (e) {
     res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
@@ -345,16 +340,20 @@ app.use((err, req, res, next) => {
 });
 
 async function start() {
-  await init();
-  const db = await getDb();
-  const hash = await bcrypt.hash('password', 10);
-  const existing = await db.get('SELECT id FROM users WHERE email = ?', ['jerusalem85@gmail.com']);
-  if (existing) {
-    const result = await db.run('UPDATE users SET password = ?, full_name = ? WHERE email = ?', [hash, 'Admin', 'jerusalem85@gmail.com']);
-    console.log('Admin password reset, affected:', result.changes);
-  } else {
-    await db.run('INSERT INTO users (full_name, email, password, role) VALUES (?,?,?,?)', ['Admin', 'jerusalem85@gmail.com', hash, 'admin']);
-    console.log('Default admin user created');
+  try {
+    await init();
+    const db = await getDb();
+    const hash = await bcrypt.hash('password', 10);
+    const existing = await db.get('SELECT id FROM users WHERE email = ?', ['jerusalem85@gmail.com']);
+    if (existing) {
+      await db.run('UPDATE users SET password = ? WHERE email = ?', [hash, 'jerusalem85@gmail.com']);
+      console.log('Admin password reset');
+    } else {
+      await db.run('INSERT INTO users (full_name, email, password, role) VALUES (?,?,?,?)', ['Admin', 'jerusalem85@gmail.com', hash, 'admin']);
+      console.log('Default admin user created');
+    }
+  } catch (e) {
+    console.error('Startup error (non-fatal):', e.message);
   }
   app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
   if (process.env.USE_MYSQL !== 'true') {
