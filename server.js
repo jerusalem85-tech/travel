@@ -74,7 +74,11 @@ app.get('/api/debug/db', async (req, res) => {
     if (pw) {
       hashOk = await bcrypt.compare('password', pw.password);
     }
-    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows, hashOk, pwPrefix: pw?.password?.substring(0, 20) });
+    let custCols = [];
+    try {
+      custCols = await db.all("SHOW COLUMNS FROM customers");
+    } catch { custCols = [{error: 'cannot read columns'}]; }
+    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows, hashOk, pwPrefix: pw?.password?.substring(0, 20), custCols });
   } catch (e) {
     res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
