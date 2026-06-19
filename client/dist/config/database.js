@@ -653,6 +653,23 @@ CREATE TABLE IF NOT EXISTS flight_schedules (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS follow_ups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INT,
+  lead_id INT,
+  booking_id INT,
+  type TEXT DEFAULT 'call',
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'pending',
+  priority TEXT DEFAULT 'medium',
+  assigned_to INT,
+  due_date TEXT,
+  completed_at TEXT,
+  notes TEXT,
+  created_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS brokers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   full_name TEXT NOT NULL,
@@ -1308,6 +1325,22 @@ async function init() {
       price DECIMAL(10,2) DEFAULT 0,
       currency VARCHAR(10) DEFAULT 'USD',
       is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS follow_ups (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT,
+      lead_id INT,
+      booking_id INT,
+      type VARCHAR(50) DEFAULT 'call',
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      status VARCHAR(50) DEFAULT 'pending',
+      priority VARCHAR(50) DEFAULT 'medium',
+      assigned_to INT,
+      due_date DATE,
+      completed_at TIMESTAMP NULL,
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
