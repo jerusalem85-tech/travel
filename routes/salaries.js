@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { employee_id, month, paid, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (employee_id) {
@@ -23,8 +23,8 @@ router.get('/', async (req, res) => {
     params.push(paid);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM salaries s WHERE ${where}`, params);
-  const rows = await db.all(`SELECT s.*, e.full_name as employee_name FROM salaries s LEFT JOIN employees e ON s.employee_id = e.id WHERE ${where} ORDER BY s.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT s.*, e.full_name as employee_name FROM salaries s LEFT JOIN employees e ON s.employee_id = e.id WHERE ${where} ORDER BY s.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/employees', async (req, res) => {

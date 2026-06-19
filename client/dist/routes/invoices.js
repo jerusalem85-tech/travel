@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { search, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
     params.push(`%${search}%`, `%${search}%`);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE ${where}`, params);
-  const rows = await db.all(`SELECT i.*, c.full_name as customer_name FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE ${where} ORDER BY i.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT i.*, c.full_name as customer_name FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE ${where} ORDER BY i.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/:id', async (req, res) => {
@@ -37,6 +37,14 @@ router.post('/', async (req, res) => {
   const result = await db.run('INSERT INTO invoices (invoice_number, booking_id, customer_id, total_amount, notes) VALUES (?,?,?,?,?)',
     [invoice_number, booking_id || null, customer_id, total_amount || 0, notes || null]);
   res.json({ id: result.insertId || result.lastInsertRowid, invoice_number });
+});
+
+router.put('/:id', async (req, res) => {
+  const db = await getDb();
+  const { invoice_number, customer_id, booking_id, issue_date, due_date, total_amount, status, notes } = req.body;
+  await db.run(`UPDATE invoices SET invoice_number=?, customer_id=?, booking_id=?, issue_date=?, due_date=?, total_amount=?, status=?, notes=? WHERE id=?`,
+    [invoice_number, customer_id, booking_id, issue_date, due_date, total_amount, status, notes, req.params.id]);
+  res.json({ success: true });
 });
 
 router.delete('/:id', async (req, res) => {

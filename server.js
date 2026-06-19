@@ -132,6 +132,21 @@ app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {
   res.json({ count: result.count });
 });
 
+app.get('/api/stats/top-customers', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const rows = await db.all(`SELECT c.id, c.full_name, c.phone, c.email, COUNT(b.id) as booking_count, COALESCE(SUM(p.amount), 0) as total_paid
+    FROM customers c LEFT JOIN bookings b ON c.id = b.customer_id
+    LEFT JOIN payments p ON b.id = p.booking_id
+    GROUP BY c.id ORDER BY total_paid DESC LIMIT 5`);
+  res.json(rows);
+});
+
+app.get('/api/trash/count', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const result = await db.get('SELECT COUNT(*) as count FROM trash');
+  res.json({ count: result.count });
+});
+
 import authRoutes from './routes/auth.js';
 import bookingsRoutes from './routes/bookings.js';
 import customersRoutes from './routes/customers.js';
@@ -190,6 +205,9 @@ import priceCalculatorRoutes from './routes/priceCalculator.js';
 import surveysRoutes from './routes/surveys.js';
 import knowledgeArticlesRoutes from './routes/knowledgeArticles.js';
 import complaintsRoutes from './routes/complaints.js';
+import giftVouchersRoutes from './routes/giftVouchers.js';
+import campaignsRoutes from './routes/campaigns.js';
+import loyaltyPointsRoutes from './routes/loyaltyPoints.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -249,6 +267,9 @@ app.use('/api/price-calculator', authMiddleware, priceCalculatorRoutes);
 app.use('/api/surveys', authMiddleware, surveysRoutes);
 app.use('/api/knowledge', authMiddleware, knowledgeArticlesRoutes);
 app.use('/api/complaints', authMiddleware, complaintsRoutes);
+app.use('/api/gift-vouchers', authMiddleware, giftVouchersRoutes);
+app.use('/api/campaigns', authMiddleware, campaignsRoutes);
+app.use('/api/loyalty-points', authMiddleware, loyaltyPointsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

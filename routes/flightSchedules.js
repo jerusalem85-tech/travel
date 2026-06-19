@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { search, airline_id, origin, destination, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
@@ -38,8 +38,8 @@ router.get('/', async (req, res) => {
     WHERE ${where}
     ORDER BY fs.created_at DESC
     LIMIT ? OFFSET ?
-  `, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  `, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/airports', async (req, res) => {

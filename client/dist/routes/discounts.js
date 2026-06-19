@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { search, is_active, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
@@ -19,8 +19,8 @@ router.get('/', async (req, res) => {
     params.push(is_active);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM discounts WHERE ${where}`, params);
-  const rows = await db.all(`SELECT * FROM discounts WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT * FROM discounts WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.post('/', async (req, res) => {

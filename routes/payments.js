@@ -7,10 +7,10 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   const count = await db.get('SELECT COUNT(*) as count FROM payments');
-  const rows = await db.all(`SELECT p.*, b.booking_number, c.full_name as customer_name FROM payments p LEFT JOIN bookings b ON p.booking_id = b.id LEFT JOIN customers c ON b.customer_id = c.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT p.*, b.booking_number, c.full_name as customer_name FROM payments p LEFT JOIN bookings b ON p.booking_id = b.id LEFT JOIN customers c ON b.customer_id = c.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.post('/', async (req, res) => {
@@ -34,6 +34,14 @@ router.post('/', async (req, res) => {
     await db.run('UPDATE invoices SET paid_amount = ?, status = ? WHERE id = ?', [paid.total, status, invoice_id]);
   }
   res.json({ id: paymentId, payment_number });
+});
+
+router.put('/:id', async (req, res) => {
+  const db = await getDb();
+  const { booking_id, amount, payment_date, payment_method, reference, notes } = req.body;
+  await db.run(`UPDATE payments SET booking_id=?, amount=?, payment_date=?, payment_method=?, reference=?, notes=? WHERE id=?`,
+    [booking_id, amount, payment_date, payment_method, reference, notes, req.params.id]);
+  res.json({ success: true });
 });
 
 router.delete('/:id', async (req, res) => {

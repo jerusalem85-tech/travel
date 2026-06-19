@@ -6,16 +6,16 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { rating, customer_id, date_from, date_to, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (rating) {
     where += ' AND s.rating = ?';
-    params.push(parseInt(rating));
+    params.push(parseInt(rating, 10));
   }
   if (customer_id) {
     where += ' AND s.customer_id = ?';
-    params.push(parseInt(customer_id));
+    params.push(parseInt(customer_id, 10));
   }
   if (date_from) {
     where += ' AND s.created_at >= ?';
@@ -26,8 +26,8 @@ router.get('/', async (req, res) => {
     params.push(date_to);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM surveys s WHERE ${where}`, params);
-  const rows = await db.all(`SELECT s.*, c.full_name as customer_name FROM surveys s LEFT JOIN customers c ON s.customer_id = c.id WHERE ${where} ORDER BY s.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT s.*, c.full_name as customer_name FROM surveys s LEFT JOIN customers c ON s.customer_id = c.id WHERE ${where} ORDER BY s.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.post('/', async (req, res) => {
@@ -58,6 +58,14 @@ router.get('/stats', async (req, res) => {
     total_responses: stats.total,
     response_rate: responseRate,
   });
+});
+
+router.put('/:id', async (req, res) => {
+  const db = await getDb();
+  const { rating, nps_score, service_quality, communication, value_for_money, feedback, recommend } = req.body;
+  await db.run(`UPDATE surveys SET rating=?, nps_score=?, service_quality=?, communication=?, value_for_money=?, feedback=?, recommend=? WHERE id=?`,
+    [rating, nps_score, service_quality, communication, value_for_money, feedback, recommend, req.params.id]);
+  res.json({ success: true });
 });
 
 router.delete('/:id', async (req, res) => {

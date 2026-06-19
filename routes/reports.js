@@ -11,15 +11,42 @@ router.get('/', async (req, res) => {
     ? "DATE_SUB(CURDATE(), INTERVAL 30 DAY)"
     : "date('now', '-30 day')";
   const dateCol = isMySQL() ? 'DATE(created_at)' : 'date(created_at)';
+  const bDateCol = isMySQL() ? 'DATE(b.created_at)' : 'date(b.created_at)';
   const dateFormat = isMySQL() ? "DATE_FORMAT(created_at, '%Y-%m')" : "strftime('%Y-%m', created_at)";
-  const dateFilterFrom = from ? ` AND ${dateCol} >= '${from}'` : ` AND ${dateCol} >= ${dateAdd}`;
-  const dateFilterTo = to ? ` AND ${dateCol} <= '${to}'` : '';
 
-  const totalBookings = await db.get(`SELECT COUNT(*) as count FROM bookings WHERE 1=1${dateFilterFrom}${dateFilterTo}`);
-  const totalRevenue = await db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE 1=1${dateFilterFrom}${dateFilterTo}`);
-  const totalExpenses = await db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE 1=1${dateFilterFrom}${dateFilterTo}`);
+  const clauses = [];
+  const dateParams = [];
+  if (from) {
+    clauses.push(`${dateCol} >= ?`);
+    dateParams.push(from);
+  } else {
+    clauses.push(`${dateCol} >= ${dateAdd}`);
+  }
+  if (to) {
+    clauses.push(`${dateCol} <= ?`);
+    dateParams.push(to);
+  }
+  const dateFilter = clauses.length > 0 ? ' AND ' + clauses.join(' AND ') : '';
 
-  const bookingsByStatus = await db.all(`SELECT status, COUNT(*) as count FROM bookings WHERE 1=1${dateFilterFrom}${dateFilterTo} GROUP BY status`);
+  const bClauses = [];
+  const bDateParams = [];
+  if (from) {
+    bClauses.push(`${bDateCol} >= ?`);
+    bDateParams.push(from);
+  } else {
+    bClauses.push(`${bDateCol} >= ${dateAdd}`);
+  }
+  if (to) {
+    bClauses.push(`${bDateCol} <= ?`);
+    bDateParams.push(to);
+  }
+  const bDateFilter = bClauses.length > 0 ? ' AND ' + bClauses.join(' AND ') : '';
+
+  const totalBookings = await db.get(`SELECT COUNT(*) as count FROM bookings WHERE 1=1${dateFilter}`, dateParams);
+  const totalRevenue = await db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE 1=1${dateFilter}`, dateParams);
+  const totalExpenses = await db.get(`SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE 1=1${dateFilter}`, dateParams);
+
+  const bookingsByStatus = await db.all(`SELECT status, COUNT(*) as count FROM bookings WHERE 1=1${dateFilter} GROUP BY status`, dateParams);
 
   const monthly = await db.all(`
     SELECT ${dateFormat} as month,
@@ -40,40 +67,40 @@ router.get('/', async (req, res) => {
     SELECT c.id, c.full_name, COUNT(b.id) as booking_count
     FROM customers c
     LEFT JOIN bookings b ON b.customer_id = c.id
-    WHERE 1=1${dateFilterFrom.replace('created_at', 'b.created_at')}${dateFilterTo.replace('created_at', 'b.created_at')}
+    WHERE 1=1${bDateFilter}
     GROUP BY c.id
     ORDER BY booking_count DESC
     LIMIT 5
-  `);
+  `, bDateParams);
 
   const topDestinations = await db.all(`
     SELECT to_destination, COUNT(*) as count
     FROM bookings
-    WHERE to_destination IS NOT NULL AND to_destination != ''${dateFilterFrom}${dateFilterTo}
+    WHERE to_destination IS NOT NULL AND to_destination != ''${dateFilter}
     GROUP BY to_destination
     ORDER BY count DESC
     LIMIT 5
-  `);
+  `, dateParams);
 
   const paymentMethods = await db.all(`
     SELECT payment_method, COUNT(*) as count, COALESCE(SUM(amount), 0) as total
     FROM payments
-    WHERE 1=1${dateFilterFrom}${dateFilterTo}
+    WHERE 1=1${dateFilter}
     GROUP BY payment_method
-  `);
+  `, dateParams);
 
   const serviceTypes = await db.all(`
     SELECT service_type, COUNT(*) as count
     FROM bookings
-    WHERE service_type IS NOT NULL AND service_type != ''${dateFilterFrom}${dateFilterTo}
+    WHERE service_type IS NOT NULL AND service_type != ''${dateFilter}
     GROUP BY service_type
     ORDER BY count DESC
-  `);
+  `, dateParams);
 
   res.json({
     dateRange: {
-      from: from || (isMySQL() ? null : null),
-      to: to || (isMySQL() ? null : null),
+      from: from || null,
+      to: to || null,
     },
     totalBookings: totalBookings.count,
     totalRevenue: totalRevenue.total,
@@ -128,11 +155,7 @@ router.get('/advanced', async (req, res) => {
 
   let topSuppliers = [];
   try {
-    topSuppliers = await db.all(`
-      SELECT s.full_name as name, s.company, COUNT(b.id) as booking_count
-      FROM suppliers s LEFT JOIN bookings b ON s.id = b.supplier_id
-      GROUP BY s.id ORDER BY booking_count DESC LIMIT 5
-    `);
+    topSuppliers = await db.all('SELECT s.name, s.email, s.phone, COUNT(b.id) as booking_count FROM suppliers s LEFT JOIN bookings b ON 1=0 GROUP BY s.id ORDER BY booking_count DESC LIMIT 5');
   } catch { topSuppliers = []; }
 
   let bookingStatuses = [];

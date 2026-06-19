@@ -810,6 +810,45 @@ CREATE TABLE IF NOT EXISTS complaints (
   resolved_at TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS gift_vouchers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT NOT NULL UNIQUE,
+  customer_id INT,
+  amount REAL DEFAULT 0,
+  remaining REAL DEFAULT 0,
+  expiry_date TEXT,
+  is_active INTEGER DEFAULT 1,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS campaigns (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT DEFAULT 'email',
+  audience TEXT,
+  subject TEXT,
+  content TEXT,
+  sent_count INTEGER DEFAULT 0,
+  opened_count INTEGER DEFAULT 0,
+  clicked_count INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'draft',
+  scheduled_at TEXT,
+  sent_at TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS loyalty_points (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INT NOT NULL,
+  points INTEGER DEFAULT 0,
+  type TEXT DEFAULT 'earned',
+  reference_type TEXT,
+  reference_id INT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -1514,6 +1553,42 @@ async function init() {
       assigned_to INT,
       resolution TEXT,
       resolved_at TIMESTAMP NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS gift_vouchers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      code VARCHAR(50) NOT NULL UNIQUE,
+      customer_id INT,
+      amount DECIMAL(10,2) DEFAULT 0,
+      remaining DECIMAL(10,2) DEFAULT 0,
+      expiry_date DATE,
+      is_active TINYINT DEFAULT 1,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS campaigns (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      type VARCHAR(50) DEFAULT 'email',
+      audience VARCHAR(100),
+      subject VARCHAR(255),
+      content TEXT,
+      sent_count INT DEFAULT 0,
+      opened_count INT DEFAULT 0,
+      clicked_count INT DEFAULT 0,
+      status VARCHAR(50) DEFAULT 'draft',
+      scheduled_at TIMESTAMP NULL,
+      sent_at TIMESTAMP NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS loyalty_points (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT NOT NULL,
+      points INT DEFAULT 0,
+      type VARCHAR(50) DEFAULT 'earned',
+      reference_type VARCHAR(50),
+      reference_id INT,
+      notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

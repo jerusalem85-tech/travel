@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { employee_id, date_from, date_to, status, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (employee_id) {
@@ -26,8 +26,8 @@ router.get('/', async (req, res) => {
     params.push(status);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM attendance a WHERE ${where}`, params);
-  const rows = await db.all(`SELECT a.*, e.full_name as employee_name FROM attendance a LEFT JOIN employees e ON a.employee_id = e.id WHERE ${where} ORDER BY a.date DESC, a.clock_in DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT a.*, e.full_name as employee_name FROM attendance a LEFT JOIN employees e ON a.employee_id = e.id WHERE ${where} ORDER BY a.date DESC, a.clock_in DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/today', async (req, res) => {
@@ -62,6 +62,12 @@ router.put('/:id/clock-out', async (req, res) => {
   const now = new Date().toTimeString().split(' ')[0];
   await db.run('UPDATE attendance SET clock_out=? WHERE id=?', [now, req.params.id]);
   res.json({ message: 'Clock out recorded' });
+});
+
+router.delete('/:id', async (req, res) => {
+  const db = await getDb();
+  await db.run('DELETE FROM attendance WHERE id = ?', [req.params.id]);
+  res.json({ success: true });
 });
 
 export default router;

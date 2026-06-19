@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { search, assigned_to, status, priority, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
   if (assigned_to) {
     where += ' AND assigned_to = ?';
-    params.push(parseInt(assigned_to));
+    params.push(parseInt(assigned_to, 10));
   }
   if (status) {
     where += ' AND status = ?';
@@ -27,8 +27,8 @@ router.get('/', async (req, res) => {
     params.push(priority);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM tasks WHERE ${where}`, params);
-  const rows = await db.all(`SELECT t.*, u.full_name as assigned_to_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id WHERE ${where} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT t.*, u.full_name as assigned_to_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id WHERE ${where} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/users', async (req, res) => {

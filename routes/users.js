@@ -43,7 +43,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const db = await getDb();
-  if (parseInt(req.params.id) === req.user.id) {
+  if (parseInt(req.params.id, 10) === req.user.id) {
     return res.status(400).json({ error: 'Cannot delete yourself' });
   }
   await moveToTrash(db, 'users', req.params.id, req.user?.id);

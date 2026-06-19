@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { entity_type, entity_id, customer_id, min_rating, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (entity_type) {
@@ -27,8 +27,8 @@ router.get('/', async (req, res) => {
     params.push(min_rating);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM reviews WHERE ${where}`, params);
-  const rows = await db.all(`SELECT * FROM reviews WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT * FROM reviews WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.post('/', async (req, res) => {
@@ -38,6 +38,14 @@ router.post('/', async (req, res) => {
   const result = await db.run('INSERT INTO reviews (entity_type, entity_id, customer_id, booking_id, rating, review_text, reviewer_name) VALUES (?,?,?,?,?,?,?)',
     [entity_type, entity_id, customer_id || null, booking_id || null, rating || 5, review_text || null, reviewer_name || null]);
   res.json({ id: result.insertId || result.lastInsertRowid });
+});
+
+router.put('/:id', async (req, res) => {
+  const db = await getDb();
+  const { rating, review_text, reviewer_name } = req.body;
+  await db.run(`UPDATE reviews SET rating=?, review_text=?, reviewer_name=? WHERE id=?`,
+    [rating, review_text, reviewer_name, req.params.id]);
+  res.json({ success: true });
 });
 
 router.delete('/:id', async (req, res) => {

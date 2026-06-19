@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { search, service_type, destination, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
@@ -23,8 +23,8 @@ router.get('/', async (req, res) => {
     params.push(`%${destination}%`);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM price_lists WHERE ${where}`, params);
-  const rows = await db.all(`SELECT p.*, s.name as supplier_name FROM price_lists p LEFT JOIN suppliers s ON p.supplier_id = s.id WHERE ${where} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT p.*, s.name as supplier_name FROM price_lists p LEFT JOIN suppliers s ON p.supplier_id = s.id WHERE ${where} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.post('/', async (req, res) => {

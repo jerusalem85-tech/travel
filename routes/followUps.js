@@ -7,16 +7,16 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { customer_id, lead_id, status, assigned_to, type, priority, search, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (customer_id) {
     where += ' AND f.customer_id = ?';
-    params.push(parseInt(customer_id));
+    params.push(parseInt(customer_id, 10));
   }
   if (lead_id) {
     where += ' AND f.lead_id = ?';
-    params.push(parseInt(lead_id));
+    params.push(parseInt(lead_id, 10));
   }
   if (status) {
     where += ' AND f.status = ?';
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
   }
   if (assigned_to) {
     where += ' AND f.assigned_to = ?';
-    params.push(parseInt(assigned_to));
+    params.push(parseInt(assigned_to, 10));
   }
   if (type) {
     where += ' AND f.type = ?';
@@ -39,8 +39,8 @@ router.get('/', async (req, res) => {
     params.push(`%${search}%`);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM follow_ups f WHERE ${where}`, params);
-  const rows = await db.all(`SELECT f.*, c.full_name as customer_name, u.full_name as assigned_to_name FROM follow_ups f LEFT JOIN customers c ON f.customer_id = c.id LEFT JOIN users u ON f.assigned_to = u.id WHERE ${where} ORDER BY f.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT f.*, c.full_name as customer_name, u.full_name as assigned_to_name FROM follow_ups f LEFT JOIN customers c ON f.customer_id = c.id LEFT JOIN users u ON f.assigned_to = u.id WHERE ${where} ORDER BY f.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/users', async (req, res) => {

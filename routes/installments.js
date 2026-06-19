@@ -6,15 +6,15 @@ const router = Router();
 router.get('/plans', async (req, res) => {
   const db = await getDb();
   const { booking_id, customer_id, status, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (booking_id) { where += ' AND p.booking_id = ?'; params.push(booking_id); }
   if (customer_id) { where += ' AND p.customer_id = ?'; params.push(customer_id); }
   if (status) { where += ' AND p.status = ?'; params.push(status); }
   const count = await db.get(`SELECT COUNT(*) as count FROM installment_plans p WHERE ${where}`, params);
-  const rows = await db.all(`SELECT p.*, c.full_name as customer_name, b.booking_number FROM installment_plans p LEFT JOIN customers c ON p.customer_id = c.id LEFT JOIN bookings b ON p.booking_id = b.id WHERE ${where} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT p.*, c.full_name as customer_name, b.booking_number FROM installment_plans p LEFT JOIN customers c ON p.customer_id = c.id LEFT JOIN bookings b ON p.booking_id = b.id WHERE ${where} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/plans/:id', async (req, res) => {
@@ -33,7 +33,7 @@ router.post('/plans', async (req, res) => {
   const result = await db.run('INSERT INTO installment_plans (booking_id, customer_id, total_amount, down_payment, installments_count, remaining_amount, status, notes) VALUES (?,?,?,?,?,?,?,?)',
     [booking_id || null, customer_id, total_amount || 0, down_payment || 0, installments_count || 1, remaining, status || 'active', notes || null]);
   const planId = result.insertId || result.lastInsertRowid;
-  const count = parseInt(installments_count) || 1;
+  const count = parseInt(installments_count, 10) || 1;
   const installmentAmount = count > 0 ? remaining / count : 0;
   const today = new Date();
   const dueDates = [];

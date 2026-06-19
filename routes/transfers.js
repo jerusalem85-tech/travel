@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { search, status, date, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
@@ -22,8 +22,8 @@ router.get('/', async (req, res) => {
     params.push(date);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM transfers t LEFT JOIN customers c ON t.customer_id = c.id LEFT JOIN vehicles v ON t.vehicle_id = v.id WHERE ${where}`, params);
-  const rows = await db.all(`SELECT t.*, c.full_name as customer_name, v.plate_number FROM transfers t LEFT JOIN customers c ON t.customer_id = c.id LEFT JOIN vehicles v ON t.vehicle_id = v.id WHERE ${where} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT t.*, c.full_name as customer_name, v.plate_number FROM transfers t LEFT JOIN customers c ON t.customer_id = c.id LEFT JOIN vehicles v ON t.vehicle_id = v.id WHERE ${where} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/customers', async (req, res) => {

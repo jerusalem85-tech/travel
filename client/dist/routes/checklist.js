@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
   let params = [];
   if (booking_id) {
     where += ' AND booking_id = ?';
-    params.push(parseInt(booking_id));
+    params.push(parseInt(booking_id, 10));
   }
   const rows = await db.all(`SELECT bc.*, u.full_name as completed_by_name FROM booking_checklist bc LEFT JOIN users u ON bc.completed_by = u.id WHERE ${where} ORDER BY bc.created_at ASC`, params);
   res.json(rows);

@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { page = 1, limit = 50, entity_type, entity_id } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (entity_type) {
@@ -15,11 +15,11 @@ router.get('/', async (req, res) => {
   }
   if (entity_id) {
     where += ' AND entity_id = ?';
-    params.push(parseInt(entity_id));
+    params.push(parseInt(entity_id, 10));
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM activity_log WHERE ${where}`, params);
-  const rows = await db.all(`SELECT * FROM activity_log WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT * FROM activity_log WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 export default router;

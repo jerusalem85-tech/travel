@@ -6,9 +6,20 @@ const router = Router();
 router.get('/export', async (req, res) => {
   const db = await getDb();
   const tables = [
-    'users', 'customers', 'suppliers', 'bookings',
-    'booking_passengers', 'booking_services', 'invoices',
-    'payments', 'expenses', 'settings', 'quotations', 'notifications'
+    'users', 'customers', 'suppliers', 'bookings', 'booking_passengers',
+    'booking_services', 'invoices', 'payments', 'expenses', 'settings', 
+    'quotations', 'notifications', 'hotels', 'hotel_room_types', 
+    'tour_packages', 'insurance_policies', 'contracts', 'commissions', 
+    'activity_log', 'currencies', 'customer_communications',
+    'visas', 'documents', 'tasks', 'price_lists', 'booking_checklist', 
+    'inventory_items', 'leads', 'employees', 'attendance', 'salaries', 
+    'vehicles', 'guides', 'discounts', 'tax_rates', 'reviews',
+    'installment_plans', 'installment_payments', 'user_preferences',
+    'airports', 'airlines', 'destinations', 'flight_schedules',
+    'brokers', 'broker_commissions', 'transfers', 'services_catalog',
+    'restaurant_bookings', 'properties', 'referrals', 'follow_ups',
+    'surveys', 'knowledge_articles', 'complaints', 'templates',
+    'login_log', 'trash'
   ];
   const backup = {};
   for (const table of tables) {

@@ -21,4 +21,10 @@ router.get('/users', async (req, res) => {
   res.json(rows);
 });
 
+router.delete('/:id', async (req, res) => {
+  const db = await getDb();
+  await db.run('DELETE FROM login_log WHERE id = ?', [req.params.id]);
+  res.json({ success: true });
+});
+
 export default router;

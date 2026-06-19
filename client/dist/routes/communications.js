@@ -7,16 +7,16 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { customer_id, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (customer_id) {
     where += ' AND customer_id = ?';
-    params.push(parseInt(customer_id));
+    params.push(parseInt(customer_id, 10));
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM customer_communications WHERE ${where}`, params);
-  const rows = await db.all(`SELECT c.*, cust.full_name as customer_name FROM customer_communications c LEFT JOIN customers cust ON c.customer_id = cust.id WHERE ${where} ORDER BY c.sent_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT c.*, cust.full_name as customer_name FROM customer_communications c LEFT JOIN customers cust ON c.customer_id = cust.id WHERE ${where} ORDER BY c.sent_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.post('/', async (req, res) => {
@@ -27,6 +27,14 @@ router.post('/', async (req, res) => {
   const result = await db.run('INSERT INTO customer_communications (customer_id, communication_type, subject, message, status) VALUES (?,?,?,?,?)',
     [customer_id, communication_type || null, subject, message || null, status || 'sent']);
   res.json({ id: result.insertId || result.lastInsertRowid });
+});
+
+router.put('/:id', async (req, res) => {
+  const db = await getDb();
+  const { customer_id, communication_type, subject, message, notes } = req.body;
+  await db.run(`UPDATE customer_communications SET customer_id=?, communication_type=?, subject=?, message=?, notes=? WHERE id=?`,
+    [customer_id, communication_type, subject, message, notes, req.params.id]);
+  res.json({ success: true });
 });
 
 router.delete('/:id', async (req, res) => {

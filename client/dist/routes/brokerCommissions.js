@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const db = await getDb();
   const { broker_id, paid, page = 1, limit = 20 } = req.query;
-  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (broker_id) {
@@ -18,8 +18,8 @@ router.get('/', async (req, res) => {
     params.push(paid);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM broker_commissions bc LEFT JOIN brokers b ON bc.broker_id = b.id WHERE ${where}`, params);
-  const rows = await db.all(`SELECT bc.*, b.full_name as broker_name FROM broker_commissions bc LEFT JOIN brokers b ON bc.broker_id = b.id WHERE ${where} ORDER BY bc.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
-  res.json({ rows, total: count.count, page: parseInt(page) });
+  const rows = await db.all(`SELECT bc.*, b.full_name as broker_name FROM broker_commissions bc LEFT JOIN brokers b ON bc.broker_id = b.id WHERE ${where} ORDER BY bc.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
 router.get('/brokers', async (req, res) => {
