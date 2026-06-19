@@ -923,6 +923,30 @@ CREATE TABLE IF NOT EXISTS phone_directory (
   notes TEXT,
   created_at TEXT
 );
+
+CREATE TABLE IF NOT EXISTS uploaded_files (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  original_name TEXT NOT NULL,
+  stored_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size INTEGER DEFAULT 0,
+  mime_type TEXT,
+  entity_type TEXT,
+  entity_id INT,
+  uploaded_by INT,
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS daily_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  log_date TEXT NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT,
+  category TEXT,
+  created_by INT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -1731,6 +1755,28 @@ async function init() {
       position VARCHAR(100),
       is_emergency TINYINT DEFAULT 0,
       notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS uploaded_files (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      original_name VARCHAR(255) NOT NULL,
+      stored_name VARCHAR(255) NOT NULL,
+      file_path VARCHAR(500) NOT NULL,
+      file_size INT DEFAULT 0,
+      mime_type VARCHAR(100),
+      entity_type VARCHAR(50),
+      entity_id INT,
+      uploaded_by INT,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS daily_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      log_date DATE NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      content TEXT,
+      category VARCHAR(100),
+      created_by INT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

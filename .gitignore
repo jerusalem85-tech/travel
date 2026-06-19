@@ -1,2 +1,8 @@
 node_modules/
 *.log
+.env
+data/
+seed.js
+client/dist/.env
+.DS_Store
+Thumbs.db

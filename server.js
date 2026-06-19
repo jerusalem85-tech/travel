@@ -21,6 +21,7 @@ app.use(express.json());
 const staticDir = fs.existsSync(path.join(__dirname, 'client', 'dist', 'index.html'))
   ? path.join(__dirname, 'client', 'dist') : __dirname;
 app.use(express.static(staticDir));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const authMiddleware = (req, res, next) => {
   const header = req.headers.authorization;
@@ -215,6 +216,8 @@ import execDashboardRoutes from './routes/execDashboard.js';
 import appointmentsRoutes from './routes/appointments.js';
 import approvalsRoutes from './routes/approvals.js';
 import phoneDirectoryRoutes from './routes/phoneDirectory.js';
+import uploadsRoutes from './routes/uploads.js';
+import dailyLogsRoutes from './routes/dailyLogs.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -284,6 +287,8 @@ app.use('/api/exec-dashboard', authMiddleware, execDashboardRoutes);
 app.use('/api/appointments', authMiddleware, appointmentsRoutes);
 app.use('/api/approvals', authMiddleware, approvalsRoutes);
 app.use('/api/phone-directory', authMiddleware, phoneDirectoryRoutes);
+app.use('/api/uploads', authMiddleware, uploadsRoutes);
+app.use('/api/daily-logs', authMiddleware, dailyLogsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
