@@ -882,6 +882,47 @@ CREATE TABLE IF NOT EXISTS signed_contracts (
   status TEXT DEFAULT 'draft',
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INT,
+  title TEXT NOT NULL,
+  description TEXT,
+  appointment_date TEXT,
+  appointment_time TEXT,
+  duration INTEGER DEFAULT 30,
+  type TEXT DEFAULT 'meeting',
+  status TEXT DEFAULT 'scheduled',
+  assigned_to INT,
+  notes TEXT,
+  created_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS approvals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  request_type TEXT,
+  request_id INT,
+  requested_by INT,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'pending',
+  approved_by INT,
+  approved_at TEXT,
+  notes TEXT,
+  created_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS phone_directory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  phone TEXT,
+  email TEXT,
+  department TEXT,
+  position TEXT,
+  is_emergency INTEGER DEFAULT 0,
+  notes TEXT,
+  created_at TEXT
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -1652,6 +1693,44 @@ async function init() {
       signature_data TEXT,
       signed_at TIMESTAMP NULL,
       status VARCHAR(50) DEFAULT 'draft',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS appointments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      appointment_date DATE,
+      appointment_time TIME,
+      duration INT DEFAULT 30,
+      type VARCHAR(50) DEFAULT 'meeting',
+      status VARCHAR(50) DEFAULT 'scheduled',
+      assigned_to INT,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS approvals (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      request_type VARCHAR(50),
+      request_id INT,
+      requested_by INT,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      status VARCHAR(50) DEFAULT 'pending',
+      approved_by INT,
+      approved_at TIMESTAMP NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS phone_directory (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      full_name VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      department VARCHAR(100),
+      position VARCHAR(100),
+      is_emergency TINYINT DEFAULT 0,
+      notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

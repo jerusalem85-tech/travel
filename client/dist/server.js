@@ -212,6 +212,9 @@ import galleryRoutes from './routes/gallery.js';
 import contractTemplatesRoutes from './routes/contractTemplates.js';
 import signedContractsRoutes from './routes/signedContracts.js';
 import execDashboardRoutes from './routes/execDashboard.js';
+import appointmentsRoutes from './routes/appointments.js';
+import approvalsRoutes from './routes/approvals.js';
+import phoneDirectoryRoutes from './routes/phoneDirectory.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -278,6 +281,9 @@ app.use('/api/gallery', authMiddleware, galleryRoutes);
 app.use('/api/contract-templates', authMiddleware, contractTemplatesRoutes);
 app.use('/api/signed-contracts', authMiddleware, signedContractsRoutes);
 app.use('/api/exec-dashboard', authMiddleware, execDashboardRoutes);
+app.use('/api/appointments', authMiddleware, appointmentsRoutes);
+app.use('/api/approvals', authMiddleware, approvalsRoutes);
+app.use('/api/phone-directory', authMiddleware, phoneDirectoryRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
