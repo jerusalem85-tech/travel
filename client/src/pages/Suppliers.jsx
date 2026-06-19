@@ -17,7 +17,7 @@ export default function Suppliers() {
   useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 300); return () => clearTimeout(t); }, [search]);
 
   const handleDelete = (id) => {
-    Swal.fire({ title: 'تأكيد الحذف', text: 'سيتم حذف المورد', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
+    Swal.fire({ title: 'Confirm Delete', text: 'The supplier will be deleted', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' }).then(r => {
       if (r.isConfirmed) api.delete(`/suppliers/${id}`).then(() => load());
     });
   };
@@ -25,21 +25,21 @@ export default function Suppliers() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">الموردين</h5>
-        <Link to="/suppliers/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> مورد جديد</Link>
+        <h5 className="page-title mb-0">Suppliers</h5>
+        <Link to="/suppliers/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> New Supplier</Link>
       </div>
       <div className="card mb-3">
         <div className="card-body">
           <div className="search-box">
             <i className="bi bi-search"></i>
-            <input className="form-control" placeholder="بحث بالاسم أو رقم الهاتف..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="form-control" placeholder="Search by name or phone number..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
       <div className="card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>النوع</th><th>الخدمات</th><th></th></tr></thead>
+            <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Type</th><th>Services</th><th></th></tr></thead>
             <tbody>
               {data.rows.map(s => (
                 <tr key={s.id}>

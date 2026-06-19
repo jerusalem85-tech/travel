@@ -29,7 +29,7 @@ const Communications = () => {
       setCommunications(res.data.rows || []);
       setTotal(res.data.total || 0);
     } catch (err) {
-      Swal.fire('خطأ', 'فشل تحميل الاتصالات', 'error');
+      Swal.fire('Error', 'Failed to load communications', 'error');
     } finally {
       setLoading(false);
     }
@@ -69,15 +69,15 @@ const Communications = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.customer_id) {
-      Swal.fire('تنبيه', 'اختر العميل', 'warning');
+      Swal.fire('Warning', 'Select a customer', 'warning');
       return;
     }
     if (!formData.subject.trim()) {
-      Swal.fire('تنبيه', 'أدخل الموضوع', 'warning');
+      Swal.fire('Warning', 'Enter the subject', 'warning');
       return;
     }
     if (!formData.message.trim()) {
-      Swal.fire('تنبيه', 'أدخل الرسالة', 'warning');
+      Swal.fire('Warning', 'Enter the message', 'warning');
       return;
     }
 
@@ -89,12 +89,12 @@ const Communications = () => {
         subject: formData.subject,
         message: formData.message
       });
-      Swal.fire({ title: 'تم الإضافة', text: 'تم تسجيل الاتصال بنجاح', icon: 'success', timer: 2000, showConfirmButton: false });
+      Swal.fire({ title: 'Added', text: 'Communication logged successfully', icon: 'success', timer: 2000, showConfirmButton: false });
       setShowModal(false);
       resetForm();
       fetchCommunications();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل تسجيل الاتصال', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Failed to log communication', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -102,22 +102,22 @@ const Communications = () => {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: 'سيتم حذف هذا الاتصال',
+      title: 'Are you sure?',
+      text: 'This communication will be deleted',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/communications/${id}`);
-          Swal.fire('تم الحذف', 'تم حذف الاتصال بنجاح', 'success');
+          Swal.fire('Deleted', 'Communication deleted successfully', 'success');
           fetchCommunications();
         } catch (err) {
-          Swal.fire('خطأ', 'فشل حذف الاتصال', 'error');
+          Swal.fire('Error', 'Failed to delete communication', 'error');
         }
       }
     });
@@ -135,10 +135,10 @@ const Communications = () => {
 
   const getTypeLabel = (type) => {
     const map = {
-      email: 'بريد إلكتروني',
-      phone: 'مكالمة هاتفية',
-      whatsapp: 'واتساب',
-      meeting: 'اجتماع'
+      email: 'Email',
+      phone: 'Phone Call',
+      whatsapp: 'WhatsApp',
+      meeting: 'Meeting'
     };
     return map[type] || type;
   };
@@ -150,11 +150,11 @@ const Communications = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-chat-dots me-2"></i>
-          سجل الاتصالات
+          Communications Log
         </h4>
         <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
           <i className="bi bi-plus-lg me-1"></i>
-          إضافة اتصال
+          Add Communication
         </button>
       </div>
 
@@ -163,9 +163,9 @@ const Communications = () => {
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
-              <label className="form-label">تصفية بالعميل</label>
+              <label className="form-label">Filter by Customer</label>
               <select className="form-select" value={customerFilter} onChange={(e) => { setCustomerFilter(e.target.value); setPage(1); }}>
-                <option value="">جميع العملاء</option>
+                <option value="">All Customers</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>{c.name} - {c.phone}</option>
                 ))}
@@ -174,7 +174,7 @@ const Communications = () => {
             <div className="col-md-2 d-flex align-items-end">
               <button className="btn btn-outline-secondary w-100" onClick={() => { setCustomerFilter(''); setPage(1); }}>
                 <i className="bi bi-arrow-counterclockwise me-1"></i>
-                إعادة تعيين
+                Reset
               </button>
             </div>
           </div>
@@ -187,13 +187,13 @@ const Communications = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : communications.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد اتصالات
+              No communications
             </div>
           ) : (
             <>
@@ -202,12 +202,12 @@ const Communications = () => {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>العميل</th>
-                      <th>نوع الاتصال</th>
-                      <th>الموضوع</th>
-                      <th>الرسالة</th>
-                      <th>التاريخ</th>
-                      <th>إجراءات</th>
+                      <th>Customer</th>
+                      <th>Type</th>
+                      <th>Subject</th>
+                      <th>Message</th>
+                      <th>Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -227,9 +227,9 @@ const Communications = () => {
                         <td style={{ maxWidth: 250 }}>
                           <div className="text-truncate text-muted">{c.message}</div>
                         </td>
-                        <td>{new Date(c.sent_at || c.created_at).toLocaleString('ar-SA')}</td>
+                        <td>{new Date(c.sent_at || c.created_at).toLocaleString('en-US')}</td>
                         <td>
-                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id)} title="حذف">
+                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id)} title="Delete">
                             <i className="bi bi-trash"></i>
                           </button>
                         </td>
@@ -280,16 +280,16 @@ const Communications = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="bi bi-plus-circle me-2"></i>
-                  إضافة اتصال جديد
+                  New Communication
                 </h5>
                 <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">العميل <span className="text-danger">*</span></label>
+                    <label className="form-label">Customer <span className="text-danger">*</span></label>
                     <select className="form-select" name="customer_id" value={formData.customer_id} onChange={handleChange} required>
-                      <option value="">اختر العميل</option>
+                      <option value="">Select Customer</option>
                       {customers.map((c) => (
                         <option key={c.id} value={c.id}>{c.name} - {c.phone}</option>
                       ))}
@@ -297,32 +297,32 @@ const Communications = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">نوع الاتصال <span className="text-danger">*</span></label>
+                    <label className="form-label">Type <span className="text-danger">*</span></label>
                     <select className="form-select" name="communication_type" value={formData.communication_type} onChange={handleChange}>
-                      <option value="email">بريد إلكتروني</option>
-                      <option value="phone">مكالمة هاتفية</option>
-                      <option value="whatsapp">واتساب</option>
-                      <option value="meeting">اجتماع</option>
+                      <option value="email">Email</option>
+                      <option value="phone">Phone Call</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="meeting">Meeting</option>
                     </select>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">الموضوع <span className="text-danger">*</span></label>
-                    <input type="text" className="form-control" name="subject" value={formData.subject} onChange={handleChange} placeholder="موضوع الاتصال..." required />
+                    <label className="form-label">Subject <span className="text-danger">*</span></label>
+                    <input type="text" className="form-control" name="subject" value={formData.subject} onChange={handleChange} placeholder="Communication subject..." required />
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">الرسالة <span className="text-danger">*</span></label>
-                    <textarea className="form-control" name="message" value={formData.message} onChange={handleChange} rows="4" placeholder="محتوى الرسالة..." required></textarea>
+                    <label className="form-label">Message <span className="text-danger">*</span></label>
+                    <textarea className="form-control" name="message" value={formData.message} onChange={handleChange} rows="4" placeholder="Message content..." required></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={submitting}>
                     {submitting ? (
-                      <><span className="spinner-border spinner-border-sm me-1"></span>جاري الحفظ...</>
+                      <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</>
                     ) : (
-                      <><i className="bi bi-check-lg me-1"></i>حفظ الاتصال</>
+                      <><i className="bi bi-check-lg me-1"></i>Save Communication</>
                     )}
                   </button>
                 </div>

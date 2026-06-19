@@ -12,7 +12,7 @@ export default function ShowSupplier() {
   useEffect(() => { load(); }, [id]);
 
   const handleDelete = () => {
-    Swal.fire({ title: 'تأكيد الحذف', text: 'سيتم حذف المورد', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
+    Swal.fire({ title: 'Confirm Delete', text: 'The supplier will be deleted', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' }).then(r => {
       if (r.isConfirmed) api.delete(`/suppliers/${id}`).then(() => navigate('/suppliers'));
     });
   };
@@ -22,11 +22,11 @@ export default function ShowSupplier() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">المورد: {supplier.name}</h5>
+        <h5 className="page-title mb-0">Supplier: {supplier.name}</h5>
         <div>
-          <Link to={`/suppliers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> تعديل</Link>
-          <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> حذف</button>
-          <button className="btn btn-outline-secondary" onClick={() => navigate('/suppliers')}>رجوع</button>
+          <Link to={`/suppliers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
+          <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> Delete</button>
+          <button className="btn btn-outline-secondary" onClick={() => navigate('/suppliers')}>Back</button>
         </div>
       </div>
 
@@ -34,30 +34,30 @@ export default function ShowSupplier() {
         <div className="col-md-6">
           <div className="card">
             <div className="card-body">
-              <h6>معلومات المورد</h6>
+              <h6>Supplier Information</h6>
               <div className="row g-2">
-                <div className="col-6"><small className="text-secondary">الاسم</small><p className="mb-0">{supplier.name}</p></div>
-                <div className="col-6"><small className="text-secondary">النوع</small><p className="mb-0">{supplier.type || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">الهاتف</small><p className="mb-0">{supplier.phone || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">البريد</small><p className="mb-0">{supplier.email || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">جهة الاتصال</small><p className="mb-0">{supplier.contact_person || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">العنوان</small><p className="mb-0">{supplier.address || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Name</small><p className="mb-0">{supplier.name}</p></div>
+                <div className="col-6"><small className="text-secondary">Type</small><p className="mb-0">{supplier.type || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Phone</small><p className="mb-0">{supplier.phone || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Email</small><p className="mb-0">{supplier.email || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Contact Person</small><p className="mb-0">{supplier.contact_person || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Address</small><p className="mb-0">{supplier.address || '-'}</p></div>
               </div>
-              {supplier.notes && <div className="mt-2"><small className="text-secondary">ملاحظات</small><p className="mb-0">{supplier.notes}</p></div>}
+              {supplier.notes && <div className="mt-2"><small className="text-secondary">Notes</small><p className="mb-0">{supplier.notes}</p></div>}
             </div>
           </div>
         </div>
         <div className="col-md-6">
           <div className="card bg-info bg-opacity-10">
             <div className="card-body text-center">
-              <h6>ملخص</h6>
+              <h6>Summary</h6>
               <div className="row g-3 mt-2">
                 <div className="col-6">
-                  <small className="text-secondary">الخدمات المرتبطة</small>
+                  <small className="text-secondary">Related Services</small>
                   <h4 className="text-info mb-0">{supplier.services?.length || 0}</h4>
                 </div>
                 <div className="col-6">
-                  <small className="text-secondary">الحجوزات</small>
+                  <small className="text-secondary">Bookings</small>
                   <h4 className="text-primary mb-0">{supplier.bookings_count || 0}</h4>
                 </div>
               </div>
@@ -68,12 +68,12 @@ export default function ShowSupplier() {
 
       <div className="card">
         <div className="card-body">
-          <h6>الخدمات المرتبطة ({supplier.services?.length || 0})</h6>
-          {supplier.services?.length === 0 && <p className="text-secondary mb-0">لا توجد خدمات مرتبطة بهذا المورد</p>}
+          <h6>Related Services ({supplier.services?.length || 0})</h6>
+          {supplier.services?.length === 0 && <p className="text-secondary mb-0">No services linked to this supplier</p>}
           {supplier.services?.length > 0 && (
             <div className="table-responsive">
               <table className="table table-hover mb-0">
-                <thead><tr><th>الوصف</th><th>الحجز</th><th>التكلفة</th><th>السعر</th></tr></thead>
+                <thead><tr><th>Description</th><th>Booking</th><th>Cost</th><th>Price</th></tr></thead>
                 <tbody>
                   {supplier.services.map((s, i) => (
                     <tr key={i}>

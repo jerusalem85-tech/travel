@@ -29,7 +29,7 @@ const Commissions = () => {
       const res = await api.get(`/commissions?${params.toString()}`);
       setCommissions(res.data.rows || []);
     } catch (err) {
-      Swal.fire('خطأ', 'فشل تحميل العمولات', 'error');
+      Swal.fire('Error', 'Failed to load commissions', 'error');
     } finally {
       setLoading(false);
     }
@@ -72,11 +72,11 @@ const Commissions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.user_id) {
-      Swal.fire('تنبيه', 'اختر المستخدم', 'warning');
+      Swal.fire('Warning', 'Select a user', 'warning');
       return;
     }
     if (!formData.amount || Number(formData.amount) <= 0) {
-      Swal.fire('تنبيه', 'أدخل مبلغ صحيح', 'warning');
+      Swal.fire('Warning', 'Enter a valid amount', 'warning');
       return;
     }
 
@@ -91,12 +91,12 @@ const Commissions = () => {
         percentage: formData.percentage ? Number(formData.percentage) : null,
         notes: formData.notes
       });
-      Swal.fire({ title: 'تم الإضافة', text: 'تم إضافة العمولة بنجاح', icon: 'success', timer: 2000, showConfirmButton: false });
+      Swal.fire({ title: 'Added', text: 'Commission added successfully', icon: 'success', timer: 2000, showConfirmButton: false });
       setShowModal(false);
       resetForm();
       fetchCommissions();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل إضافة العمولة', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Failed to add commission', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -104,29 +104,29 @@ const Commissions = () => {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: 'سيتم حذف هذه العمولة',
+      title: 'Are you sure?',
+      text: 'This commission will be deleted',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/commissions/${id}`);
-          Swal.fire('تم الحذف', 'تم حذف العمولة بنجاح', 'success');
+          Swal.fire('Deleted', 'Commission deleted successfully', 'success');
           fetchCommissions();
         } catch (err) {
-          Swal.fire('خطأ', 'فشل حذف العمولة', 'error');
+          Swal.fire('Error', 'Failed to delete commission', 'error');
         }
       }
     });
   };
 
   const getTypeLabel = (type) => {
-    const map = { sales: 'مبيعات', referral: 'إحالة', bonus: 'مكافأة' };
+    const map = { sales: 'Sales', referral: 'Referral', bonus: 'Bonus' };
     return map[type] || type;
   };
 
@@ -135,11 +135,11 @@ const Commissions = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-cash-coin me-2"></i>
-          العمولات
+          Commissions
         </h4>
         <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
           <i className="bi bi-plus-lg me-1"></i>
-          إضافة عمولة
+          Add Commission
         </button>
       </div>
 
@@ -148,9 +148,9 @@ const Commissions = () => {
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
-              <label className="form-label">تصفية بالمستخدم</label>
+              <label className="form-label">Filter by User</label>
               <select className="form-select" value={userIdFilter} onChange={(e) => setUserIdFilter(e.target.value)}>
-                <option value="">جميع المستخدمين</option>
+                <option value="">All Users</option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>{u.name || u.username}</option>
                 ))}
@@ -159,7 +159,7 @@ const Commissions = () => {
             <div className="col-md-2 d-flex align-items-end">
               <button className="btn btn-outline-secondary w-100" onClick={() => setUserIdFilter('')}>
                 <i className="bi bi-arrow-counterclockwise me-1"></i>
-                إعادة تعيين
+                Reset
               </button>
             </div>
           </div>
@@ -172,13 +172,13 @@ const Commissions = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : commissions.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد عمولات
+              No commissions found
             </div>
           ) : (
             <div className="table-responsive">
@@ -186,13 +186,13 @@ const Commissions = () => {
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>المستخدم</th>
-                    <th>رقم الحجز</th>
-                    <th>النوع</th>
-                    <th>النسبة %</th>
-                    <th>المبلغ</th>
-                    <th>التاريخ</th>
-                    <th>إجراءات</th>
+                    <th>User</th>
+                    <th>Booking #</th>
+                    <th>Type</th>
+                    <th>Rate %</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -203,10 +203,10 @@ const Commissions = () => {
                       <td><code>{c.booking_number || '-'}</code></td>
                       <td><span className="badge bg-light text-dark">{getTypeLabel(c.commission_type)}</span></td>
                       <td>{c.percentage ? `${Number(c.percentage).toFixed(2)}%` : '-'}</td>
-                      <td className="fw-bold text-success">{Number(c.amount).toLocaleString()} {c.currency || 'ر.س'}</td>
-                      <td>{new Date(c.created_at).toLocaleDateString('ar-SA')}</td>
+                      <td className="fw-bold text-success">{Number(c.amount).toLocaleString()} {c.currency || 'SAR'}</td>
+                      <td>{new Date(c.created_at).toLocaleDateString('en-US')}</td>
                       <td>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id)} title="حذف">
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id)} title="Delete">
                           <i className="bi bi-trash"></i>
                         </button>
                       </td>
@@ -227,16 +227,16 @@ const Commissions = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="bi bi-plus-circle me-2"></i>
-                  إضافة عمولة جديدة
+                  Add New Commission
                 </h5>
                 <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">المستخدم <span className="text-danger">*</span></label>
+                    <label className="form-label">User <span className="text-danger">*</span></label>
                     <select className="form-select" name="user_id" value={formData.user_id} onChange={handleChange} required>
-                      <option value="">اختر المستخدم</option>
+                      <option value="">Select User</option>
                       {users.map((u) => (
                         <option key={u.id} value={u.id}>{u.name || u.username}</option>
                       ))}
@@ -244,54 +244,54 @@ const Commissions = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">رقم الحجز (اختياري)</label>
-                    <input type="number" className="form-control" name="booking_id" value={formData.booking_id} onChange={handleChange} placeholder="رقم الحجز..." />
+                    <label className="form-label">Booking ID (optional)</label>
+                    <input type="number" className="form-control" name="booking_id" value={formData.booking_id} onChange={handleChange} placeholder="Booking number..." />
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">نوع العمولة <span className="text-danger">*</span></label>
+                    <label className="form-label">Commission Type <span className="text-danger">*</span></label>
                     <select className="form-select" name="commission_type" value={formData.commission_type} onChange={handleChange}>
-                      <option value="sales">مبيعات</option>
-                      <option value="referral">إحالة</option>
-                      <option value="bonus">مكافأة</option>
+                      <option value="sales">Sales</option>
+                      <option value="referral">Referral</option>
+                      <option value="bonus">Bonus</option>
                     </select>
                   </div>
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">المبلغ <span className="text-danger">*</span></label>
+                      <label className="form-label">Amount <span className="text-danger">*</span></label>
                       <div className="input-group">
                         <input type="number" className="form-control" name="amount" value={formData.amount} onChange={handleChange} min="0" step="0.01" placeholder="0.00" required />
-                        <span className="input-group-text">ر.س</span>
+                        <span className="input-group-text">SAR</span>
                       </div>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">العملة</label>
+                      <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={handleChange}>
-                        <option value="SAR">ريال سعودي</option>
-                        <option value="USD">دولار أمريكي</option>
-                        <option value="EUR">يورو</option>
+                        <option value="SAR">Saudi Riyal</option>
+                        <option value="USD">US Dollar</option>
+                        <option value="EUR">Euro</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">النسبة المئوية (%)</label>
+                    <label className="form-label">Percentage (%)</label>
                     <input type="number" className="form-control" name="percentage" value={formData.percentage} onChange={handleChange} min="0" max="100" step="0.01" placeholder="0.00" />
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">ملاحظات</label>
-                    <textarea className="form-control" name="notes" value={formData.notes} onChange={handleChange} rows="2" placeholder="ملاحظات..."></textarea>
+                    <label className="form-label">Notes</label>
+                    <textarea className="form-control" name="notes" value={formData.notes} onChange={handleChange} rows="2" placeholder="Notes..."></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={submitting}>
                     {submitting ? (
-                      <><span className="spinner-border spinner-border-sm me-1"></span>جاري الحفظ...</>
+                      <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</>
                     ) : (
-                      <><i className="bi bi-check-lg me-1"></i>حفظ العمولة</>
+                      <><i className="bi bi-check-lg me-1"></i>Save Commission</>
                     )}
                   </button>
                 </div>

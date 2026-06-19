@@ -45,22 +45,22 @@ export default function Hotels() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) { Swal.fire('تنبيه', 'أدخل اسم الفندق', 'warning'); return; }
+    if (!formData.name.trim()) { Swal.fire('Alert', 'Enter hotel name', 'warning'); return; }
     setSubmitting(true);
     try {
       const payload = { ...formData, star_rating: formData.star_rating ? Number(formData.star_rating) : null };
       if (editItem) {
         await api.put(`/hotels/${editItem.id}`, payload);
-        Swal.fire('تم التحديث', 'تم تحديث بيانات الفندق', 'success');
+        Swal.fire('Updated', 'Hotel data updated successfully', 'success');
       } else {
         await api.post('/hotels', payload);
-        Swal.fire('تم الإضافة', 'تم إضافة الفندق بنجاح', 'success');
+        Swal.fire('Added', 'Hotel added successfully', 'success');
       }
       setShowModal(false);
       resetForm();
       load();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل الحفظ', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Save failed', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -68,8 +68,8 @@ export default function Hotels() {
 
   const handleDelete = (id, name) => {
     Swal.fire({
-      title: 'تأكيد الحذف', text: `سيتم حذف الفندق: ${name}`, icon: 'warning',
-      showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'
+      title: 'Confirm Deletion', text: `The hotel "${name}" will be deleted`, icon: 'warning',
+      showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel'
     }).then(r => {
       if (r.isConfirmed) api.delete(`/hotels/${id}`).then(() => { if (expandedId === id) setExpandedId(null); load(); });
     });
@@ -91,20 +91,20 @@ export default function Hotels() {
   const handleAddRt = async (e) => {
     e.preventDefault();
     if (!rtForm.room_type.trim() || !rtForm.price_per_night) {
-      Swal.fire('تنبيه', 'أدخل نوع الغرفة والسعر', 'warning'); return;
+      Swal.fire('Alert', 'Enter room type and price', 'warning'); return;
     }
     setRtSubmitting(true);
     try {
       await api.post(`/hotels/${expandedId}/room-types`, {
         ...rtForm, price_per_night: Number(rtForm.price_per_night)
       });
-      Swal.fire('تم الإضافة', 'تم إضافة نوع الغرفة', 'success');
+      Swal.fire('Added', 'Room type added successfully', 'success');
       setShowRtModal(false);
       resetRtForm();
       const res = await api.get(`/hotels/${expandedId}`);
       setRoomTypes(prev => ({ ...prev, [expandedId]: res.data.room_types || [] }));
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل الإضافة', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Add failed', 'error');
     } finally {
       setRtSubmitting(false);
     }
@@ -112,15 +112,15 @@ export default function Hotels() {
 
   const handleDeleteRt = (rtId) => {
     Swal.fire({
-      title: 'تأكيد الحذف', text: 'سيتم حذف نوع الغرفة', icon: 'warning',
-      showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'
+      title: 'Confirm Deletion', text: 'The room type will be deleted', icon: 'warning',
+      showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel'
     }).then(async (r) => {
       if (r.isConfirmed) {
         try {
           await api.delete(`/hotels/room-types/${rtId}`);
           const res = await api.get(`/hotels/${expandedId}`);
           setRoomTypes(prev => ({ ...prev, [expandedId]: res.data.room_types || [] }));
-        } catch { Swal.fire('خطأ', 'فشل الحذف', 'error'); }
+        } catch { Swal.fire('Error', 'Delete failed', 'error'); }
       }
     });
   };
@@ -128,16 +128,16 @@ export default function Hotels() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">الفنادق</h5>
+        <h5 className="page-title mb-0">Hotels</h5>
         <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-          <i className="bi bi-plus-lg"></i> فندق جديد
+          <i className="bi bi-plus-lg"></i> New Hotel
         </button>
       </div>
       <div className="card mb-3">
         <div className="card-body">
           <div className="search-box">
             <i className="bi bi-search"></i>
-            <input className="form-control" placeholder="بحث بالاسم أو المدينة..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="form-control" placeholder="Search by name or city..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function Hotels() {
         <div className="table-responsive">
           <table className="table table-hover mb-0">
             <thead>
-              <tr><th>الاسم</th><th>المدينة</th><th>الدولة</th><th>التقييم</th><th>الهاتف</th><th>جهة الاتصال</th><th></th></tr>
+              <tr><th>Name</th><th>City</th><th>Country</th><th>Rating</th><th>Phone</th><th>Contact Person</th><th></th></tr>
             </thead>
             <tbody>
               {data.rows.map(h => (
@@ -167,7 +167,7 @@ export default function Hotels() {
                 </tr>
               ))}
               {data.rows.length === 0 && (
-                <tr><td colSpan="7" className="text-center text-muted py-4">لا توجد فنادق</td></tr>
+                <tr><td colSpan="7" className="text-center text-muted py-4">No hotels found</td></tr>
               )}
             </tbody>
           </table>
@@ -175,18 +175,18 @@ export default function Hotels() {
         {expandedId && (
           <div className="card-footer bg-light">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="mb-0">أنواع الغرف</h6>
+              <h6 className="mb-0">Room Types</h6>
               <button className="btn btn-sm btn-primary" onClick={() => { resetRtForm(); setShowRtModal(true); }}>
-                <i className="bi bi-plus-lg"></i> إضافة نوع غرفة
+                <i className="bi bi-plus-lg"></i> Add Room Type
               </button>
             </div>
             {(!roomTypes[expandedId] || roomTypes[expandedId].length === 0) ? (
-              <p className="text-muted small mb-0">لا توجد غرف مضافة</p>
+              <p className="text-muted small mb-0">No rooms added</p>
             ) : (
               <div className="table-responsive">
                 <table className="table table-sm mb-0">
                   <thead>
-                    <tr><th>نوع الغرفة</th><th>نظام الإقامة</th><th>السعر لليلة</th><th>العملة</th><th></th></tr>
+                    <tr><th>Room Type</th><th>Board Basis</th><th>Price/Night</th><th>Currency</th><th></th></tr>
                   </thead>
                   <tbody>
                     {roomTypes[expandedId].map(rt => (
@@ -229,7 +229,7 @@ export default function Hotels() {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="bi bi-building me-2"></i>
-                  {editItem ? 'تعديل الفندق' : 'إضافة فندق جديد'}
+                  {editItem ? 'Edit Hotel' : 'Add New Hotel'}
                 </h5>
                 <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
@@ -237,56 +237,56 @@ export default function Hotels() {
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">الاسم <span className="text-danger">*</span></label>
+                      <label className="form-label">Name <span className="text-danger">*</span></label>
                       <input className="form-control" name="name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">التقييم (نجوم)</label>
+                      <label className="form-label">Rating (Stars)</label>
                       <select className="form-select" name="star_rating" value={formData.star_rating} onChange={e => setFormData({ ...formData, star_rating: e.target.value })}>
-                        <option value="">اختر التقييم</option>
+                        <option value="">Select Rating</option>
                         {[1, 2, 3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{'★'.repeat(n)}</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">المدينة</label>
+                      <label className="form-label">City</label>
                       <input className="form-control" name="city" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">الدولة</label>
+                      <label className="form-label">Country</label>
                       <input className="form-control" name="country" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value })} />
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">العنوان</label>
+                    <label className="form-label">Address</label>
                     <input className="form-control" name="address" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">الهاتف</label>
+                      <label className="form-label">Phone</label>
                       <input className="form-control" name="phone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">البريد الإلكتروني</label>
+                      <label className="form-label">Email</label>
                       <input type="email" className="form-control" name="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">جهة الاتصال</label>
+                      <label className="form-label">Contact Person</label>
                       <input className="form-control" name="contact_person" value={formData.contact_person} onChange={e => setFormData({ ...formData, contact_person: e.target.value })} />
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">ملاحظات</label>
+                    <label className="form-label">Notes</label>
                     <textarea className="form-control" name="notes" rows="2" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })}></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? <><span className="spinner-border spinner-border-sm me-1"></span> جاري الحفظ...</> : <><i className="bi bi-check-lg me-1"></i> حفظ</>}
+                    {submitting ? <><span className="spinner-border spinner-border-sm me-1"></span> Saving...</> : <><i className="bi bi-check-lg me-1"></i> Save</>}
                   </button>
                 </div>
               </form>
@@ -301,47 +301,47 @@ export default function Hotels() {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title"><i className="bi bi-door-open me-2"></i>إضافة نوع غرفة</h5>
+                <h5 className="modal-title"><i className="bi bi-door-open me-2"></i>Add Room Type</h5>
                 <button type="button" className="btn-close" onClick={() => { setShowRtModal(false); resetRtForm(); }}></button>
               </div>
               <form onSubmit={handleAddRt}>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">نوع الغرفة <span className="text-danger">*</span></label>
-                    <input className="form-control" name="room_type" value={rtForm.room_type} onChange={e => setRtForm({ ...rtForm, room_type: e.target.value })} placeholder="مثال: غرفة مفردة، غرفة مزدوجة" required />
+                    <label className="form-label">Room Type <span className="text-danger">*</span></label>
+                    <input className="form-control" name="room_type" value={rtForm.room_type} onChange={e => setRtForm({ ...rtForm, room_type: e.target.value })} placeholder="e.g. Single Room, Double Room" required />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">نظام الإقامة</label>
+                    <label className="form-label">Board Basis</label>
                     <select className="form-select" name="board_basis" value={rtForm.board_basis} onChange={e => setRtForm({ ...rtForm, board_basis: e.target.value })}>
-                      <option value="">اختر النظام</option>
-                      <option value="سرير وإفطار">سرير وإفطار</option>
-                      <option value="نصف إقامة">نصف إقامة</option>
-                      <option value="إقامة كاملة">إقامة كاملة</option>
-                      <option value="شامل">شامل</option>
-                      <option value="بدون طعام">بدون طعام</option>
+                      <option value="">Select Basis</option>
+                      <option value="سرير وإفطار">Bed & Breakfast</option>
+                      <option value="نصف إقامة">Half Board</option>
+                      <option value="إقامة كاملة">Full Board</option>
+                      <option value="شامل">All Inclusive</option>
+                      <option value="بدون طعام">No Meals</option>
                     </select>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">السعر لليلة <span className="text-danger">*</span></label>
+                      <label className="form-label">Price/Night <span className="text-danger">*</span></label>
                       <input type="number" className="form-control" name="price_per_night" value={rtForm.price_per_night} onChange={e => setRtForm({ ...rtForm, price_per_night: e.target.value })} min="0" step="0.01" required />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">العملة</label>
+                      <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={rtForm.currency} onChange={e => setRtForm({ ...rtForm, currency: e.target.value })}>
-                        <option value="SAR">ريال سعودي</option>
-                        <option value="AED">درهم إماراتي</option>
-                        <option value="USD">دولار أمريكي</option>
-                        <option value="EUR">يورو</option>
-                        <option value="EGP">جنيه مصري</option>
+                        <option value="SAR">Saudi Riyal</option>
+                        <option value="AED">UAE Dirham</option>
+                        <option value="USD">US Dollar</option>
+                        <option value="EUR">Euro</option>
+                        <option value="EGP">Egyptian Pound</option>
                       </select>
                     </div>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowRtModal(false); resetRtForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowRtModal(false); resetRtForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={rtSubmitting}>
-                    {rtSubmitting ? <><span className="spinner-border spinner-border-sm me-1"></span> جاري الحفظ...</> : <><i className="bi bi-check-lg me-1"></i> حفظ</>}
+                    {rtSubmitting ? <><span className="spinner-border spinner-border-sm me-1"></span> Saving...</> : <><i className="bi bi-check-lg me-1"></i> Save</>}
                   </button>
                 </div>
               </form>

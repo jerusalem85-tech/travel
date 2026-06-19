@@ -38,9 +38,9 @@ const ActivityLog = () => {
       deleted: 'bg-danger'
     };
     const labels = {
-      created: 'إنشاء',
-      updated: 'تحديث',
-      deleted: 'حذف'
+      created: 'Create',
+      updated: 'Update',
+      deleted: 'Delete'
     };
     return <span className={`badge ${map[action] || 'bg-secondary'}`}>{labels[action] || action}</span>;
   };
@@ -56,7 +56,7 @@ const ActivityLog = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-clock-history me-2"></i>
-          سجل النشاطات
+          Activity Log
         </h4>
       </div>
 
@@ -65,28 +65,28 @@ const ActivityLog = () => {
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
-              <label className="form-label">نوع الكيان</label>
+              <label className="form-label">Entity Type</label>
               <select className="form-select" value={entityType} onChange={(e) => { setEntityType(e.target.value); setPage(1); }}>
-                <option value="">الكل</option>
-                <option value="booking">حجز</option>
-                <option value="customer">عميل</option>
-                <option value="supplier">مورد</option>
-                <option value="invoice">فاتورة</option>
-                <option value="payment">دفعة</option>
-                <option value="expense">مصروف</option>
-                <option value="contract">عقد</option>
-                <option value="commission">عمولة</option>
-                <option value="currency">عملة</option>
-                <option value="communication">اتصال</option>
-                <option value="user">مستخدم</option>
+                <option value="">All</option>
+                <option value="booking">Booking</option>
+                <option value="customer">Customer</option>
+                <option value="supplier">Supplier</option>
+                <option value="invoice">Invoice</option>
+                <option value="payment">Payment</option>
+                <option value="expense">Expense</option>
+                <option value="contract">Contract</option>
+                <option value="commission">Commission</option>
+                <option value="currency">Currency</option>
+                <option value="communication">Communication</option>
+                <option value="user">User</option>
               </select>
             </div>
             <div className="col-md-4">
-              <label className="form-label">بحث في التفاصيل</label>
+              <label className="form-label">Search Details</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="بحث..."
+                placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -94,7 +94,7 @@ const ActivityLog = () => {
             <div className="col-md-4 d-flex align-items-end">
               <button className="btn btn-outline-secondary w-100" onClick={() => { setEntityType(''); setSearch(''); setPage(1); }}>
                 <i className="bi bi-arrow-counterclockwise me-1"></i>
-                إعادة تعيين
+                Reset
               </button>
             </div>
           </div>
@@ -107,13 +107,13 @@ const ActivityLog = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : filteredLogs.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد نشاطات
+              No activities
             </div>
           ) : (
             <>
@@ -122,12 +122,12 @@ const ActivityLog = () => {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>المستخدم</th>
-                      <th>الإجراء</th>
-                      <th>نوع الكيان</th>
-                      <th>رقم الكيان</th>
-                      <th>التفاصيل</th>
-                      <th>التاريخ</th>
+                      <th>User</th>
+                      <th>Action</th>
+                      <th>Entity Type</th>
+                      <th>Entity ID</th>
+                      <th>Details</th>
+                      <th>Date</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -141,7 +141,7 @@ const ActivityLog = () => {
                         <td className="text-muted small" style={{ maxWidth: 300 }}>
                           <div className="text-truncate">{log.details || '-'}</div>
                         </td>
-                        <td>{new Date(log.created_at).toLocaleString('ar-SA')}</td>
+                        <td>{new Date(log.created_at).toLocaleString('en-US')}</td>
                       </tr>
                     ))}
                   </tbody>

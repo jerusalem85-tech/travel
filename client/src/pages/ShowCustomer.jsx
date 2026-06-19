@@ -12,14 +12,14 @@ export default function ShowCustomer() {
   useEffect(() => { load(); }, [id]);
 
   const handleDelete = () => {
-    Swal.fire({ title: 'تأكيد الحذف', text: 'سيتم حذف العميل وجميع حجوزاته', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
+    Swal.fire({ title: 'Confirm Deletion', text: 'The customer and all their bookings will be deleted', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' }).then(r => {
       if (r.isConfirmed) api.delete(`/customers/${id}`).then(() => navigate('/customers'));
     });
   };
 
   const statusBadge = (status) => {
     const colors = { confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'info' };
-    const labels = { confirmed: 'مؤكد', pending: 'معلق', cancelled: 'ملغي', completed: 'مكتمل' };
+    const labels = { confirmed: 'Confirmed', pending: 'Pending', cancelled: 'Cancelled', completed: 'Completed' };
     return <span className={`badge bg-${colors[status] || 'secondary'}`}>{labels[status] || status}</span>;
   };
 
@@ -28,11 +28,11 @@ export default function ShowCustomer() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">العميل: {customer.full_name}</h5>
+        <h5 className="page-title mb-0">Customer: {customer.full_name}</h5>
         <div>
-          <Link to={`/customers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> تعديل</Link>
-          <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> حذف</button>
-          <button className="btn btn-outline-secondary" onClick={() => navigate('/customers')}>رجوع</button>
+          <Link to={`/customers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
+          <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> Delete</button>
+          <button className="btn btn-outline-secondary" onClick={() => navigate('/customers')}>Back</button>
         </div>
       </div>
 
@@ -40,16 +40,16 @@ export default function ShowCustomer() {
         <div className="col-md-6">
           <div className="card">
             <div className="card-body">
-              <h6>معلومات العميل</h6>
+              <h6>Customer Information</h6>
               <div className="row g-2">
-                <div className="col-6"><small className="text-secondary">الاسم</small><p className="mb-0">{customer.full_name}</p></div>
-                <div className="col-6"><small className="text-secondary">الهاتف</small><p className="mb-0">{customer.phone || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">البريد</small><p className="mb-0">{customer.email || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">رقم الهوية</small><p className="mb-0">{customer.id_number || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">جواز السفر</small><p className="mb-0">{customer.passport_number || '-'}</p></div>
-                <div className="col-6"><small className="text-secondary">الجنسية</small><p className="mb-0">{customer.nationality || '-'}</p></div>
-                {customer.address && <div className="col-12"><small className="text-secondary">العنوان</small><p className="mb-0">{customer.address}</p></div>}
-                {customer.notes && <div className="col-12"><small className="text-secondary">ملاحظات</small><p className="mb-0">{customer.notes}</p></div>}
+                <div className="col-6"><small className="text-secondary">Name</small><p className="mb-0">{customer.full_name}</p></div>
+                <div className="col-6"><small className="text-secondary">Phone</small><p className="mb-0">{customer.phone || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Email</small><p className="mb-0">{customer.email || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">ID Number</small><p className="mb-0">{customer.id_number || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Passport</small><p className="mb-0">{customer.passport_number || '-'}</p></div>
+                <div className="col-6"><small className="text-secondary">Nationality</small><p className="mb-0">{customer.nationality || '-'}</p></div>
+                {customer.address && <div className="col-12"><small className="text-secondary">Address</small><p className="mb-0">{customer.address}</p></div>}
+                {customer.notes && <div className="col-12"><small className="text-secondary">Notes</small><p className="mb-0">{customer.notes}</p></div>}
               </div>
             </div>
           </div>
@@ -57,14 +57,14 @@ export default function ShowCustomer() {
         <div className="col-md-6">
           <div className="card bg-success bg-opacity-10">
             <div className="card-body text-center">
-              <h6>الملف المالي</h6>
+              <h6>Financial Summary</h6>
               <div className="row g-3 mt-2">
                 <div className="col-6">
-                  <small className="text-secondary">إجمالي المدفوعات</small>
+                  <small className="text-secondary">Total Paid</small>
                   <h4 className="text-success mb-0">{(customer.totalPaid || 0).toLocaleString()}</h4>
                 </div>
                 <div className="col-6">
-                  <small className="text-secondary">عدد الحجوزات</small>
+                  <small className="text-secondary">Bookings Count</small>
                   <h4 className="text-primary mb-0">{customer.bookings?.length || 0}</h4>
                 </div>
               </div>
@@ -76,14 +76,14 @@ export default function ShowCustomer() {
       <div className="card">
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h6 className="mb-0">حجوزات العميل ({customer.bookings?.length || 0})</h6>
-            <Link to="/bookings/create" className="btn btn-sm btn-outline-primary"><i className="bi bi-plus"></i> حجز جديد</Link>
+            <h6 className="mb-0">Customer Bookings ({customer.bookings?.length || 0})</h6>
+            <Link to="/bookings/create" className="btn btn-sm btn-outline-primary"><i className="bi bi-plus"></i> New Booking</Link>
           </div>
-          {customer.bookings?.length === 0 && <p className="text-secondary mb-0">لا توجد حجوزات لهذا العميل</p>}
+          {customer.bookings?.length === 0 && <p className="text-secondary mb-0">No bookings for this customer</p>}
           {customer.bookings?.length > 0 && (
             <div className="table-responsive">
               <table className="table table-hover mb-0">
-                <thead><tr><th>رقم الحجز</th><th>الخدمة</th><th>الوجهة</th><th>التاريخ</th><th>المبلغ</th><th>المدفوع</th><th>الحالة</th></tr></thead>
+                <thead><tr><th>Booking #</th><th>Service</th><th>Destination</th><th>Date</th><th>Amount</th><th>Paid</th><th>Status</th></tr></thead>
                 <tbody>
                   {customer.bookings.map(b => (
                     <tr key={b.id}>

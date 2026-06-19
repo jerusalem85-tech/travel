@@ -20,7 +20,7 @@ const Currencies = () => {
       const res = await api.get('/currencies');
       setCurrencies(res.data.rows || res.data || []);
     } catch (err) {
-      Swal.fire('خطأ', 'فشل تحميل العملات', 'error');
+      Swal.fire('Error', 'Failed to load currencies', 'error');
     } finally {
       setLoading(false);
     }
@@ -58,15 +58,15 @@ const Currencies = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.code.trim()) {
-      Swal.fire('تنبيه', 'أدخل رمز العملة', 'warning');
+      Swal.fire('Warning', 'Enter currency code', 'warning');
       return;
     }
     if (!formData.name.trim()) {
-      Swal.fire('تنبيه', 'أدخل اسم العملة', 'warning');
+      Swal.fire('Warning', 'Enter currency name', 'warning');
       return;
     }
     if (!formData.exchange_rate || Number(formData.exchange_rate) <= 0) {
-      Swal.fire('تنبيه', 'أدخل سعر صرف صحيح', 'warning');
+      Swal.fire('Warning', 'Enter a valid exchange rate', 'warning');
       return;
     }
 
@@ -80,17 +80,17 @@ const Currencies = () => {
 
       if (editId) {
         await api.put(`/currencies/${editId}`, body);
-        Swal.fire({ title: 'تم التحديث', text: 'تم تحديث العملة بنجاح', icon: 'success', timer: 2000, showConfirmButton: false });
+        Swal.fire({ title: 'Updated', text: 'Currency updated successfully', icon: 'success', timer: 2000, showConfirmButton: false });
       } else {
         await api.post('/currencies', body);
-        Swal.fire({ title: 'تم الإضافة', text: 'تم إضافة العملة بنجاح', icon: 'success', timer: 2000, showConfirmButton: false });
+        Swal.fire({ title: 'Added', text: 'Currency added successfully', icon: 'success', timer: 2000, showConfirmButton: false });
       }
 
       setShowModal(false);
       resetForm();
       fetchCurrencies();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل حفظ العملة', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Failed to save currency', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -98,22 +98,22 @@ const Currencies = () => {
 
   const handleSetDefault = async (id, code) => {
     Swal.fire({
-      title: 'تأكيد',
-      text: `هل تريد تعيين ${code} كعملة افتراضية؟`,
+      title: 'Confirm',
+      text: `Set ${code} as default currency?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'نعم، تعيين',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, Set',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.post(`/currencies/${id}/set-default`);
-          Swal.fire('تم', 'تم تعيين العملة الافتراضية بنجاح', 'success');
+          Swal.fire('Done', 'Default currency set successfully', 'success');
           fetchCurrencies();
         } catch (err) {
-          Swal.fire('خطأ', err.response?.data?.message || 'فشل تعيين العملة الافتراضية', 'error');
+          Swal.fire('Error', err.response?.data?.message || 'Failed to set default currency', 'error');
         }
       }
     });
@@ -121,27 +121,27 @@ const Currencies = () => {
 
   const handleDelete = (currency) => {
     if (currency.is_default) {
-      Swal.fire('تنبيه', 'لا يمكن حذف العملة الافتراضية', 'warning');
+      Swal.fire('Warning', 'Cannot delete default currency', 'warning');
       return;
     }
 
     Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: `سيتم حذف العملة: ${currency.code} - ${currency.name}`,
+      title: 'Are you sure?',
+      text: `Delete currency: ${currency.code} - ${currency.name}`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/currencies/${currency.id}`);
-          Swal.fire('تم الحذف', 'تم حذف العملة بنجاح', 'success');
+          Swal.fire('Deleted', 'Currency deleted successfully', 'success');
           fetchCurrencies();
         } catch (err) {
-          Swal.fire('خطأ', 'فشل حذف العملة', 'error');
+          Swal.fire('Error', 'Failed to delete currency', 'error');
         }
       }
     });
@@ -152,11 +152,11 @@ const Currencies = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-currency-exchange me-2"></i>
-          العملات
+          Currencies
         </h4>
         <button className="btn btn-primary" onClick={openAddModal}>
           <i className="bi bi-plus-lg me-1"></i>
-          إضافة عملة
+          Add Currency
         </button>
       </div>
 
@@ -165,13 +165,13 @@ const Currencies = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : currencies.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد عملات
+              No currencies
             </div>
           ) : (
             <div className="table-responsive">
@@ -179,11 +179,11 @@ const Currencies = () => {
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>الرمز</th>
-                    <th>الاسم</th>
-                    <th>سعر الصرف</th>
-                    <th>افتراضية</th>
-                    <th>إجراءات</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Exchange Rate</th>
+                    <th>Default</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,22 +195,22 @@ const Currencies = () => {
                       <td dir="ltr" className="text-start">{Number(c.exchange_rate).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
                       <td>
                         {c.is_default ? (
-                          <span className="badge bg-success"><i className="bi bi-check-circle me-1"></i>افتراضية</span>
+                          <span className="badge bg-success"><i className="bi bi-check-circle me-1"></i>Default</span>
                         ) : (
-                          <span className="badge bg-secondary">لا</span>
+                          <span className="badge bg-secondary">No</span>
                         )}
                       </td>
                       <td>
                         <div className="d-flex gap-1">
-                          <button className="btn btn-sm btn-outline-warning" onClick={() => openEditModal(c)} title="تعديل">
+                          <button className="btn btn-sm btn-outline-warning" onClick={() => openEditModal(c)} title="Edit">
                             <i className="bi bi-pencil"></i>
                           </button>
                           {!c.is_default && (
-                            <button className="btn btn-sm btn-outline-primary" onClick={() => handleSetDefault(c.id, c.code)} title="تعيين كافتراضي">
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => handleSetDefault(c.id, c.code)} title="Set as Default">
                               <i className="bi bi-star"></i>
                             </button>
                           )}
-                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c)} title="حذف">
+                          <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c)} title="Delete">
                             <i className="bi bi-trash"></i>
                           </button>
                         </div>
@@ -232,7 +232,7 @@ const Currencies = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className={`bi ${editId ? 'bi-pencil' : 'bi-plus-circle'} me-2`}></i>
-                  {editId ? 'تعديل العملة' : 'إضافة عملة جديدة'}
+                  {editId ? 'Edit Currency' : 'Add New Currency'}
                 </h5>
                 <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
@@ -240,33 +240,33 @@ const Currencies = () => {
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">رمز العملة <span className="text-danger">*</span></label>
+                      <label className="form-label">Currency Code <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
                         name="code"
                         value={formData.code}
                         onChange={handleChange}
-                        placeholder="مثال: USD, EUR, SAR"
+                        placeholder="e.g., USD, EUR, SAR"
                         maxLength="5"
                         required
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">الاسم <span className="text-danger">*</span></label>
+                      <label className="form-label">Name <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         className="form-control"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="مثال: دولار أمريكي، يورو"
+                        placeholder="e.g., US Dollar, Euro"
                         required
                       />
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">سعر الصرف <span className="text-danger">*</span></label>
+                    <label className="form-label">Exchange Rate <span className="text-danger">*</span></label>
                     <input
                       type="number"
                       className="form-control"
@@ -278,16 +278,16 @@ const Currencies = () => {
                       placeholder="1.0000"
                       required
                     />
-                    <small className="text-muted">بالنسبة للعملة الأساسية (الريال السعودي)</small>
+                    <small className="text-muted">Relative to base currency (SAR)</small>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={submitting}>
                     {submitting ? (
-                      <><span className="spinner-border spinner-border-sm me-1"></span>جاري الحفظ...</>
+                      <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</>
                     ) : (
-                      <><i className="bi bi-check-lg me-1"></i>{editId ? 'تحديث العملة' : 'حفظ العملة'}</>
+                      <><i className="bi bi-check-lg me-1"></i>{editId ? 'Update Currency' : 'Save Currency'}</>
                     )}
                   </button>
                 </div>

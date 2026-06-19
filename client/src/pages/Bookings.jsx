@@ -19,22 +19,22 @@ export default function Bookings() {
   useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 300); return () => clearTimeout(t); }, [search]);
 
   const handleDelete = (id) => {
-    Swal.fire({ title: 'تأكيد الحذف', text: 'سيتم حذف الحجز وكل البيانات المرتبطة به', icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' }).then(r => {
+    Swal.fire({ title: 'Confirm Deletion', text: 'The booking and all related data will be deleted', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel' }).then(r => {
       if (r.isConfirmed) api.delete(`/bookings/${id}`).then(() => load());
     });
   };
 
   const statusBadge = (status) => {
     const colors = { confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'info' };
-    const labels = { confirmed: 'مؤكد', pending: 'معلق', cancelled: 'ملغي', completed: 'مكتمل' };
+    const labels = { confirmed: 'Confirmed', pending: 'Pending', cancelled: 'Cancelled', completed: 'Completed' };
     return <span className={`badge bg-${colors[status] || 'secondary'}`}>{labels[status] || status}</span>;
   };
 
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">الحجوزات</h5>
-        <Link to="/bookings/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> حجز جديد</Link>
+        <h5 className="page-title mb-0">Bookings</h5>
+        <Link to="/bookings/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> New Booking</Link>
       </div>
       <div className="card mb-3">
         <div className="card-body">
@@ -42,16 +42,16 @@ export default function Bookings() {
             <div className="col-md-8">
               <div className="search-box">
                 <i className="bi bi-search"></i>
-                <input className="form-control" placeholder="بحث برقم الحجز أو اسم العميل..." value={search} onChange={e => setSearch(e.target.value)} />
+                <input className="form-control" placeholder="Search by booking number or customer name..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
             </div>
             <div className="col-md-4">
               <select className="form-select" value={status} onChange={e => setStatus(e.target.value)}>
-                <option value="">كل الحالات</option>
-                <option value="pending">معلق</option>
-                <option value="confirmed">مؤكد</option>
-                <option value="completed">مكتمل</option>
-                <option value="cancelled">ملغي</option>
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function Bookings() {
       <div className="card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th>رقم الحجز</th><th>العميل</th><th>نوع الخدمة</th><th>من - إلى</th><th>تاريخ السفر</th><th>المبلغ</th><th>الحالة</th><th></th></tr></thead>
+            <thead><tr><th>Booking #</th><th>Customer</th><th>Service Type</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {data.rows.map(b => (
                 <tr key={b.id}>

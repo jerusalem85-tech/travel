@@ -41,10 +41,10 @@ export default function EditSupplier() {
     setSaving(true);
     try {
       await api.put(`/suppliers/${id}`, form);
-      Swal.fire({ icon: 'success', title: 'تم تعديل المورد بنجاح', timer: 1500, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Supplier updated successfully', timer: 1500, showConfirmButton: false });
       navigate(`/suppliers/${id}`);
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'خطأ', text: err.response?.data?.error || 'حدث خطأ أثناء تعديل المورد' });
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.error || 'An error occurred while updating the supplier' });
     } finally {
       setSaving(false);
     }
@@ -55,55 +55,55 @@ export default function EditSupplier() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">تعديل المورد: {form.name}</h5>
-        <button className="btn btn-outline-secondary" onClick={() => navigate(`/suppliers/${id}`)}>رجوع</button>
+        <h5 className="page-title mb-0">Edit Supplier: {form.name}</h5>
+        <button className="btn btn-outline-secondary" onClick={() => navigate(`/suppliers/${id}`)}>Back</button>
       </div>
       <div className="card">
         <div className="card-body">
           <form onSubmit={handleSubmit}>
             <div className="row g-3">
               <div className="col-md-6">
-                <label className="form-label">اسم المورد <span className="text-danger">*</span></label>
+                <label className="form-label">Supplier Name <span className="text-danger">*</span></label>
                 <input type="text" className="form-control" name="name" value={form.name} onChange={handleChange} required />
               </div>
               <div className="col-md-6">
-                <label className="form-label">نوع المورد</label>
+                <label className="form-label">Supplier Type</label>
                 <select className="form-select" name="type" value={form.type} onChange={handleChange}>
-                  <option value="">اختر النوع...</option>
-                  <option value="airline">شركة طيران</option>
-                  <option value="hotel">فندق</option>
-                  <option value="visa_center">مركز تأشيرات</option>
-                  <option value="transport">شركة نقل</option>
-                  <option value="tour_operator">مدير جولات</option>
-                  <option value="other">أخرى</option>
+                  <option value="">Select type...</option>
+                  <option value="airline">Airline</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="visa_center">Visa Center</option>
+                  <option value="transport">Transport Company</option>
+                  <option value="tour_operator">Tour Operator</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div className="col-md-6">
-                <label className="form-label">رقم الهاتف</label>
+                <label className="form-label">Phone Number</label>
                 <input type="text" className="form-control" name="phone" value={form.phone} onChange={handleChange} />
               </div>
               <div className="col-md-6">
-                <label className="form-label">البريد الإلكتروني</label>
+                <label className="form-label">Email</label>
                 <input type="email" className="form-control" name="email" value={form.email} onChange={handleChange} />
               </div>
               <div className="col-md-6">
-                <label className="form-label">جهة الاتصال</label>
+                <label className="form-label">Contact Person</label>
                 <input type="text" className="form-control" name="contact_person" value={form.contact_person} onChange={handleChange} />
               </div>
               <div className="col-md-6">
-                <label className="form-label">العنوان</label>
+                <label className="form-label">Address</label>
                 <input type="text" className="form-control" name="address" value={form.address} onChange={handleChange} />
               </div>
               <div className="col-12">
-                <label className="form-label">ملاحظات</label>
+                <label className="form-label">Notes</label>
                 <textarea className="form-control" rows="2" name="notes" value={form.notes} onChange={handleChange}></textarea>
               </div>
             </div>
             <div className="mt-3">
               <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? <><span className="spinner-border spinner-border-sm me-1"></span> جاري الحفظ...</> : <><i className="bi bi-check-lg"></i> حفظ التعديلات</>}
+                {saving ? <><span className="spinner-border spinner-border-sm me-1"></span> Saving...</> : <><i className="bi bi-check-lg"></i> Save Changes</>}
               </button>
-              <button type="button" className="btn btn-outline-secondary me-2" onClick={() => navigate(`/suppliers/${id}`)}>إلغاء</button>
+              <button type="button" className="btn btn-outline-secondary me-2" onClick={() => navigate(`/suppliers/${id}`)}>Cancel</button>
             </div>
           </form>
         </div>

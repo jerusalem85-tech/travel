@@ -41,7 +41,7 @@ const Contracts = () => {
       setContracts(res.data.rows || []);
       setTotal(res.data.total || 0);
     } catch (err) {
-      Swal.fire('خطأ', 'فشل تحميل العقود', 'error');
+      Swal.fire('Error', 'Failed to load contracts', 'error');
     } finally {
       setLoading(false);
     }
@@ -99,11 +99,11 @@ const Contracts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.party_name.trim()) {
-      Swal.fire('تنبيه', 'أدخل اسم الطرف', 'warning');
+      Swal.fire('Warning', 'Enter party name', 'warning');
       return;
     }
     if (!formData.total_amount || Number(formData.total_amount) <= 0) {
-      Swal.fire('تنبيه', 'أدخل مبلغ صحيح', 'warning');
+      Swal.fire('Warning', 'Enter a valid amount', 'warning');
       return;
     }
 
@@ -116,17 +116,17 @@ const Contracts = () => {
 
       if (editId) {
         await api.put(`/contracts/${editId}`, body);
-        Swal.fire({ title: 'تم التحديث', text: 'تم تحديث العقد بنجاح', icon: 'success', timer: 2000, showConfirmButton: false });
+        Swal.fire({ title: 'Updated', text: 'Contract updated successfully', icon: 'success', timer: 2000, showConfirmButton: false });
       } else {
         await api.post('/contracts', body);
-        Swal.fire({ title: 'تم الإضافة', text: 'تم إضافة العقد بنجاح', icon: 'success', timer: 2000, showConfirmButton: false });
+        Swal.fire({ title: 'Added', text: 'Contract added successfully', icon: 'success', timer: 2000, showConfirmButton: false });
       }
 
       setShowModal(false);
       resetForm();
       fetchContracts();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل حفظ العقد', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Failed to save contract', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -134,22 +134,22 @@ const Contracts = () => {
 
   const handleDelete = (id, name) => {
     Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: `سيتم حذف العقد: ${name}`,
+      title: 'Are you sure?',
+      text: `Contract will be deleted: ${name}`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/contracts/${id}`);
-          Swal.fire('تم الحذف', 'تم حذف العقد بنجاح', 'success');
+          Swal.fire('Deleted', 'Contract deleted successfully', 'success');
           fetchContracts();
         } catch (err) {
-          Swal.fire('خطأ', 'فشل حذف العقد', 'error');
+          Swal.fire('Error', 'Failed to delete contract', 'error');
         }
       }
     });
@@ -162,15 +162,15 @@ const Contracts = () => {
       cancelled: 'bg-danger'
     };
     const labels = {
-      active: 'نشط',
-      expired: 'منتهي',
-      cancelled: 'ملغي'
+      active: 'Active',
+      expired: 'Expired',
+      cancelled: 'Cancelled'
     };
     return <span className={`badge ${map[status] || 'bg-secondary'}`}>{labels[status] || status}</span>;
   };
 
   const getTypeLabel = (type) => {
-    const map = { supplier: 'مورد', customer: 'عميل', partner: 'شريك' };
+    const map = { supplier: 'Supplier', customer: 'Customer', partner: 'Partner' };
     return map[type] || type;
   };
 
@@ -181,11 +181,11 @@ const Contracts = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-file-earmark-text me-2"></i>
-          العقود
+          Contracts
         </h4>
         <button className="btn btn-primary" onClick={openAddModal}>
           <i className="bi bi-plus-lg me-1"></i>
-          إضافة عقد
+          Add Contract
         </button>
       </div>
 
@@ -194,37 +194,37 @@ const Contracts = () => {
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
-              <label className="form-label">بحث</label>
+              <label className="form-label">Search</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="بحث باسم الطرف أو رقم العقد..."
+                placeholder="Search by party name or contract number..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               />
             </div>
             <div className="col-md-3">
-              <label className="form-label">نوع العقد</label>
+              <label className="form-label">Contract Type</label>
               <select className="form-select" value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}>
-                <option value="">الكل</option>
-                <option value="supplier">مورد</option>
-                <option value="customer">عميل</option>
-                <option value="partner">شريك</option>
+                <option value="">All</option>
+                <option value="supplier">Supplier</option>
+                <option value="customer">Customer</option>
+                <option value="partner">Partner</option>
               </select>
             </div>
             <div className="col-md-3">
-              <label className="form-label">الحالة</label>
+              <label className="form-label">Status</label>
               <select className="form-select" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
-                <option value="">الكل</option>
-                <option value="active">نشط</option>
-                <option value="expired">منتهي</option>
-                <option value="cancelled">ملغي</option>
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
             <div className="col-md-2 d-flex align-items-end">
               <button className="btn btn-outline-secondary w-100" onClick={() => { setSearch(''); setTypeFilter(''); setStatusFilter(''); setPage(1); }}>
                 <i className="bi bi-arrow-counterclockwise me-1"></i>
-                إعادة تعيين
+                Reset
               </button>
             </div>
           </div>
@@ -237,13 +237,13 @@ const Contracts = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : contracts.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد عقود
+              No contracts found
             </div>
           ) : (
             <>
@@ -251,15 +251,15 @@ const Contracts = () => {
                 <table className="table table-hover align-middle">
                   <thead>
                     <tr>
-                      <th>رقم العقد</th>
-                      <th>النوع</th>
-                      <th>الطرف</th>
-                      <th>الهاتف</th>
-                      <th>تاريخ البداية</th>
-                      <th>تاريخ النهاية</th>
-                      <th>المبلغ</th>
-                      <th>الحالة</th>
-                      <th>إجراءات</th>
+                      <th>Contract #</th>
+                      <th>Type</th>
+                      <th>Party</th>
+                      <th>Phone</th>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -269,19 +269,19 @@ const Contracts = () => {
                         <td>{getTypeLabel(c.contract_type)}</td>
                         <td>{c.party_name}</td>
                         <td>{c.party_phone || '-'}</td>
-                        <td>{c.start_date ? new Date(c.start_date).toLocaleDateString('ar-SA') : '-'}</td>
-                        <td>{c.end_date ? new Date(c.end_date).toLocaleDateString('ar-SA') : '-'}</td>
-                        <td className="fw-bold">{Number(c.total_amount).toLocaleString()} {c.currency || 'ر.س'}</td>
+                        <td>{c.start_date ? new Date(c.start_date).toLocaleDateString('en-US') : '-'}</td>
+                        <td>{c.end_date ? new Date(c.end_date).toLocaleDateString('en-US') : '-'}</td>
+                        <td className="fw-bold">{Number(c.total_amount).toLocaleString()} {c.currency || 'SAR'}</td>
                         <td>{getStatusBadge(c.status)}</td>
                         <td>
                           <div className="d-flex gap-1">
-                            <button className="btn btn-sm btn-outline-info" onClick={() => setShowDetail(showDetail === c.id ? null : c.id)} title="عرض التفاصيل">
+                            <button className="btn btn-sm btn-outline-info" onClick={() => setShowDetail(showDetail === c.id ? null : c.id)} title="View Details">
                               <i className="bi bi-eye"></i>
                             </button>
-                            <button className="btn btn-sm btn-outline-warning" onClick={() => openEditModal(c)} title="تعديل">
+                            <button className="btn btn-sm btn-outline-warning" onClick={() => openEditModal(c)} title="Edit">
                               <i className="bi bi-pencil"></i>
                             </button>
-                            <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id, c.contract_number)} title="حذف">
+                            <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(c.id, c.contract_number)} title="Delete">
                               <i className="bi bi-trash"></i>
                             </button>
                           </div>
@@ -299,29 +299,29 @@ const Contracts = () => {
                 return (
                   <div className="card bg-light mb-3">
                     <div className="card-header d-flex justify-content-between align-items-center">
-                      <span><i className="bi bi-file-text me-1"></i> تفاصيل العقد {contract.contract_number}</span>
+                      <span><i className="bi bi-file-text me-1"></i> Contract Details {contract.contract_number}</span>
                       <button className="btn btn-sm btn-close" onClick={() => setShowDetail(null)}></button>
                     </div>
                     <div className="card-body">
                       <div className="row">
-                        <div className="col-md-6 mb-2"><strong>الطرف:</strong> {contract.party_name}</div>
-                        <div className="col-md-6 mb-2"><strong>الهاتف:</strong> {contract.party_phone || '-'}</div>
-                        <div className="col-md-6 mb-2"><strong>البريد:</strong> {contract.party_email || '-'}</div>
-                        <div className="col-md-6 mb-2"><strong>النوع:</strong> {getTypeLabel(contract.contract_type)}</div>
-                        <div className="col-md-6 mb-2"><strong>تاريخ البداية:</strong> {contract.start_date ? new Date(contract.start_date).toLocaleDateString('ar-SA') : '-'}</div>
-                        <div className="col-md-6 mb-2"><strong>تاريخ النهاية:</strong> {contract.end_date ? new Date(contract.end_date).toLocaleDateString('ar-SA') : '-'}</div>
-                        <div className="col-md-6 mb-2"><strong>المبلغ:</strong> {Number(contract.total_amount).toLocaleString()} {contract.currency || 'ر.س'}</div>
-                        <div className="col-md-6 mb-2"><strong>الحالة:</strong> {getStatusBadge(contract.status)}</div>
+                        <div className="col-md-6 mb-2"><strong>Party:</strong> {contract.party_name}</div>
+                        <div className="col-md-6 mb-2"><strong>Phone:</strong> {contract.party_phone || '-'}</div>
+                        <div className="col-md-6 mb-2"><strong>Email:</strong> {contract.party_email || '-'}</div>
+                        <div className="col-md-6 mb-2"><strong>Type:</strong> {getTypeLabel(contract.contract_type)}</div>
+                        <div className="col-md-6 mb-2"><strong>Start Date:</strong> {contract.start_date ? new Date(contract.start_date).toLocaleDateString('en-US') : '-'}</div>
+                        <div className="col-md-6 mb-2"><strong>End Date:</strong> {contract.end_date ? new Date(contract.end_date).toLocaleDateString('en-US') : '-'}</div>
+                        <div className="col-md-6 mb-2"><strong>Amount:</strong> {Number(contract.total_amount).toLocaleString()} {contract.currency || 'SAR'}</div>
+                        <div className="col-md-6 mb-2"><strong>Status:</strong> {getStatusBadge(contract.status)}</div>
                       </div>
                       {contract.terms && (
                         <div className="mt-2">
-                          <strong>الشروط:</strong>
+                          <strong>Terms:</strong>
                           <p className="mb-0 mt-1 text-muted" style={{ whiteSpace: 'pre-wrap' }}>{contract.terms}</p>
                         </div>
                       )}
                       {contract.notes && (
                         <div className="mt-2">
-                          <strong>ملاحظات:</strong>
+                          <strong>Notes:</strong>
                           <p className="mb-0 mt-1 text-muted">{contract.notes}</p>
                         </div>
                       )}
@@ -371,7 +371,7 @@ const Contracts = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className={`bi ${editId ? 'bi-pencil' : 'bi-plus-circle'} me-2`}></i>
-                  {editId ? 'تعديل العقد' : 'إضافة عقد جديد'}
+                  {editId ? 'Edit Contract' : 'Add New Contract'}
                 </h5>
                 <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
@@ -379,86 +379,86 @@ const Contracts = () => {
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">نوع العقد <span className="text-danger">*</span></label>
+                      <label className="form-label">Contract Type <span className="text-danger">*</span></label>
                       <select className="form-select" name="contract_type" value={formData.contract_type} onChange={handleChange} required>
-                        <option value="supplier">مورد</option>
-                        <option value="customer">عميل</option>
-                        <option value="partner">شريك</option>
+                        <option value="supplier">Supplier</option>
+                        <option value="customer">Customer</option>
+                        <option value="partner">Partner</option>
                       </select>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">الحالة</label>
+                      <label className="form-label">Status</label>
                       <select className="form-select" name="status" value={formData.status} onChange={handleChange}>
-                        <option value="active">نشط</option>
-                        <option value="expired">منتهي</option>
-                        <option value="cancelled">ملغي</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">اسم الطرف <span className="text-danger">*</span></label>
-                      <input type="text" className="form-control" name="party_name" value={formData.party_name} onChange={handleChange} placeholder="اسم الطرف..." required />
+                      <label className="form-label">Party Name <span className="text-danger">*</span></label>
+                      <input type="text" className="form-control" name="party_name" value={formData.party_name} onChange={handleChange} placeholder="Party name..." required />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">هاتف الطرف</label>
-                      <input type="text" className="form-control" name="party_phone" value={formData.party_phone} onChange={handleChange} placeholder="رقم الهاتف..." />
+                      <label className="form-label">Party Phone</label>
+                      <input type="text" className="form-control" name="party_phone" value={formData.party_phone} onChange={handleChange} placeholder="Phone number..." />
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">البريد الإلكتروني</label>
-                    <input type="email" className="form-control" name="party_email" value={formData.party_email} onChange={handleChange} placeholder="البريد الإلكتروني..." />
+                    <label className="form-label">Email</label>
+                    <input type="email" className="form-control" name="party_email" value={formData.party_email} onChange={handleChange} placeholder="Email..." />
                   </div>
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">تاريخ البداية</label>
+                      <label className="form-label">Start Date</label>
                       <input type="date" className="form-control" name="start_date" value={formData.start_date} onChange={handleChange} />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">تاريخ النهاية</label>
+                      <label className="form-label">End Date</label>
                       <input type="date" className="form-control" name="end_date" value={formData.end_date} onChange={handleChange} />
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">الشروط</label>
-                    <textarea className="form-control" name="terms" value={formData.terms} onChange={handleChange} rows="3" placeholder="شروط العقد..."></textarea>
+                    <label className="form-label">Terms</label>
+                    <textarea className="form-control" name="terms" value={formData.terms} onChange={handleChange} rows="3" placeholder="Contract terms..."></textarea>
                   </div>
 
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">المبلغ الإجمالي <span className="text-danger">*</span></label>
+                      <label className="form-label">Total Amount <span className="text-danger">*</span></label>
                       <div className="input-group">
                         <input type="number" className="form-control" name="total_amount" value={formData.total_amount} onChange={handleChange} min="0" step="0.01" placeholder="0.00" required />
-                        <span className="input-group-text">ر.س</span>
+                        <span className="input-group-text">SAR</span>
                       </div>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">العملة</label>
+                      <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={handleChange}>
-                        <option value="SAR">ريال سعودي</option>
-                        <option value="USD">دولار أمريكي</option>
-                        <option value="EUR">يورو</option>
-                        <option value="GBP">جنيه إسترليني</option>
+                        <option value="SAR">Saudi Riyal</option>
+                        <option value="USD">US Dollar</option>
+                        <option value="EUR">Euro</option>
+                        <option value="GBP">British Pound</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">ملاحظات</label>
-                    <textarea className="form-control" name="notes" value={formData.notes} onChange={handleChange} rows="2" placeholder="ملاحظات إضافية..."></textarea>
+                    <label className="form-label">Notes</label>
+                    <textarea className="form-control" name="notes" value={formData.notes} onChange={handleChange} rows="2" placeholder="Additional notes..."></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={submitting}>
                     {submitting ? (
-                      <><span className="spinner-border spinner-border-sm me-1"></span>جاري الحفظ...</>
+                      <><span className="spinner-border spinner-border-sm me-1"></span>Saving...</>
                     ) : (
-                      <><i className="bi bi-check-lg me-1"></i>{editId ? 'تحديث العقد' : 'حفظ العقد'}</>
+                      <><i className="bi bi-check-lg me-1"></i>{editId ? 'Update Contract' : 'Save Contract'}</>
                     )}
                   </button>
                 </div>

@@ -19,7 +19,7 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch {
-      setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      setError('Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -33,20 +33,20 @@ export default function Login() {
             <div className="mx-auto mb-3 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'linear-gradient(135deg, #667eea, #764ba2)' }}>
               <i className="bi bi-airplane-engines text-white" style={{ fontSize: '1.8rem' }}></i>
             </div>
-            <h4 className="fw-bold mb-1">نظام إدارة السفر</h4>
-            <small className="text-secondary">سجّل دخولك للمتابعة</small>
+            <h4 className="fw-bold mb-1">Travel Management System</h4>
+            <small className="text-secondary">Sign in to your account</small>
           </div>
           {error && <div className="alert alert-danger py-2 text-center" style={{ borderRadius: '8px', fontSize: '0.85rem' }}>{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label">البريد الإلكتروني</label>
+              <label className="form-label">Email Address</label>
               <div className="input-group">
                 <span className="input-group-text"><i className="bi bi-envelope"></i></span>
                 <input type="email" className="form-control" placeholder="example@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
               </div>
             </div>
             <div className="mb-4">
-              <label className="form-label">كلمة المرور</label>
+              <label className="form-label">Password</label>
               <div className="input-group">
                 <span className="input-group-text"><i className="bi bi-lock"></i></span>
                 <input type={showPassword ? 'text' : 'password'} className="form-control" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
@@ -56,7 +56,7 @@ export default function Login() {
               </div>
             </div>
             <button type="submit" className="btn btn-primary w-100 py-2 fw-bold" disabled={loading} style={{ borderRadius: '10px', background: 'linear-gradient(135deg, #667eea, #764ba2)', border: 'none' }}>
-              {loading ? <><span className="spinner-border spinner-border-sm ms-2"></span> جاري تسجيل الدخول...</> : <><i className="bi bi-box-arrow-in-right me-2"></i>تسجيل الدخول</>}
+              {loading ? <><span className="spinner-border spinner-border-sm ms-2"></span> Signing in...</> : <><i className="bi bi-box-arrow-in-right me-2"></i>Sign In</>}
             </button>
           </form>
         </div>

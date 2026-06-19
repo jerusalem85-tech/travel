@@ -7,7 +7,7 @@ export default function Settings() {
     company_phone: '',
     company_email: '',
     company_address: '',
-    currency: 'د.ل',
+    currency: 'USD',
   });
   const [passwords, setPasswords] = useState({
     current_password: '',
@@ -21,7 +21,7 @@ export default function Settings() {
 
   useEffect(() => {
     api.get('/settings').then(res => {
-      const defaults = { company_name: '', company_phone: '', company_email: '', company_address: '', currency: 'د.ل' };
+      const defaults = { company_name: '', company_phone: '', company_email: '', company_address: '', currency: 'USD' };
       setSettings({ ...defaults, ...res.data });
     }).finally(() => setLoading(false));
   }, []);
@@ -30,9 +30,9 @@ export default function Settings() {
     setSaving(true);
     try {
       await api.put('/settings', settings);
-      Swal.fire({ icon: 'success', title: 'تم الحفظ بنجاح', timer: 1500, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Saved successfully', timer: 1500, showConfirmButton: false });
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'خطأ', text: e.response?.data?.error || 'حدث خطأ أثناء الحفظ' });
+      Swal.fire({ icon: 'error', title: 'Error', text: e.response?.data?.error || 'An error occurred while saving' });
     } finally {
       setSaving(false);
     }
@@ -40,15 +40,15 @@ export default function Settings() {
 
   const handleChangePassword = async () => {
     if (!passwords.current_password || !passwords.new_password) {
-      Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'يرجى ملء جميع الحقول' });
+      Swal.fire({ icon: 'warning', title: 'Warning', text: 'Please fill all fields' });
       return;
     }
     if (passwords.new_password !== passwords.confirm_password) {
-      Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'كلمة المرور الجديدة غير متطابقة' });
+      Swal.fire({ icon: 'warning', title: 'Warning', text: 'New passwords do not match' });
       return;
     }
     if (passwords.new_password.length < 6) {
-      Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
+      Swal.fire({ icon: 'warning', title: 'Warning', text: 'Password must be at least 6 characters' });
       return;
     }
     setChangingPassword(true);
@@ -58,9 +58,9 @@ export default function Settings() {
         new_password: passwords.new_password,
       });
       setPasswords({ current_password: '', new_password: '', confirm_password: '' });
-      Swal.fire({ icon: 'success', title: 'تم تغيير كلمة المرور', timer: 1500, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Password changed successfully', timer: 1500, showConfirmButton: false });
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'خطأ', text: e.response?.data?.error || 'كلمة المرور الحالية غير صحيحة' });
+      Swal.fire({ icon: 'error', title: 'Error', text: e.response?.data?.error || 'Current password is incorrect' });
     } finally {
       setChangingPassword(false);
     }
@@ -78,9 +78,9 @@ export default function Settings() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      Swal.fire({ icon: 'success', title: 'تم التصدير بنجاح', timer: 1500, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Exported successfully', timer: 1500, showConfirmButton: false });
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'خطأ', text: 'حدث خطأ أثناء تصدير النسخة الاحتياطية' });
+      Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while exporting the backup' });
     } finally {
       setExporting(false);
     }
@@ -90,66 +90,66 @@ export default function Settings() {
 
   return (
     <div>
-      <h5 className="page-title mb-4">الإعدادات</h5>
+      <h5 className="page-title mb-4">Settings</h5>
 
       <div className="row g-4">
         <div className="col-lg-7">
           <div className="card mb-4">
             <div className="card-header bg-white">
-              <h6 className="mb-0"><i className="bi bi-building me-2"></i> معلومات الشركة</h6>
+              <h6 className="mb-0"><i className="bi bi-building me-2"></i> Company Info</h6>
             </div>
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label className="form-label">اسم الشركة</label>
+                  <label className="form-label">Company Name</label>
                   <input className="form-control" value={settings.company_name || ''} onChange={e => setSettings({ ...settings, company_name: e.target.value })} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">هاتف الشركة</label>
+                  <label className="form-label">Company Phone</label>
                   <input className="form-control" value={settings.company_phone || ''} onChange={e => setSettings({ ...settings, company_phone: e.target.value })} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">البريد الإلكتروني</label>
+                  <label className="form-label">Email</label>
                   <input type="email" className="form-control" value={settings.company_email || ''} onChange={e => setSettings({ ...settings, company_email: e.target.value })} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">العملة</label>
+                  <label className="form-label">Currency</label>
                   <input className="form-control" value={settings.currency || ''} onChange={e => setSettings({ ...settings, currency: e.target.value })} />
                 </div>
                 <div className="col-12">
-                  <label className="form-label">العنوان</label>
+                  <label className="form-label">Address</label>
                   <textarea className="form-control" rows="2" value={settings.company_address || ''} onChange={e => setSettings({ ...settings, company_address: e.target.value })}></textarea>
                 </div>
               </div>
               <button className="btn btn-primary mt-3" onClick={handleSave} disabled={saving}>
                 {saving ? <span className="spinner-border spinner-border-sm me-1"></span> : <i className="bi bi-check-lg me-1"></i>}
-                حفظ الإعدادات
+                Save Settings
               </button>
             </div>
           </div>
 
           <div className="card">
             <div className="card-header bg-white">
-              <h6 className="mb-0"><i className="bi bi-shield-lock me-2"></i> تغيير كلمة المرور</h6>
+              <h6 className="mb-0"><i className="bi bi-shield-lock me-2"></i> Change Password</h6>
             </div>
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-md-12">
-                  <label className="form-label">كلمة المرور الحالية</label>
+                  <label className="form-label">Current Password</label>
                   <input type="password" className="form-control" value={passwords.current_password} onChange={e => setPasswords({ ...passwords, current_password: e.target.value })} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">كلمة المرور الجديدة</label>
+                  <label className="form-label">New Password</label>
                   <input type="password" className="form-control" value={passwords.new_password} onChange={e => setPasswords({ ...passwords, new_password: e.target.value })} />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">تأكيد كلمة المرور</label>
+                  <label className="form-label">Confirm Password</label>
                   <input type="password" className="form-control" value={passwords.confirm_password} onChange={e => setPasswords({ ...passwords, confirm_password: e.target.value })} />
                 </div>
               </div>
               <button className="btn btn-warning mt-3" onClick={handleChangePassword} disabled={changingPassword}>
                 {changingPassword ? <span className="spinner-border spinner-border-sm me-1"></span> : <i className="bi bi-key me-1"></i>}
-                تغيير كلمة المرور
+                Change Password
               </button>
             </div>
           </div>
@@ -158,14 +158,14 @@ export default function Settings() {
         <div className="col-lg-5">
           <div className="card">
             <div className="card-header bg-white">
-              <h6 className="mb-0"><i className="bi bi-cloud-arrow-down me-2"></i> النسخ الاحتياطي</h6>
+              <h6 className="mb-0"><i className="bi bi-cloud-arrow-down me-2"></i> Backup</h6>
             </div>
             <div className="card-body text-center py-4">
               <i className="bi bi-database display-3 text-primary mb-3 d-block"></i>
-              <p className="text-secondary mb-3">تصدير نسخة احتياطية من جميع البيانات بصيغة JSON</p>
+              <p className="text-secondary mb-3">Export a backup of all data as JSON</p>
               <button className="btn btn-primary btn-lg" onClick={handleExportBackup} disabled={exporting}>
                 {exporting ? <span className="spinner-border spinner-border-sm me-1"></span> : <i className="bi bi-download me-1"></i>}
-                تصدير النسخة الاحتياطية
+                Export Backup
               </button>
             </div>
           </div>

@@ -15,7 +15,7 @@ function Notifications() {
       setNotifications(response.data.rows);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      Swal.fire('خطأ', 'فشل في تحميل الإشعارات', 'error');
+      Swal.fire('Error', 'Failed to load notifications', 'error');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ function Notifications() {
     const unreadCount = notifications.filter(n => !n.is_read).length;
     
     if (unreadCount === 0) {
-      Swal.fire('معلومة', 'لا توجد إشعارات غير مقروءة', 'info');
+      Swal.fire('Info', 'No unread notifications', 'info');
       return;
     }
 
@@ -57,33 +57,33 @@ function Notifications() {
       setNotifications(prev => 
         prev.map(n => ({ ...n, is_read: true }))
       );
-      Swal.fire('نجاح', 'تم وضع علامة مقروء على جميع الإشعارات', 'success');
+      Swal.fire('Success', 'Marked all notifications as read', 'success');
     } catch (error) {
       console.error('Error marking all as read:', error);
-      Swal.fire('خطأ', 'فشل في تحديث الإشعارات', 'error');
+      Swal.fire('Error', 'Failed to update notifications', 'error');
     }
   };
 
   const deleteNotification = async (notificationId) => {
     const result = await Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: 'سيتم حذف هذا الإشعار نهائياً',
+      title: 'Are you sure?',
+      text: 'This notification will be permanently deleted',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
     });
 
     if (result.isConfirmed) {
       try {
         await api.delete(`/api/notifications/${notificationId}`);
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
-        Swal.fire('نجاح', 'تم حذف الإشعار بنجاح', 'success');
+        Swal.fire('Success', 'Notification deleted successfully', 'success');
       } catch (error) {
         console.error('Error deleting notification:', error);
-        Swal.fire('خطأ', 'فشل في حذف الإشعار', 'error');
+        Swal.fire('Error', 'Failed to delete notification', 'error');
       }
     }
   };
@@ -96,12 +96,12 @@ function Notifications() {
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffMinutes < 1) return 'الآن';
-    if (diffMinutes < 60) return `منذ ${diffMinutes} دقيقة`;
-    if (diffHours < 24) return `منذ ${diffHours} ساعة`;
-    if (diffDays < 7) return `منذ ${diffDays} يوم`;
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes} min${diffMinutes !== 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hr${diffHours !== 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
     
-    return date.toLocaleDateString('ar-SA', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -116,7 +116,7 @@ function Notifications() {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">جاري التحميل...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
@@ -128,10 +128,10 @@ function Notifications() {
         <div>
           <h2 className="mb-0">
             <i className="bi bi-bell-fill me-2"></i>
-            الإشعارات
+            Notifications
           </h2>
           {unreadCount > 0 && (
-            <small className="text-muted">{unreadCount} إشعار غير مقروء</small>
+            <small className="text-muted">{unreadCount} {unreadCount === 1 ? 'unread notification' : 'unread notifications'}</small>
           )}
         </div>
         <button
@@ -140,7 +140,7 @@ function Notifications() {
           disabled={unreadCount === 0}
         >
           <i className="bi bi-check-all me-1"></i>
-          وضع علامة مقروء على الكل
+          Mark All as Read
         </button>
       </div>
 
@@ -148,8 +148,8 @@ function Notifications() {
         <div className="card shadow-sm">
           <div className="card-body text-center py-5">
             <i className="bi bi-bell-slash display-1 text-muted"></i>
-            <h5 className="mt-3 text-muted">لا توجد إشعارات</h5>
-            <p className="text-muted">ستظهر الإشعارات الجديدة هنا</p>
+            <h5 className="mt-3 text-muted">No notifications</h5>
+            <p className="text-muted">New notifications will appear here</p>
           </div>
         </div>
       ) : (
@@ -165,7 +165,7 @@ function Notifications() {
                 <div className="flex-grow-1">
                   <div className="d-flex align-items-center mb-1">
                     {!notification.is_read && (
-                      <span className="badge bg-primary rounded-pill me-2">جديد</span>
+                      <span className="badge bg-primary rounded-pill me-2">New</span>
                     )}
                     <h6 className="mb-0 fw-bold">{notification.title}</h6>
                   </div>
@@ -182,7 +182,7 @@ function Notifications() {
                       e.stopPropagation();
                       deleteNotification(notification.id);
                     }}
-                    title="حذف"
+                    title="Delete"
                   >
                     <i className="bi bi-trash"></i>
                   </button>
@@ -192,7 +192,7 @@ function Notifications() {
                 <div className="mt-2">
                   <small className="text-primary">
                     <i className="bi bi-link-45deg me-1"></i>
-                    انقر للعرض
+                    Click to view
                   </small>
                 </div>
               )}

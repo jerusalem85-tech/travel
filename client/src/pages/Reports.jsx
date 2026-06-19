@@ -29,7 +29,7 @@ export default function Reports() {
   const handlePrint = () => { window.print(); };
 
   const monthName = (m) => {
-    const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const d = new Date(m + '-01');
     return `${months[d.getMonth()]} ${d.getFullYear()}`;
   };
@@ -37,9 +37,9 @@ export default function Reports() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3 no-print">
-        <h5 className="page-title mb-0">التقارير</h5>
+        <h5 className="page-title mb-0">Reports</h5>
         <button className="btn btn-outline-secondary" onClick={handlePrint}>
-          <i className="bi bi-printer me-1"></i> طباعة التقرير
+          <i className="bi bi-printer me-1"></i> Print Report
         </button>
       </div>
 
@@ -47,17 +47,17 @@ export default function Reports() {
         <div className="card-body">
           <div className="row g-3 align-items-end">
             <div className="col-md-4">
-              <label className="form-label">من تاريخ</label>
+              <label className="form-label">From Date</label>
               <input type="date" className="form-control" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
             </div>
             <div className="col-md-4">
-              <label className="form-label">إلى تاريخ</label>
+              <label className="form-label">To Date</label>
               <input type="date" className="form-control" value={dateTo} onChange={e => setDateTo(e.target.value)} />
             </div>
             <div className="col-md-4">
               <button className="btn btn-primary w-100" onClick={load} disabled={loading}>
                 {loading ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-funnel me-1"></i>}
-                تصفية
+                Filter
               </button>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function Reports() {
                     <div className="icon bg-primary text-white"><i className="bi bi-journal"></i></div>
                     <div>
                       <h5 className="mb-0">{data.summary?.bookings || 0}</h5>
-                      <small className="text-secondary">إجمالي الحجوزات</small>
+                      <small className="text-secondary">Total Bookings</small>
                     </div>
                   </div>
                 </div>
@@ -93,7 +93,7 @@ export default function Reports() {
                     <div className="icon bg-success text-white"><i className="bi bi-arrow-up-circle"></i></div>
                     <div>
                       <h5 className="mb-0">{data.summary?.revenue?.toLocaleString() || 0}</h5>
-                      <small className="text-secondary">الإيرادات</small>
+                      <small className="text-secondary">Revenue</small>
                     </div>
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export default function Reports() {
                     <div className="icon bg-danger text-white"><i className="bi bi-arrow-down-circle"></i></div>
                     <div>
                       <h5 className="mb-0">{data.summary?.expenses?.toLocaleString() || 0}</h5>
-                      <small className="text-secondary">المصاريف</small>
+                      <small className="text-secondary">Expenses</small>
                     </div>
                   </div>
                 </div>
@@ -119,7 +119,7 @@ export default function Reports() {
                     <div className="icon bg-warning text-white"><i className="bi bi-cash"></i></div>
                     <div>
                       <h5 className="mb-0">{data.summary?.profit?.toLocaleString() || 0}</h5>
-                      <small className="text-secondary">الأرباح</small>
+                      <small className="text-secondary">Profit</small>
                     </div>
                   </div>
                 </div>
@@ -131,16 +131,16 @@ export default function Reports() {
             <div className="col-lg-8">
               <div className="card h-100">
                 <div className="card-body">
-                  <h6 className="card-title mb-3"><i className="bi bi-calendar-month me-2"></i> الملخص الشهري</h6>
+                  <h6 className="card-title mb-3"><i className="bi bi-calendar-month me-2"></i> Monthly Summary</h6>
                   <div className="table-responsive">
                     <table className="table table-hover mb-0">
                       <thead>
                         <tr>
-                          <th>الشهر</th>
-                          <th>الحجوزات</th>
-                          <th>الإيرادات</th>
-                          <th>المصاريف</th>
-                          <th>الأرباح</th>
+                          <th>Month</th>
+                          <th>Bookings</th>
+                          <th>Revenue</th>
+                          <th>Expenses</th>
+                          <th>Profit</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -154,7 +154,7 @@ export default function Reports() {
                           </tr>
                         ))}
                         {(!data.monthly || data.monthly.length === 0) && (
-                          <tr><td colSpan="5" className="text-center text-muted py-3">لا توجد بيانات</td></tr>
+                          <tr><td colSpan="5" className="text-center text-muted py-3">No data available</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -165,13 +165,13 @@ export default function Reports() {
             <div className="col-lg-4">
               <div className="card h-100">
                 <div className="card-body">
-                  <h6 className="card-title mb-3"><i className="bi bi-people me-2"></i> أفضل العملاء</h6>
+                  <h6 className="card-title mb-3"><i className="bi bi-people me-2"></i> Top Customers</h6>
                   <div className="table-responsive">
                     <table className="table table-hover mb-0">
                       <thead>
                         <tr>
-                          <th>العميل</th>
-                          <th>الحجوزات</th>
+                          <th>Customer</th>
+                          <th>Bookings</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -182,7 +182,7 @@ export default function Reports() {
                           </tr>
                         ))}
                         {(!data.topCustomers || data.topCustomers.length === 0) && (
-                          <tr><td colSpan="2" className="text-center text-muted py-3">لا توجد بيانات</td></tr>
+                          <tr><td colSpan="2" className="text-center text-muted py-3">No data available</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -194,13 +194,13 @@ export default function Reports() {
 
           <div className="card mb-4">
             <div className="card-body">
-              <h6 className="card-title mb-3"><i className="bi bi-geo-alt me-2"></i> أفضل الوجهات</h6>
+              <h6 className="card-title mb-3"><i className="bi bi-geo-alt me-2"></i> Top Destinations</h6>
               <div className="table-responsive">
                 <table className="table table-hover mb-0">
                   <thead>
                     <tr>
-                      <th>الوجهة</th>
-                      <th>عدد الحجوزات</th>
+                      <th>Destination</th>
+                      <th>Bookings</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -211,7 +211,7 @@ export default function Reports() {
                       </tr>
                     ))}
                     {(!data.topDestinations || data.topDestinations.length === 0) && (
-                      <tr><td colSpan="2" className="text-center text-muted py-3">لا توجد بيانات</td></tr>
+                      <tr><td colSpan="2" className="text-center text-muted py-3">No data available</td></tr>
                     )}
                   </tbody>
                 </table>

@@ -28,7 +28,7 @@ const Payments = () => {
       setPayments(res.data.rows || []);
       setTotal(res.data.total || 0);
     } catch (err) {
-      Swal.fire('خطأ', 'فشل تحميل المدفوعات', 'error');
+      Swal.fire('Error', 'Failed to load payments', 'error');
     } finally {
       setLoading(false);
     }
@@ -88,11 +88,11 @@ const Payments = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.invoice_id) {
-      Swal.fire('تنبيه', 'اختر الفاتورة', 'warning');
+      Swal.fire('Alert', 'Select an invoice', 'warning');
       return;
     }
     if (!formData.amount || Number(formData.amount) <= 0) {
-      Swal.fire('تنبيه', 'أدخل مبلغ صحيح', 'warning');
+      Swal.fire('Alert', 'Enter a valid amount', 'warning');
       return;
     }
 
@@ -106,8 +106,8 @@ const Payments = () => {
         notes: formData.notes
       });
       Swal.fire({
-        title: 'تم الإضافة',
-        text: 'تم تسجيل الدفعة بنجاح',
+        title: 'Added',
+        text: 'Payment recorded successfully',
         icon: 'success',
         timer: 2000,
         showConfirmButton: false
@@ -116,7 +116,7 @@ const Payments = () => {
       resetForm();
       fetchPayments();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل تسجيل الدفعة', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Failed to record payment', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -124,22 +124,22 @@ const Payments = () => {
 
   const handleDelete = (id, paymentNumber) => {
     Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: `سيتم حذف الدفعة ${paymentNumber}`,
+      title: 'Are you sure?',
+      text: `Payment ${paymentNumber} will be deleted`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/payments/${id}`);
-          Swal.fire('تم الحذف', 'تم حذف الدفعة بنجاح', 'success');
+          Swal.fire('Deleted', 'Payment deleted successfully', 'success');
           fetchPayments();
         } catch (err) {
-          Swal.fire('خطأ', 'فشل حذف الدفعة', 'error');
+          Swal.fire('Error', 'Failed to delete payment', 'error');
         }
       }
     });
@@ -149,11 +149,11 @@ const Payments = () => {
 
   const getPaymentMethodLabel = (method) => {
     const methods = {
-      cash: 'نقدي',
-      card: 'بطاقة ائتمان',
-      transfer: 'تحويل بنكي',
-      check: 'شيك',
-      other: 'أخرى'
+      cash: 'Cash',
+      card: 'Credit Card',
+      transfer: 'Bank Transfer',
+      check: 'Check',
+      other: 'Other'
     };
     return methods[method] || method;
   };
@@ -163,11 +163,11 @@ const Payments = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-cash-stack me-2"></i>
-          المدفوعات
+          Payments
         </h4>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
           <i className="bi bi-plus-lg me-1"></i>
-          إضافة دفعة
+          Add Payment
         </button>
       </div>
 
@@ -176,13 +176,13 @@ const Payments = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : payments.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد مدفوعات
+              No payments found
             </div>
           ) : (
             <>
@@ -191,14 +191,14 @@ const Payments = () => {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>رقم الدفعة</th>
-                      <th>المبلغ</th>
-                      <th>طريقة الدفع</th>
-                      <th>المرجع</th>
-                      <th>رقم الفاتورة</th>
-                      <th>العميل</th>
-                      <th>التاريخ</th>
-                      <th>إجراءات</th>
+                      <th>Payment No.</th>
+                      <th>Amount</th>
+                      <th>Payment Method</th>
+                      <th>Reference</th>
+                      <th>Invoice No.</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -207,7 +207,7 @@ const Payments = () => {
                         <td>{p.id}</td>
                         <td><code>{p.payment_number}</code></td>
                         <td className="fw-bold text-success">
-                          {Number(p.amount).toLocaleString()} ر.س
+                          {Number(p.amount).toLocaleString()} SAR
                         </td>
                         <td>
                           <span className="badge bg-light text-dark">
@@ -217,7 +217,7 @@ const Payments = () => {
                         <td>{p.reference || '-'}</td>
                         <td><code>{p.invoice_number || '-'}</code></td>
                         <td>{p.customer_name || '-'}</td>
-                        <td>{new Date(p.created_at).toLocaleDateString('ar-SA')}</td>
+                        <td>{new Date(p.created_at).toLocaleDateString('en-US')}</td>
                         <td>
                           <button
                             className="btn btn-sm btn-outline-danger"
@@ -281,7 +281,7 @@ const Payments = () => {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="bi bi-plus-circle me-2"></i>
-                  إضافة دفعة جديدة
+                  Add New Payment
                 </h5>
                 <button
                   type="button"
@@ -292,14 +292,14 @@ const Payments = () => {
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">العميل (اختياري للتصفية)</label>
+                    <label className="form-label">Customer (optional filter)</label>
                     <select
                       className="form-select"
                       name="customer_id"
                       value={formData.customer_id}
                       onChange={handleChange}
                     >
-                      <option value="">جميع العملاء</option>
+                      <option value="">All Customers</option>
                       {customers.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name} - {c.phone}
@@ -309,7 +309,7 @@ const Payments = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">الفاتورة <span className="text-danger">*</span></label>
+                    <label className="form-label">Invoice <span className="text-danger">*</span></label>
                     <select
                       className="form-select"
                       name="invoice_id"
@@ -317,17 +317,17 @@ const Payments = () => {
                       onChange={handleChange}
                       required
                     >
-                      <option value="">اختر الفاتورة</option>
+                      <option value="">Select Invoice</option>
                       {invoices.map((inv) => (
                         <option key={inv.id} value={inv.id}>
-                          {inv.invoice_number} - {inv.customer_name} ({Number(inv.total_amount).toLocaleString()} ر.س)
+                          {inv.invoice_number} - {inv.customer_name} ({Number(inv.total_amount).toLocaleString()} SAR)
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">المبلغ <span className="text-danger">*</span></label>
+                    <label className="form-label">Amount <span className="text-danger">*</span></label>
                     <div className="input-group">
                       <input
                         type="number"
@@ -340,47 +340,47 @@ const Payments = () => {
                         placeholder="0.00"
                         required
                       />
-                      <span className="input-group-text">ر.س</span>
+                      <span className="input-group-text">SAR</span>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">طريقة الدفع</label>
+                    <label className="form-label">Payment Method</label>
                     <select
                       className="form-select"
                       name="payment_method"
                       value={formData.payment_method}
                       onChange={handleChange}
                     >
-                      <option value="cash">نقدي</option>
-                      <option value="card">بطاقة ائتمان</option>
-                      <option value="transfer">تحويل بنكي</option>
-                      <option value="check">شيك</option>
-                      <option value="other">أخرى</option>
+                      <option value="cash">Cash</option>
+                      <option value="card">Credit Card</option>
+                      <option value="transfer">Bank Transfer</option>
+                      <option value="check">Check</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">المرجع</label>
+                    <label className="form-label">Reference</label>
                     <input
                       type="text"
                       className="form-control"
                       name="reference"
                       value={formData.reference}
                       onChange={handleChange}
-                      placeholder="رقم المرجع أو التحويل..."
+                      placeholder="Reference or transfer number..."
                     />
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">ملاحظات</label>
+                    <label className="form-label">Notes</label>
                     <textarea
                       className="form-control"
                       name="notes"
                       value={formData.notes}
                       onChange={handleChange}
                       rows="2"
-                      placeholder="ملاحظات إضافية..."
+                      placeholder="Additional notes..."
                     ></textarea>
                   </div>
                 </div>
@@ -390,7 +390,7 @@ const Payments = () => {
                     className="btn btn-secondary"
                     onClick={() => { setShowModal(false); resetForm(); }}
                   >
-                    إلغاء
+                    Cancel
                   </button>
                   <button
                     type="submit"
@@ -400,12 +400,12 @@ const Payments = () => {
                     {submitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-1"></span>
-                        جاري الحفظ...
+                        Saving...
                       </>
                     ) : (
                       <>
                         <i className="bi bi-check-lg me-1"></i>
-                        حفظ الدفعة
+                        Save Payment
                       </>
                     )}
                   </button>

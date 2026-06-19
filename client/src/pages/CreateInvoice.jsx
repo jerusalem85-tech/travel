@@ -21,7 +21,7 @@ const CreateInvoice = () => {
         const res = await api.get('/customers');
         setCustomers(res.data.rows || res.data || []);
       } catch (err) {
-        Swal.fire('خطأ', 'فشل تحميل العملاء', 'error');
+        Swal.fire('Error', 'Failed to load customers', 'error');
       }
     };
     fetchCustomers();
@@ -52,11 +52,11 @@ const CreateInvoice = () => {
     e.preventDefault();
 
     if (!formData.customer_id) {
-      Swal.fire('تنبيه', '请选择 العميل', 'warning');
+      Swal.fire('Alert', 'Please select a customer', 'warning');
       return;
     }
     if (!formData.total_amount || Number(formData.total_amount) <= 0) {
-      Swal.fire('تنبيه', 'أدخل مبلغ صحيح', 'warning');
+      Swal.fire('Alert', 'Enter a valid amount', 'warning');
       return;
     }
 
@@ -72,15 +72,15 @@ const CreateInvoice = () => {
       }
       await api.post('/invoices', payload);
       Swal.fire({
-        title: 'تم الإنشاء',
-        text: 'تم إنشاء الفاتورة بنجاح',
+        title: 'Created',
+        text: 'Invoice created successfully',
         icon: 'success',
         timer: 2000,
         showConfirmButton: false
       });
       navigate('/invoices');
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل إنشاء الفاتورة', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Failed to create invoice', 'error');
     } finally {
       setLoading(false);
     }
@@ -91,14 +91,14 @@ const CreateInvoice = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-receipt me-2"></i>
-          إنشاء فاتورة جديدة
+          Create New Invoice
         </h4>
         <button
           className="btn btn-outline-secondary"
           onClick={() => navigate('/invoices')}
         >
           <i className="bi bi-arrow-right me-1"></i>
-          رجوع
+          Back
         </button>
       </div>
 
@@ -108,7 +108,7 @@ const CreateInvoice = () => {
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label className="form-label">العميل <span className="text-danger">*</span></label>
+                  <label className="form-label">Customer <span className="text-danger">*</span></label>
                   <select
                     className="form-select"
                     name="customer_id"
@@ -116,7 +116,7 @@ const CreateInvoice = () => {
                     onChange={handleChange}
                     required
                   >
-                    <option value="">اختر العميل</option>
+                    <option value="">Select Customer</option>
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} - {c.phone}
@@ -126,24 +126,24 @@ const CreateInvoice = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">الرحلة (اختياري)</label>
+                  <label className="form-label">Trip (Optional)</label>
                   <select
                     className="form-select"
                     name="booking_id"
                     value={formData.booking_id}
                     onChange={handleChange}
                   >
-                    <option value="">بدون رحلة</option>
+                    <option value="">No Trip</option>
                     {bookings.map((b) => (
                       <option key={b.id} value={b.id}>
-                        {b.booking_number} - {b.from_destination} إلى {b.to_destination}
+                        {b.booking_number} - {b.from_destination} to {b.to_destination}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">المبلغ الإجمالي <span className="text-danger">*</span></label>
+                  <label className="form-label">Total Amount <span className="text-danger">*</span></label>
                   <div className="input-group">
                     <input
                       type="number"
@@ -161,14 +161,14 @@ const CreateInvoice = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">ملاحظات</label>
+                  <label className="form-label">Notes</label>
                   <textarea
                     className="form-control"
                     name="notes"
                     value={formData.notes}
                     onChange={handleChange}
                     rows="3"
-                    placeholder="ملاحظات إضافية..."
+                    placeholder="Additional notes..."
                   ></textarea>
                 </div>
 
@@ -181,12 +181,12 @@ const CreateInvoice = () => {
                     {loading ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-1"></span>
-                        جاري الإنشاء...
+                        Creating...
                       </>
                     ) : (
                       <>
                         <i className="bi bi-check-lg me-1"></i>
-                        إنشاء الفاتورة
+                        Create Invoice
                       </>
                     )}
                   </button>
@@ -195,7 +195,7 @@ const CreateInvoice = () => {
                     className="btn btn-outline-secondary"
                     onClick={() => navigate('/invoices')}
                   >
-                    إلغاء
+                    Cancel
                   </button>
                 </div>
               </form>
@@ -208,24 +208,24 @@ const CreateInvoice = () => {
             <div className="card-body">
               <h6 className="card-title">
                 <i className="bi bi-info-circle me-1"></i>
-                معلومات
+                Info
               </h6>
               <ul className="list-unstyled mb-0 small text-muted">
                 <li className="mb-2">
                   <i className="bi bi-check-circle text-success me-1"></i>
-                  اختر العميل أولاً لعرض رحلاته
+                  Select a customer first to view their trips
                 </li>
                 <li className="mb-2">
                   <i className="bi bi-check-circle text-success me-1"></i>
-                  اختيار الرحلة اختياري لكنه يُفضل
+                  Selecting a trip is optional but recommended
                 </li>
                 <li className="mb-2">
                   <i className="bi bi-check-circle text-success me-1"></i>
-                  يمكن إضافة مدفوعات لاحقاً من صفحة الفاتورة
+                  Payments can be added later from the invoice page
                 </li>
                 <li>
                   <i className="bi bi-check-circle text-success me-1"></i>
-                  حالة الفاتورة تلقائية حسب المدفوعات
+                  Invoice status is automatic based on payments
                 </li>
               </ul>
             </div>

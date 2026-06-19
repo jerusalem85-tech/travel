@@ -62,10 +62,10 @@ export default function Insurance() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.customer_id) {
-      Swal.fire('تنبيه', 'اختر العميل', 'warning'); return;
+      Swal.fire('Alert', 'Select a customer', 'warning'); return;
     }
     if (!formData.provider_name.trim()) {
-      Swal.fire('تنبيه', 'أدخل اسم المزود', 'warning'); return;
+      Swal.fire('Alert', 'Enter provider name', 'warning'); return;
     }
     setSubmitting(true);
     try {
@@ -80,16 +80,16 @@ export default function Insurance() {
       };
       if (editItem) {
         await api.put(`/insurance/${editItem.id}`, payload);
-        Swal.fire('تم التحديث', 'تم تحديث وثيقة التأمين', 'success');
+        Swal.fire('Updated', 'Insurance policy updated', 'success');
       } else {
         await api.post('/insurance', payload);
-        Swal.fire('تم الإضافة', 'تم إضافة وثيقة التأمين', 'success');
+        Swal.fire('Added', 'Insurance policy added', 'success');
       }
       setShowModal(false);
       resetForm();
       load();
     } catch (err) {
-      Swal.fire('خطأ', err.response?.data?.message || 'فشل الحفظ', 'error');
+      Swal.fire('Error', err.response?.data?.message || 'Save failed', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -97,8 +97,8 @@ export default function Insurance() {
 
   const handleDelete = (id, policyNumber) => {
     Swal.fire({
-      title: 'تأكيد الحذف', text: `سيتم حذف الوثيقة: ${policyNumber}`, icon: 'warning',
-      showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'
+      title: 'Confirm Deletion', text: `The policy "${policyNumber}" will be deleted`, icon: 'warning',
+      showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'Cancel'
     }).then(r => {
       if (r.isConfirmed) api.delete(`/insurance/${id}`).then(() => load());
     });
@@ -106,13 +106,13 @@ export default function Insurance() {
 
   const statusBadge = (s) => {
     const colors = { active: 'success', expired: 'secondary', cancelled: 'danger' };
-    const labels = { active: 'نشط', expired: 'منتهي', cancelled: 'ملغي' };
+    const labels = { active: 'Active', expired: 'Expired', cancelled: 'Cancelled' };
     return <span className={`badge bg-${colors[s] || 'secondary'}`}>{labels[s] || s}</span>;
   };
 
   const policyTypeLabel = (t) => {
     const types = {
-      travel: 'سفر', medical: 'طبي', luggage: 'أمتعة', cancellation: 'إلغاء', accident: 'حوادث', other: 'أخرى'
+      travel: 'Travel', medical: 'Medical', luggage: 'Luggage', cancellation: 'Cancellation', accident: 'Accident', other: 'Other'
     };
     return types[t] || t;
   };
@@ -120,16 +120,16 @@ export default function Insurance() {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="page-title mb-0">التأمين</h5>
+        <h5 className="page-title mb-0">Insurance</h5>
         <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-          <i className="bi bi-plus-lg"></i> وثيقة تأمين جديدة
+          <i className="bi bi-plus-lg"></i> New Insurance Policy
         </button>
       </div>
       <div className="card mb-3">
         <div className="card-body">
           <div className="search-box">
             <i className="bi bi-search"></i>
-            <input className="form-control" placeholder="بحث برقم الوثيقة أو اسم العميل..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="form-control" placeholder="Search by policy number or customer name..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function Insurance() {
         <div className="table-responsive">
           <table className="table table-hover mb-0">
             <thead>
-              <tr><th>رقم الوثيقة</th><th>العميل</th><th>المزود</th><th>النوع</th><th>مبلغ التغطية</th><th>القسط</th><th>الحالة</th><th></th></tr>
+              <tr><th>Policy No.</th><th>Customer</th><th>Provider</th><th>Type</th><th>Coverage</th><th>Premium</th><th>Status</th><th></th></tr>
             </thead>
             <tbody>
               {data.rows.map(p => (
@@ -156,7 +156,7 @@ export default function Insurance() {
                 </tr>
               ))}
               {data.rows.length === 0 && (
-                <tr><td colSpan="8" className="text-center text-muted py-4">لا توجد وثائق تأمين</td></tr>
+                <tr><td colSpan="8" className="text-center text-muted py-4">No insurance policies found</td></tr>
               )}
             </tbody>
           </table>
@@ -182,7 +182,7 @@ export default function Insurance() {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className="bi bi-shield-check me-2"></i>
-                  {editItem ? 'تعديل وثيقة التأمين' : 'إضافة وثيقة تأمين جديدة'}
+                  {editItem ? 'Edit Insurance Policy' : 'Add New Insurance Policy'}
                 </h5>
                 <button type="button" className="btn-close" onClick={() => { setShowModal(false); resetForm(); }}></button>
               </div>
@@ -190,47 +190,47 @@ export default function Insurance() {
                 <div className="modal-body">
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">العميل <span className="text-danger">*</span></label>
+                      <label className="form-label">Customer <span className="text-danger">*</span></label>
                       <select className="form-select" name="customer_id" value={formData.customer_id} onChange={e => setFormData({ ...formData, customer_id: e.target.value })} required>
-                        <option value="">اختر العميل</option>
+                        <option value="">Select Customer</option>
                         {customers.map(c => (
                           <option key={c.id} value={c.id}>{c.full_name || c.name} - {c.phone}</option>
                         ))}
                       </select>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">رقم الحجز (اختياري)</label>
-                      <input type="number" className="form-control" name="booking_id" value={formData.booking_id} onChange={e => setFormData({ ...formData, booking_id: e.target.value })} placeholder="رقم الحجز" />
+                      <label className="form-label">Booking No. (Optional)</label>
+                      <input type="number" className="form-control" name="booking_id" value={formData.booking_id} onChange={e => setFormData({ ...formData, booking_id: e.target.value })} placeholder="Booking number" />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">اسم المزود <span className="text-danger">*</span></label>
-                      <input className="form-control" name="provider_name" value={formData.provider_name} onChange={e => setFormData({ ...formData, provider_name: e.target.value })} placeholder="مثال: شركة التأمين العربية" required />
+                      <label className="form-label">Provider Name <span className="text-danger">*</span></label>
+                      <input className="form-control" name="provider_name" value={formData.provider_name} onChange={e => setFormData({ ...formData, provider_name: e.target.value })} placeholder="e.g. Arabian Insurance Company" required />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">نوع التأمين</label>
+                      <label className="form-label">Insurance Type</label>
                       <select className="form-select" name="policy_type" value={formData.policy_type} onChange={e => setFormData({ ...formData, policy_type: e.target.value })}>
-                        <option value="">اختر النوع</option>
-                        <option value="travel">سفر</option>
-                        <option value="medical">طبي</option>
-                        <option value="luggage">أمتعة</option>
-                        <option value="cancellation">إلغاء</option>
-                        <option value="accident">حوادث</option>
-                        <option value="other">أخرى</option>
+                        <option value="">Select Type</option>
+                        <option value="travel">Travel</option>
+                        <option value="medical">Medical</option>
+                        <option value="luggage">Luggage</option>
+                        <option value="cancellation">Cancellation</option>
+                        <option value="accident">Accident</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">مبلغ التغطية</label>
+                      <label className="form-label">Coverage Amount</label>
                       <div className="input-group">
                         <input type="number" className="form-control" name="coverage_amount" value={formData.coverage_amount} onChange={e => setFormData({ ...formData, coverage_amount: e.target.value })} min="0" step="0.01" />
                         <span className="input-group-text">{formData.currency}</span>
                       </div>
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">القسط</label>
+                      <label className="form-label">Premium</label>
                       <div className="input-group">
                         <input type="number" className="form-control" name="premium_amount" value={formData.premium_amount} onChange={e => setFormData({ ...formData, premium_amount: e.target.value })} min="0" step="0.01" />
                         <span className="input-group-text">{formData.currency}</span>
@@ -239,43 +239,43 @@ export default function Insurance() {
                   </div>
                   <div className="row">
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">العملة</label>
+                      <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
-                        <option value="SAR">ريال سعودي</option>
-                        <option value="AED">درهم إماراتي</option>
-                        <option value="USD">دولار أمريكي</option>
-                        <option value="EUR">يورو</option>
-                        <option value="EGP">جنيه مصري</option>
+                        <option value="SAR">Saudi Riyal</option>
+                        <option value="AED">UAE Dirham</option>
+                        <option value="USD">US Dollar</option>
+                        <option value="EUR">Euro</option>
+                        <option value="EGP">Egyptian Pound</option>
                       </select>
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">تاريخ البداية</label>
+                      <label className="form-label">Start Date</label>
                       <input type="date" className="form-control" name="start_date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })} />
                     </div>
                     <div className="col-md-4 mb-3">
-                      <label className="form-label">تاريخ النهاية</label>
+                      <label className="form-label">End Date</label>
                       <input type="date" className="form-control" name="end_date" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })} />
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">الحالة</label>
+                      <label className="form-label">Status</label>
                       <select className="form-select" name="status" value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
-                        <option value="active">نشط</option>
-                        <option value="expired">منتهي</option>
-                        <option value="cancelled">ملغي</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">ملاحظات</label>
+                    <label className="form-label">Notes</label>
                     <textarea className="form-control" name="notes" rows="2" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })}></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
                   <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? <><span className="spinner-border spinner-border-sm me-1"></span> جاري الحفظ...</> : <><i className="bi bi-check-lg me-1"></i> حفظ</>}
+                    {submitting ? <><span className="spinner-border spinner-border-sm me-1"></span> Saving...</> : <><i className="bi bi-check-lg me-1"></i> Save</>}
                   </button>
                 </div>
               </form>

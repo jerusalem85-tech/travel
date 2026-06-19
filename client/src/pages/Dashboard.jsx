@@ -16,13 +16,13 @@ const statIcons = {
 };
 
 const statLabels = {
-  bookingsCount: { label: 'الحجوزات', icon: 'bookings', color: 'primary' },
-  customersCount: { label: 'العملاء', icon: 'customers', color: 'success' },
-  suppliersCount: { label: 'الموردين', icon: 'suppliers', color: 'info' },
-  hotelsCount: { label: 'الفنادق', icon: 'hotels', color: 'warning' },
-  contractsCount: { label: 'العقود', icon: 'contracts', color: 'secondary' },
-  todayBookings: { label: 'حجوزات اليوم', icon: 'today', color: 'info' },
-  pendingBookings: { label: 'معلق', icon: 'pending', color: 'danger' },
+  bookingsCount: { label: 'Bookings', icon: 'bookings', color: 'primary' },
+  customersCount: { label: 'Customers', icon: 'customers', color: 'success' },
+  suppliersCount: { label: 'Suppliers', icon: 'suppliers', color: 'info' },
+  hotelsCount: { label: 'Hotels', icon: 'hotels', color: 'warning' },
+  contractsCount: { label: 'Contracts', icon: 'contracts', color: 'secondary' },
+  todayBookings: { label: "Today's Bookings", icon: 'today', color: 'info' },
+  pendingBookings: { label: 'Pending', icon: 'pending', color: 'danger' },
 };
 
 function StatCard({ value, label, icon, color, prefix }) {
@@ -72,9 +72,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     const h = new Date().getHours();
-    if (h < 12) setGreeting('صباح الخير');
-    else if (h < 18) setGreeting('مساء الخير');
-    else setGreeting('مساء الخير');
+    if (h < 12) setGreeting('Good morning');
+    else setGreeting('Good evening');
   }, []);
 
   useEffect(() => {
@@ -87,7 +86,7 @@ export default function Dashboard() {
     return (
       <div className="d-flex flex-column align-items-center justify-content-center py-5" style={{ minHeight: '60vh' }}>
         <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }}></div>
-        <p className="text-muted">جاري تحميل البيانات...</p>
+        <p className="text-muted">Loading data...</p>
       </div>
     );
   }
@@ -110,18 +109,18 @@ export default function Dashboard() {
     <div className="page-enter">
       <div className="d-flex flex-wrap align-items-center justify-content-between mb-4">
         <div>
-          <h5 className="page-title mb-1">{greeting}، {user?.full_name || 'مدير النظام'}</h5>
-          <small className="text-muted">نظرة عامة على نظام إدارة السفر</small>
+          <h5 className="page-title mb-1">{greeting}, {user?.full_name || 'Admin'}</h5>
+          <small className="text-muted">Travel Management System Overview</small>
         </div>
         <div className="d-flex gap-2 mt-2 mt-sm-0">
           <Link to="/bookings/create" className="btn btn-primary btn-sm">
-            <i className="bi bi-plus-lg"></i> حجز جديد
+            <i className="bi bi-plus-lg"></i> New Booking
           </Link>
           <Link to="/customers/create" className="btn btn-success btn-sm">
-            <i className="bi bi-plus-lg"></i> عميل جديد
+            <i className="bi bi-plus-lg"></i> New Customer
           </Link>
           <Link to="/invoices/create" className="btn btn-warning btn-sm text-dark">
-            <i className="bi bi-plus-lg"></i> فاتورة جديدة
+            <i className="bi bi-plus-lg"></i> New Invoice
           </Link>
         </div>
       </div>
@@ -137,8 +136,8 @@ export default function Dashboard() {
           <div className="card h-100">
             <div className="card-body">
               <div className="d-flex align-items-center justify-content-between mb-4">
-                <h6 className="fw-bold mb-0"><i className="bi bi-graph-up me-2 text-primary"></i>ملخص الشهر الحالي</h6>
-                <span className="badge bg-primary bg-opacity-10 text-primary">{new Date().toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' })}</span>
+                <h6 className="fw-bold mb-0"><i className="bi bi-graph-up me-2 text-primary"></i>Monthly Summary</h6>
+                <span className="badge bg-primary bg-opacity-10 text-primary">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
               </div>
               <div className="row g-3">
                 <div className="col-md-6">
@@ -148,7 +147,7 @@ export default function Dashboard() {
                         <i className="bi bi-arrow-up-circle text-success"></i>
                       </div>
                       <div>
-                        <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>إجمالي المدفوعات</small>
+                        <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>Total Income</small>
                         <strong className="text-success">{stats.monthPayments?.toLocaleString()}</strong>
                       </div>
                     </div>
@@ -164,7 +163,7 @@ export default function Dashboard() {
                         <i className="bi bi-arrow-down-circle text-danger"></i>
                       </div>
                       <div>
-                        <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>إجمالي المصاريف</small>
+                        <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>Total Expenses</small>
                         <strong className="text-danger">{stats.monthExpenses?.toLocaleString()}</strong>
                       </div>
                     </div>
@@ -181,7 +180,7 @@ export default function Dashboard() {
                     <i className={`bi ${stats.monthProfit >= 0 ? 'bi-cash-coin text-primary' : 'bi-exclamation-triangle text-danger'}`}></i>
                   </div>
                   <div>
-                    <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>صافي الأرباح</small>
+                    <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>Net Profit</small>
                     <strong className={stats.monthProfit >= 0 ? 'text-primary' : 'text-danger'} style={{ fontSize: '1.1rem' }}>
                       {stats.monthProfit?.toLocaleString()}
                     </strong>
@@ -189,7 +188,7 @@ export default function Dashboard() {
                 </div>
                 <span className={`badge ${stats.monthProfit >= 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'} rounded-pill`}>
                   <i className={`bi ${stats.monthProfit >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'} me-1`}></i>
-                  {stats.monthProfit >= 0 ? 'ربح' : 'خسارة'}
+                  {stats.monthProfit >= 0 ? 'Profit' : 'Loss'}
                 </span>
               </div>
 
@@ -200,19 +199,19 @@ export default function Dashboard() {
                     <div className="col-4">
                       <div className="text-center p-2 rounded-2" style={{ background: 'rgba(99,102,241,0.06)' }}>
                         <div className="fw-bold text-primary">{overview.totalBookings}</div>
-                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>إجمالي الحجوزات</small>
+                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>Total Bookings</small>
                       </div>
                     </div>
                     <div className="col-4">
                       <div className="text-center p-2 rounded-2" style={{ background: 'rgba(34,197,94,0.06)' }}>
                         <div className="fw-bold text-success">{overview.totalCustomers}</div>
-                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>إجمالي العملاء</small>
+                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>Total Customers</small>
                       </div>
                     </div>
                     <div className="col-4">
                       <div className="text-center p-2 rounded-2" style={{ background: 'rgba(245,158,11,0.06)' }}>
                         <div className="fw-bold text-warning">{overview.pendingTasks}</div>
-                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>مهام معلقة</small>
+                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>Pending Tasks</small>
                       </div>
                     </div>
                   </div>
@@ -225,7 +224,7 @@ export default function Dashboard() {
         <div className="col-lg-4">
           <div className="card h-100">
             <div className="card-body d-flex flex-column">
-              <h6 className="fw-bold mb-3"><i className="bi bi-trophy me-2 text-warning"></i>أفضل العملاء</h6>
+              <h6 className="fw-bold mb-3"><i className="bi bi-trophy me-2 text-warning"></i>Top Customers</h6>
               {topCustomers.length > 0 ? (
                 <div className="d-flex flex-column gap-2 flex-grow-1">
                   {topCustomers.map((c, i) => (
@@ -235,7 +234,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex-grow-1" style={{ minWidth: 0 }}>
                         <div className="fw-semibold" style={{ fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.full_name}</div>
-                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>{c.booking_count} حجوزات · {Number(c.total_paid).toLocaleString()}</small>
+                        <small className="text-muted" style={{ fontSize: '0.65rem' }}>{c.booking_count} bookings · {Number(c.total_paid).toLocaleString()}</small>
                       </div>
                     </div>
                   ))}
@@ -243,11 +242,11 @@ export default function Dashboard() {
               ) : (
                 <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-muted">
                   <i className="bi bi-people" style={{ fontSize: '2rem', opacity: 0.3 }}></i>
-                  <small>لا يوجد عملاء بعد</small>
+                  <small>No customers yet</small>
                 </div>
               )}
               <Link to="/customers" className="btn btn-sm btn-outline-primary w-100 mt-2">
-                <i className="bi bi-eye me-1"></i> عرض الكل
+                <i className="bi bi-eye me-1"></i> View All
               </Link>
             </div>
           </div>
@@ -263,19 +262,19 @@ export default function Dashboard() {
       <div className="card">
         <div className="card-body">
           <div className="d-flex align-items-center justify-content-between mb-3">
-            <h6 className="fw-bold mb-0"><i className="bi bi-clock-history me-2 text-primary"></i>آخر الحجوزات</h6>
-            <Link to="/bookings" className="btn btn-sm btn-outline-primary">عرض الكل <i className="bi bi-arrow-left me-1"></i></Link>
+            <h6 className="fw-bold mb-0"><i className="bi bi-clock-history me-2 text-primary"></i>Recent Bookings</h6>
+            <Link to="/bookings" className="btn btn-sm btn-outline-primary">View All <i className="bi bi-arrow-left me-1"></i></Link>
           </div>
           <div className="table-responsive">
             <table className="table table-hover mb-0">
               <thead>
                 <tr>
-                  <th>رقم الحجز</th>
-                  <th>العميل</th>
-                  <th>التاريخ</th>
-                  <th>الوجهة</th>
-                  <th>الحالة</th>
-                  <th>المبلغ</th>
+                  <th>Booking #</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Destination</th>
+                  <th>Status</th>
+                  <th>Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,14 +286,14 @@ export default function Dashboard() {
                     <td>{b.from_destination} → {b.to_destination}</td>
                     <td>
                       <span className={`badge bg-${b.status === 'confirmed' ? 'success' : b.status === 'cancelled' ? 'danger' : b.status === 'completed' ? 'secondary' : 'warning'}`}>
-                        {b.status === 'confirmed' ? 'مؤكد' : b.status === 'cancelled' ? 'ملغي' : b.status === 'completed' ? 'منتهي' : 'معلق'}
+                        {b.status === 'confirmed' ? 'Confirmed' : b.status === 'cancelled' ? 'Cancelled' : b.status === 'completed' ? 'Completed' : 'Pending'}
                       </span>
                     </td>
                     <td className="fw-semibold">{b.total_amount?.toLocaleString()}</td>
                   </tr>
                 ))}
                 {(!stats.recentBookings || stats.recentBookings.length === 0) && (
-                  <tr><td colSpan="6" className="text-center text-muted py-4">لا توجد حجوزات حديثة</td></tr>
+                  <tr><td colSpan="6" className="text-center text-muted py-4">No recent bookings</td></tr>
                 )}
               </tbody>
             </table>

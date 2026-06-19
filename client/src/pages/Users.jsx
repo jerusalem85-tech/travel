@@ -23,7 +23,7 @@ function Users() {
       setUsers(response.data.rows);
     } catch (error) {
       console.error('Error fetching users:', error);
-      Swal.fire('خطأ', 'فشل في تحميل المستخدمين', 'error');
+      Swal.fire('Error', 'Failed to load users', 'error');
     } finally {
       setLoading(false);
     }
@@ -89,59 +89,59 @@ function Users() {
         }
         
         await api.put(`/api/users/${editingUser.id}`, updateData);
-        Swal.fire('نجاح', 'تم تحديث المستخدم بنجاح', 'success');
+        Swal.fire('Success', 'User updated successfully', 'success');
       } else {
         if (!formData.password) {
-          Swal.fire('خطأ', 'كلمة المرور مطلوبة للمستخدم الجديد', 'error');
+          Swal.fire('Error', 'Password is required for new user', 'error');
           return;
         }
         
         await api.post('/api/users', formData);
-        Swal.fire('نجاح', 'تم إضافة المستخدم بنجاح', 'success');
+        Swal.fire('Success', 'User added successfully', 'success');
       }
       
       closeModal();
       fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error);
-      Swal.fire('خطأ', error.response?.data?.message || 'فشل في حفظ المستخدم', 'error');
+      Swal.fire('Error', error.response?.data?.message || 'Failed to save user', 'error');
     }
   };
 
   const handleDelete = async (userId) => {
     if (userId === currentUser?.id) {
-      Swal.fire('تنبيه', 'لا يمكنك حذف حسابك الخاص', 'warning');
+      Swal.fire('Warning', 'You cannot delete your own account', 'warning');
       return;
     }
 
     const result = await Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: 'سيتم حذف هذا المستخدم نهائياً',
+      title: 'Are you sure?',
+      text: 'This user will be permanently deleted',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel'
     });
 
     if (result.isConfirmed) {
       try {
         await api.delete(`/api/users/${userId}`);
-        Swal.fire('نجاح', 'تم حذف المستخدم بنجاح', 'success');
+        Swal.fire('Success', 'User deleted successfully', 'success');
         fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
-        Swal.fire('خطأ', error.response?.data?.message || 'فشل في حذف المستخدم', 'error');
+        Swal.fire('Error', error.response?.data?.message || 'Failed to delete user', 'error');
       }
     }
   };
 
   const getRoleBadge = (role) => {
     const roles = {
-      admin: { text: 'مدير', class: 'bg-danger' },
-      staff: { text: 'موظف', class: 'bg-primary' },
-      viewer: { text: 'مشاهد', class: 'bg-secondary' }
+      admin: { text: 'Admin', class: 'bg-danger' },
+      staff: { text: 'Staff', class: 'bg-primary' },
+      viewer: { text: 'Viewer', class: 'bg-secondary' }
     };
     return roles[role] || { text: role, class: 'bg-secondary' };
   };
@@ -150,7 +150,7 @@ function Users() {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">جاري التحميل...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
@@ -161,11 +161,11 @@ function Users() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">
           <i className="bi bi-people-fill me-2"></i>
-          إدارة المستخدمين
+          User Management
         </h2>
         <button className="btn btn-primary" onClick={openAddModal}>
           <i className="bi bi-plus-circle me-1"></i>
-          إضافة مستخدم
+          Add User
         </button>
       </div>
 
@@ -176,18 +176,18 @@ function Users() {
               <thead className="table-light">
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">الاسم الكامل</th>
-                  <th scope="col">البريد الإلكتروني</th>
-                  <th scope="col">الدور</th>
-                  <th scope="col">تاريخ الإنشاء</th>
-                  <th scope="col" className="text-center">الإجراءات</th>
+                  <th scope="col">Full Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Created Date</th>
+                  <th scope="col" className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="text-center py-4 text-muted">
-                      لا يوجد مستخدمين
+                      No users
                     </td>
                   </tr>
                 ) : (
@@ -198,7 +198,7 @@ function Users() {
                         <div className="d-flex align-items-center">
                           <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '35px', height: '35px' }}>
                             <span className="text-white fw-bold">
-                              {user.full_name?.charAt(0) || 'م'}
+                              {user.full_name?.charAt(0) || 'U'}
                             </span>
                           </div>
                           {user.full_name}
@@ -211,20 +211,20 @@ function Users() {
                         </span>
                       </td>
                       <td>
-                        {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                        {new Date(user.created_at).toLocaleDateString('en-US')}
                       </td>
                       <td className="text-center">
                         <button
                           className="btn btn-sm btn-outline-primary me-1"
                           onClick={() => openEditModal(user)}
-                          title="تعديل"
+                          title="Edit"
                         >
                           <i className="bi bi-pencil"></i>
                         </button>
                         <button
                           className="btn btn-sm btn-outline-danger"
                           onClick={() => handleDelete(user.id)}
-                          title="حذف"
+                          title="Delete"
                           disabled={user.id === currentUser?.id}
                         >
                           <i className="bi bi-trash"></i>
@@ -247,14 +247,14 @@ function Users() {
               <div className="modal-header">
                 <h5 className="modal-title">
                   <i className={`bi ${editingUser ? 'bi-pencil-square' : 'bi-person-plus'} me-2`}></i>
-                  {editingUser ? 'تعديل المستخدم' : 'إضافة مستخدم جديد'}
+                  {editingUser ? 'Edit User' : 'Add New User'}
                 </h5>
                 <button type="button" className="btn-close" onClick={closeModal}></button>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">الاسم الكامل *</label>
+                    <label className="form-label">Full Name *</label>
                     <input
                       type="text"
                       className="form-control"
@@ -262,11 +262,11 @@ function Users() {
                       value={formData.full_name}
                       onChange={handleInputChange}
                       required
-                      placeholder="أدخل الاسم الكامل"
+                      placeholder="Enter full name"
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">البريد الإلكتروني *</label>
+                    <label className="form-label">Email *</label>
                     <input
                       type="email"
                       className="form-control"
@@ -274,12 +274,12 @@ function Users() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      placeholder="أدخل البريد الإلكتروني"
+                      placeholder="Enter email"
                     />
                   </div>
                   <div className="mb-3">
                     <label className="form-label">
-                      كلمة المرور {editingUser ? '(اتركها فارغة لعدم التغيير)' : '*'}
+                      Password {editingUser ? '(Leave empty to keep current)' : '*'}
                     </label>
                     <input
                       type="password"
@@ -288,11 +288,11 @@ function Users() {
                       value={formData.password}
                       onChange={handleInputChange}
                       required={!editingUser}
-                      placeholder="أدخل كلمة المرور"
+                      placeholder="Enter password"
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">الدور *</label>
+                    <label className="form-label">Role *</label>
                     <select
                       className="form-select"
                       name="role"
@@ -300,19 +300,19 @@ function Users() {
                       onChange={handleInputChange}
                       required
                     >
-                      <option value="admin">مدير</option>
-                      <option value="staff">موظف</option>
-                      <option value="viewer">مشاهد</option>
+                      <option value="admin">Admin</option>
+                      <option value="staff">Staff</option>
+                      <option value="viewer">Viewer</option>
                     </select>
                   </div>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                    إلغاء
+                    Cancel
                   </button>
                   <button type="submit" className="btn btn-primary">
                     <i className="bi bi-check-lg me-1"></i>
-                    {editingUser ? 'تحديث' : 'إضافة'}
+                    {editingUser ? 'Update' : 'Add'}
                   </button>
                 </div>
               </form>

@@ -23,7 +23,7 @@ const Invoices = () => {
       setInvoices(res.data.rows || []);
       setTotal(res.data.total || 0);
     } catch (err) {
-      Swal.fire('خطأ', 'فشل تحميل الفواتير', 'error');
+      Swal.fire('Error', 'Failed to load invoices', 'error');
     } finally {
       setLoading(false);
     }
@@ -41,22 +41,22 @@ const Invoices = () => {
 
   const handleDelete = (id, invoiceNumber) => {
     Swal.fire({
-      title: 'هل أنت متأكد؟',
-      text: `سيتم حذف الفاتورة ${invoiceNumber}`,
+      title: 'Are you sure?',
+      text: `Invoice ${invoiceNumber} will be deleted`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'نعم، احذف',
-      cancelButtonText: 'إلغاء'
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/invoices/${id}`);
-          Swal.fire('تم الحذف', 'تم حذف الفاتورة بنجاح', 'success');
+          Swal.fire('Deleted', 'Invoice deleted successfully', 'success');
           fetchInvoices();
         } catch (err) {
-          Swal.fire('خطأ', 'فشل حذف الفاتورة', 'error');
+          Swal.fire('Error', 'Failed to delete invoice', 'error');
         }
       }
     });
@@ -67,11 +67,11 @@ const Invoices = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'paid':
-        return <span className="badge bg-success">مدفوعة</span>;
+        return <span className="badge bg-success">Paid</span>;
       case 'partial':
-        return <span className="badge bg-warning text-dark">جزئية</span>;
+        return <span className="badge bg-warning text-dark">Partial</span>;
       case 'unpaid':
-        return <span className="badge bg-danger">غير مدفوعة</span>;
+        return <span className="badge bg-danger">Unpaid</span>;
       default:
         return <span className="badge bg-secondary">{status}</span>;
     }
@@ -82,11 +82,11 @@ const Invoices = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">
           <i className="bi bi-receipt me-2"></i>
-          الفواتير
+          Invoices
         </h4>
         <Link to="/invoices/create" className="btn btn-primary">
           <i className="bi bi-plus-lg me-1"></i>
-          إضافة فاتورة
+          Add Invoice
         </Link>
       </div>
 
@@ -98,7 +98,7 @@ const Invoices = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="بحث برقم الفاتورة أو اسم العميل..."
+                  placeholder="Search by invoice number or customer name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -109,16 +109,16 @@ const Invoices = () => {
                   value={status}
                   onChange={(e) => { setStatus(e.target.value); setPage(1); }}
                 >
-                  <option value="">جميع الحالات</option>
-                  <option value="paid">مدفوعة</option>
-                  <option value="partial">جزئية</option>
-                  <option value="unpaid">غير مدفوعة</option>
+                  <option value="">All Statuses</option>
+                  <option value="paid">Paid</option>
+                  <option value="partial">Partial</option>
+                  <option value="unpaid">Unpaid</option>
                 </select>
               </div>
               <div className="col-md-2">
                 <button type="submit" className="btn btn-outline-primary w-100">
                   <i className="bi bi-search me-1"></i>
-                  بحث
+                  Search
                 </button>
               </div>
               <div className="col-md-2">
@@ -128,7 +128,7 @@ const Invoices = () => {
                   onClick={() => { setSearch(''); setStatus(''); setPage(1); }}
                 >
                   <i className="bi bi-arrow-counterclockwise me-1"></i>
-                  إعادة تعيين
+                  Reset
                 </button>
               </div>
             </div>
@@ -141,13 +141,13 @@ const Invoices = () => {
           {loading ? (
             <div className="text-center py-4">
               <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">جاري التحميل...</span>
+                <span className="visually-hidden">Loading...</span>
               </div>
             </div>
           ) : invoices.length === 0 ? (
             <div className="text-center py-4 text-muted">
               <i className="bi bi-inbox fs-1 d-block mb-2"></i>
-              لا توجد فواتير
+              No invoices found
             </div>
           ) : (
             <>
@@ -156,14 +156,14 @@ const Invoices = () => {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>رقم الفاتورة</th>
-                      <th>العميل</th>
-                      <th>الرحلة</th>
-                      <th>المبلغ الإجمالي</th>
-                      <th>المبلغ المدفوع</th>
-                      <th>الحالة</th>
-                      <th>التاريخ</th>
-                      <th>إجراءات</th>
+                      <th>Invoice No.</th>
+                      <th>Customer</th>
+                      <th>Trip</th>
+                      <th>Total Amount</th>
+                      <th>Paid Amount</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -178,19 +178,19 @@ const Invoices = () => {
                         <td>{Number(inv.total_amount).toLocaleString()} ر.س</td>
                         <td>{Number(inv.paid_amount).toLocaleString()} ر.س</td>
                         <td>{getStatusBadge(inv.status)}</td>
-                        <td>{new Date(inv.created_at).toLocaleDateString('ar-SA')}</td>
+                        <td>{new Date(inv.created_at).toLocaleDateString('en-US')}</td>
                         <td>
                           <div className="btn-group btn-group-sm">
                             <Link
                               to={`/invoices/${inv.id}`}
                               className="btn btn-outline-info"
-                              title="عرض"
+                              title="View"
                             >
                               <i className="bi bi-eye"></i>
                             </Link>
                             <button
                               className="btn btn-outline-danger"
-                              title="حذف"
+                              title="Delete"
                               onClick={() => handleDelete(inv.id, inv.invoice_number)}
                             >
                               <i className="bi bi-trash"></i>
