@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import SimpleBarChart, { PieChart } from '../components/Charts';
 
 const statIcons = {
   bookings: 'bi-journal',
@@ -68,6 +69,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [overview, setOverview] = useState(null);
   const [topCustomers, setTopCustomers] = useState([]);
+  const [monthlyBookings, setMonthlyBookings] = useState([]);
+  const [statusBreakdown, setStatusBreakdown] = useState([]);
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
@@ -80,6 +83,8 @@ export default function Dashboard() {
     api.get('/stats').then(res => setStats(res.data));
     api.get('/stats/overview').then(res => setOverview(res.data));
     api.get('/stats/top-customers').then(res => setTopCustomers(res.data));
+    api.get('/stats/monthly-bookings').then(res => setMonthlyBookings(res.data));
+    api.get('/stats/status-breakdown').then(res => setStatusBreakdown(res.data));
   }, []);
 
   if (!stats) {
@@ -258,6 +263,35 @@ export default function Dashboard() {
           <StatCard key={s.key} value={s.value} {...statLabels[s.key]} prefix={s.prefix} />
         ))}
       </div>
+
+      {(monthlyBookings.length > 0 || statusBreakdown.length > 0) && (
+        <div className="row g-3 mb-4">
+          {monthlyBookings.length > 0 && (
+            <div className="col-md-7">
+              <div className="card h-100">
+                <div className="card-body">
+                  <h6 className="fw-bold mb-3"><i className="bi bi-bar-chart me-2 text-primary"></i>Monthly Bookings</h6>
+                  <SimpleBarChart data={monthlyBookings.map(b => ({ label: b.month?.substring(5), value: b.count }))} />
+                </div>
+              </div>
+            </div>
+          )}
+          {statusBreakdown.length > 0 && (
+            <div className="col-md-5">
+              <div className="card h-100">
+                <div className="card-body">
+                  <h6 className="fw-bold mb-3"><i className="bi bi-pie-chart me-2 text-primary"></i>Booking Status</h6>
+                  <PieChart data={statusBreakdown.map(s => ({
+                    label: s.status === 'confirmed' ? 'Confirmed' : s.status === 'pending' ? 'Pending' : s.status === 'cancelled' ? 'Cancelled' : s.status === 'completed' ? 'Completed' : s.status,
+                    value: s.count,
+                    color: s.status === 'confirmed' ? '#22c55e' : s.status === 'pending' ? '#f59e0b' : s.status === 'cancelled' ? '#ef4444' : s.status === 'completed' ? '#64748b' : '#6366f1'
+                  }))} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <div className="card-body">

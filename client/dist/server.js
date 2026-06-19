@@ -197,6 +197,22 @@ app.get('/api/stats/top-customers', authMiddleware, async (req, res) => {
   res.json(rows);
 });
 
+app.get('/api/stats/monthly-bookings', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const isMysql = typeof isMySQLConnected === 'function' ? isMySQLConnected() : false;
+  const query = isMysql
+    ? "SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count FROM bookings GROUP BY month ORDER BY month DESC LIMIT 12"
+    : "SELECT strftime('%Y-%m', created_at) as month, COUNT(*) as count FROM bookings GROUP BY month ORDER BY month DESC LIMIT 12";
+  const rows = await db.all(query);
+  res.json(rows.reverse());
+});
+
+app.get('/api/stats/status-breakdown', authMiddleware, async (req, res) => {
+  const db = await getDb();
+  const rows = await db.all("SELECT status, COUNT(*) as count FROM bookings GROUP BY status");
+  res.json(rows);
+});
+
 app.get('/api/trash/count', authMiddleware, async (req, res) => {
   const db = await getDb();
   const result = await db.get('SELECT COUNT(*) as count FROM trash');

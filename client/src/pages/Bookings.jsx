@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { exportCSV } from '../hooks/useExport';
 
 export default function Bookings() {
   const [data, setData] = useState({ rows: [], total: 0, page: 1 });
@@ -34,7 +35,12 @@ export default function Bookings() {
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Bookings</h5>
-        <Link to="/bookings/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> New Booking</Link>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-secondary btn-sm" onClick={() => exportCSV(data.rows, 'bookings.csv', ['booking_number','customer_name','service_type','from_destination','to_destination','travel_date','total_amount','status'])}>
+            <i className="bi bi-download"></i> Export CSV
+          </button>
+          <Link to="/bookings/create" className="btn btn-primary"><i className="bi bi-plus-lg"></i> New Booking</Link>
+        </div>
       </div>
       <div className="card mb-3">
         <div className="card-body">
