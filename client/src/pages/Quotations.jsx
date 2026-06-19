@@ -422,7 +422,7 @@ const Quotations = () => {
                     <ul className="pagination justify-content-center mb-0">
                       <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
                         <button className="page-link" onClick={() => setPage(page - 1)}>
-                          <i className="bi bi-chevron-right"></i>
+                          <i className="bi bi-chevron-left"></i>
                         </button>
                       </li>
                       {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -443,7 +443,7 @@ const Quotations = () => {
                         ))}
                       <li className={`page-item ${page === totalPages ? 'disabled' : ''}`}>
                         <button className="page-link" onClick={() => setPage(page + 1)}>
-                          <i className="bi bi-chevron-left"></i>
+                          <i className="bi bi-chevron-right"></i>
                         </button>
                       </li>
                     </ul>
