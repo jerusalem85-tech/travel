@@ -62,8 +62,9 @@ app.get('/api/debug', (req, res) => {
 app.get('/api/debug/db', async (req, res) => {
   try {
     const db = await getDb();
-    const u = await db.get('SELECT COUNT(*) as c FROM users');
-    res.json({ db: 'connected', users: u.c, mysql: isMySQLConnected() });
+    const count = await db.get('SELECT COUNT(*) as c FROM users');
+    const rows = await db.all('SELECT id, email, role FROM users');
+    res.json({ db: 'connected', count: count.c, mysql: isMySQLConnected(), users: rows });
   } catch (e) {
     res.json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
