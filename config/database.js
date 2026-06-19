@@ -769,6 +769,47 @@ CREATE TABLE IF NOT EXISTS referrals (
   notes TEXT,
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS surveys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INT,
+  customer_id INT,
+  rating INT DEFAULT 5,
+  nps_score INT DEFAULT 7,
+  service_quality INT DEFAULT 5,
+  communication INT DEFAULT 5,
+  value_for_money INT DEFAULT 5,
+  feedback TEXT,
+  recommend INTEGER DEFAULT 1,
+  responded_at TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS knowledge_articles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  category TEXT,
+  content TEXT,
+  tags TEXT,
+  is_published INTEGER DEFAULT 1,
+  views INTEGER DEFAULT 0,
+  created_by INT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS complaints (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INT,
+  booking_id INT,
+  subject TEXT NOT NULL,
+  description TEXT,
+  priority TEXT DEFAULT 'medium',
+  status TEXT DEFAULT 'open',
+  assigned_to INT,
+  resolution TEXT,
+  resolved_at TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 `;
 
 export function isMySQL() { return useMySQL; }
@@ -1435,6 +1476,44 @@ async function init() {
       reward_paid TINYINT DEFAULT 0,
       status VARCHAR(50) DEFAULT 'pending',
       notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS surveys (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      booking_id INT,
+      customer_id INT,
+      rating INT DEFAULT 5,
+      nps_score INT DEFAULT 7,
+      service_quality INT DEFAULT 5,
+      communication INT DEFAULT 5,
+      value_for_money INT DEFAULT 5,
+      feedback TEXT,
+      recommend TINYINT DEFAULT 1,
+      responded_at TIMESTAMP NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS knowledge_articles (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      category VARCHAR(100),
+      content TEXT,
+      tags VARCHAR(500),
+      is_published TINYINT DEFAULT 1,
+      views INT DEFAULT 0,
+      created_by INT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS complaints (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT,
+      booking_id INT,
+      subject VARCHAR(255) NOT NULL,
+      description TEXT,
+      priority VARCHAR(50) DEFAULT 'medium',
+      status VARCHAR(50) DEFAULT 'open',
+      assigned_to INT,
+      resolution TEXT,
+      resolved_at TIMESTAMP NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
   } else {

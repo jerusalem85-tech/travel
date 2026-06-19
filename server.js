@@ -187,6 +187,9 @@ import flightSchedulesRoutes from './routes/flightSchedules.js';
 import followUpsRoutes from './routes/followUps.js';
 import customerTimelineRoutes from './routes/customerTimeline.js';
 import priceCalculatorRoutes from './routes/priceCalculator.js';
+import surveysRoutes from './routes/surveys.js';
+import knowledgeArticlesRoutes from './routes/knowledgeArticles.js';
+import complaintsRoutes from './routes/complaints.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -243,6 +246,9 @@ app.use('/api/flight-schedules', authMiddleware, flightSchedulesRoutes);
 app.use('/api/follow-ups', authMiddleware, followUpsRoutes);
 app.use('/api/customer-timeline', authMiddleware, customerTimelineRoutes);
 app.use('/api/price-calculator', authMiddleware, priceCalculatorRoutes);
+app.use('/api/surveys', authMiddleware, surveysRoutes);
+app.use('/api/knowledge', authMiddleware, knowledgeArticlesRoutes);
+app.use('/api/complaints', authMiddleware, complaintsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
