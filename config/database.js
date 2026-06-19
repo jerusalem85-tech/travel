@@ -952,9 +952,21 @@ CREATE TABLE IF NOT EXISTS daily_logs (
 
 export function isMySQL() { return useMySQL; }
 
+let mysqlFailed = false;
 async function init() {
   if (useMySQL) {
-    const d = await mysqlDb();
+    let d;
+    try {
+      d = await mysqlDb();
+    } catch (e) {
+      console.error('MySQL connection failed, falling back to SQLite:', e.message);
+      mysqlFailed = true;
+    }
+    if (mysqlFailed) {
+      db = sqliteDb();
+      db.exec(schema);
+      return;
+    }
     await d.run(`CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       full_name VARCHAR(255) NOT NULL,
@@ -1799,7 +1811,7 @@ async function init() {
 }
 
 async function getDb() {
-  if (useMySQL) {
+  if (useMySQL && !mysqlFailed) {
     return mysqlDb();
   }
   if (!db) {
