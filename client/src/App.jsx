@@ -33,6 +33,7 @@ import Airports from './pages/Airports';
 import Flights from './pages/Flights';
 import Services from './pages/Services';
 import SupplierPayments from './pages/SupplierPayments';
+import CustomerStatement from './pages/CustomerStatement';
 import Contracts from './pages/Contracts';
 import Commissions from './pages/Commissions';
 import ActivityLog from './pages/ActivityLog';
@@ -61,6 +62,7 @@ function App() {
             <Route path="customers" element={<Customers />} />
             <Route path="customers/create" element={<CreateCustomer />} />
             <Route path="customers/:id" element={<ShowCustomer />} />
+            <Route path="customers/:id/statement" element={<CustomerStatement />} />
             <Route path="customers/:id/edit" element={<EditCustomer />} />
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="suppliers/create" element={<CreateSupplier />} />

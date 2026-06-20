@@ -6,10 +6,12 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   const db = await getDb();
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 20, customer_id } = req.query;
   const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
-  const count = await db.get('SELECT COUNT(*) as count FROM payments');
-  const rows = await db.all(`SELECT p.*, b.booking_number, c.full_name as customer_name FROM payments p LEFT JOIN bookings b ON p.booking_id = b.id LEFT JOIN customers c ON b.customer_id = c.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [parseInt(limit, 10), offset]);
+  let where = '1=1', params = [];
+  if (customer_id) { where += ' AND c.id = ?'; params.push(customer_id); }
+  const count = await db.get(`SELECT COUNT(*) as count FROM payments p LEFT JOIN bookings b ON p.booking_id = b.id LEFT JOIN customers c ON b.customer_id = c.id WHERE ${where}`, params);
+  const rows = await db.all(`SELECT p.*, b.booking_number, c.full_name as customer_name FROM payments p LEFT JOIN bookings b ON p.booking_id = b.id LEFT JOIN customers c ON b.customer_id = c.id WHERE ${where} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
   res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 

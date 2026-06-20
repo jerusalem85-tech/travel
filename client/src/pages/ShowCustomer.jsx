@@ -30,6 +30,7 @@ export default function ShowCustomer() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Customer: {customer.full_name}</h5>
         <div>
+          <Link to={`/customers/${id}/statement`} className="btn btn-info me-2"><i className="bi bi-file-text"></i> Statement</Link>
           <Link to={`/customers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
           <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> Delete</button>
           <button className="btn btn-outline-secondary" onClick={() => navigate('/customers')}>Back</button>

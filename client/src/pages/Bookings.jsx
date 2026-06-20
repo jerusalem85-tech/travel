@@ -10,6 +10,8 @@ export default function Bookings() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const load = () => {
     const params = { page, limit: 20 };
@@ -29,6 +31,26 @@ export default function Bookings() {
     });
   };
 
+  const toggleSelect = (id) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAll = () => {
+    if (selectAll) { setSelected([]); setSelectAll(false); }
+    else { setSelected(data.rows.map(b => b.id)); setSelectAll(true); }
+  };
+
+  const bulkDelete = () => {
+    if (selected.length === 0) return;
+    Swal.fire({ title: `Delete ${selected.length} bookings?`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Delete All' }).then(async r => {
+      if (r.isConfirmed) {
+        for (const id of selected) await api.delete(`/bookings/${id}`);
+        setSelected([]); setSelectAll(false); load();
+        Swal.fire({ icon: 'success', title: 'Deleted', timer: 1500, showConfirmButton: false });
+      }
+    });
+  };
+
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
   const statusBadge = (status) => {
     const colors = { confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'info' };
@@ -41,6 +63,7 @@ export default function Bookings() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Bookings</h5>
         <div className="d-flex gap-2">
+          {selected.length > 0 && <button className="btn btn-danger btn-sm" onClick={bulkDelete}><i className="bi bi-trash"></i> Delete ({selected.length})</button>}
           <button className="btn btn-outline-secondary btn-sm" onClick={() => exportCSV(data.rows, 'bookings.csv', ['booking_number','customer_name','from_destination','to_destination','travel_date','total_amount','status'])}>
             <i className="bi bi-download"></i> Export CSV
           </button>
@@ -80,10 +103,11 @@ export default function Bookings() {
       <div className="card">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th>Booking #</th><th>Customer</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th><input type="checkbox" checked={selectAll} onChange={toggleAll} /></th><th>Booking #</th><th>Customer</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {data.rows.map(b => (
                 <tr key={b.id}>
+                  <td><input type="checkbox" checked={selected.includes(b.id)} onChange={() => toggleSelect(b.id)} /></td>
                   <td><Link to={`/bookings/${b.id}`} className="text-decoration-none">{b.booking_number}</Link></td>
                   <td>{b.customer_name}</td>
                   <td>{b.from_destination && b.to_destination ? `${b.from_destination} → ${b.to_destination}` : '-'}</td>

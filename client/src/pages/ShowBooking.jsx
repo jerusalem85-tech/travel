@@ -47,6 +47,37 @@ export default function ShowBooking() {
 
   const handlePrint = () => window.print();
 
+  const duplicateBooking = async () => {
+    try {
+      Swal.fire({ title: 'Duplicate booking?', text: 'This will create a copy of this booking', icon: 'question', showCancelButton: true, confirmButtonText: 'Duplicate' }).then(async r => {
+        if (r.isConfirmed) {
+          const payload = {
+            customer_id: booking.customer_id,
+            from_destination: booking.from_destination,
+            to_destination: booking.to_destination,
+            travel_date: booking.travel_date,
+            return_date: booking.return_date,
+            total_amount: booking.total_amount,
+            cost_amount: booking.cost_amount,
+            notes: booking.notes,
+            status: 'pending',
+            passengers: (booking.passengers || []).map(p => ({ name: p.full_name || p.name, passport: p.passport_number || p.passport, nationality: p.nationality, type: p.type })),
+            services: (booking.services || []).map(s => ({
+              service_category: s.service_category || s.service_type,
+              supplier_id: s.supplier_id,
+              description: s.description,
+              cost: s.cost || s.amount,
+              price: s.price || s.amount,
+              details: s.details || {},
+            })),
+          };
+          const res = await api.post('/bookings', payload);
+          Swal.fire({ icon: 'success', title: 'Duplicated!', timer: 1000 }).then(() => navigate(`/bookings/${res.data.id}`));
+        }
+      });
+    } catch (e) { Swal.fire('Error', 'Failed to duplicate', 'error'); }
+  };
+
   const changeStatus = async (newStatus) => {
     try {
       await api.put(`/bookings/${id}`, { ...booking, status: newStatus });
@@ -123,6 +154,7 @@ export default function ShowBooking() {
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <button className="btn btn-outline-info me-2" onClick={duplicateBooking}><i className="bi bi-copy"></i> Duplicate</button>
           <button className="btn btn-outline-primary me-2" onClick={handlePrint}><i className="bi bi-printer"></i> Print</button>
           <button className="btn btn-success me-2" onClick={() => setShowPayModal(true)}><i className="bi bi-cash"></i> Record Payment</button>
           <Link to={`/bookings/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
