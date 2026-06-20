@@ -74,6 +74,8 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState('');
   const [recentPayments, setRecentPayments] = useState([]);
   const [recentSupplierPayments, setRecentSupplierPayments] = useState([]);
+  const [upcomingDepartures, setUpcomingDepartures] = useState([]);
+  const [overdueBookings, setOverdueBookings] = useState([]);
 
   useEffect(() => {
     const h = new Date().getHours();
@@ -89,6 +91,11 @@ export default function Dashboard() {
     api.get('/stats/status-breakdown').then(res => setStatusBreakdown(res.data));
     api.get('/payments?limit=5').then(res => setRecentPayments(res.data.rows || []));
     api.get('/supplier-payments?limit=5').then(res => setRecentSupplierPayments(res.data.rows || []));
+    api.get('/bookings?status=confirmed&dateFrom=' + new Date().toISOString().split('T')[0] + '&limit=10').then(res => setUpcomingDepartures(res.data.rows || []));
+    api.get('/bookings?status=pending,confirmed&limit=50').then(res => {
+      const today = new Date().toISOString().split('T')[0];
+      setOverdueBookings((res.data.rows || []).filter(b => b.travel_date && b.travel_date < today && (b.total_amount || 0) > (b.paid_amount || 0)));
+    });
   }, []);
 
   if (!stats) {
@@ -287,6 +294,47 @@ export default function Dashboard() {
         {secondaryStats.map(s => (
           <StatCard key={s.key} value={s.value} {...statLabels[s.key]} prefix={s.prefix} />
         ))}
+      </div>
+
+      <div className="row g-3 mb-4">
+        <div className="col-md-6">
+          <div className="card h-100 border-warning border-top border-3">
+            <div className="card-body">
+              <h6 className="fw-bold text-warning mb-3"><i className="bi bi-calendar-check me-2"></i>Upcoming Departures</h6>
+              {upcomingDepartures.length === 0 && <p className="text-muted small mb-0">No upcoming departures</p>}
+              {upcomingDepartures.slice(0, 5).map(b => (
+                <div key={b.id} className="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                  <div>
+                    <Link to={`/bookings/${b.id}`} className="fw-semibold text-decoration-none">{b.booking_number}</Link>
+                    <span className="text-muted ms-2">{b.customer_name}</span>
+                  </div>
+                  <div className="text-end">
+                    <span className="text-muted">{b.travel_date || '-'}</span>
+                    <a href={`https://wa.me/${(b.customer_phone || '').replace(/[\s\-\(\)\+]/g,'')}?text=${encodeURIComponent(`TravelBox Reminder:\nYour trip on ${b.travel_date || ''} is coming up!\nBooking: ${b.booking_number}\nRoute: ${b.from_destination || ''} → ${b.to_destination || ''}`)}`}
+                       target="_blank" className="ms-2 text-success" title="Send WhatsApp reminder"><i className="bi bi-whatsapp"></i></a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card h-100 border-danger border-top border-3">
+            <div className="card-body">
+              <h6 className="fw-bold text-danger mb-3"><i className="bi bi-exclamation-triangle me-2"></i>Overdue Payments</h6>
+              {overdueBookings.length === 0 && <p className="text-success small mb-0">All payments up to date</p>}
+              {overdueBookings.slice(0, 5).map(b => (
+                <div key={b.id} className="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                  <div>
+                    <Link to={`/bookings/${b.id}`} className="fw-semibold text-decoration-none">{b.booking_number}</Link>
+                    <span className="text-muted ms-2">{b.customer_name}</span>
+                  </div>
+                  <span className="text-danger fw-bold">{(b.total_amount || 0) - (b.paid_amount || 0)} ILS</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {(monthlyBookings.length > 0 || statusBreakdown.length > 0) && (

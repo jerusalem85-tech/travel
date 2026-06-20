@@ -92,6 +92,23 @@ export default function ShowBooking() {
       `_Sent via TravelBox System_`
     );
 
+      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  };
+
+  const sendReminder = () => {
+    const phone = (booking.customer_phone || booking.customer?.phone || '').replace(/[\s\-\(\)\+]/g, '');
+    if (!phone) return Swal.fire('Warning', 'No phone number', 'warning');
+    const msg = encodeURIComponent(
+      `⏰ *Travel Reminder*\n\n` +
+      `Dear ${booking.customer_name || 'Customer'},\n\n` +
+      `Your trip is coming up!\n\n` +
+      `📅 *Date:* ${booking.travel_date || 'N/A'}\n` +
+      `✈️ *Route:* ${booking.from_destination || ''} → ${booking.to_destination || ''}\n` +
+      `🔢 *Booking:* ${booking.booking_number}\n\n` +
+      `Please make sure you have all necessary documents ready.\n\n` +
+      `For any questions, contact us.\n` +
+      `_TravelBox Team_`
+    );
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
   };
 
@@ -203,6 +220,7 @@ export default function ShowBooking() {
             <option value="cancelled">Cancelled</option>
           </select>
           <button className="btn btn-outline-success me-2" onClick={sendWhatsApp} title="Send via WhatsApp"><i className="bi bi-whatsapp"></i> WhatsApp</button>
+          <button className="btn btn-outline-warning me-2" onClick={sendReminder} title="Send travel reminder"><i className="bi bi-bell"></i> Reminder</button>
           <button className="btn btn-outline-info me-2" onClick={duplicateBooking}><i className="bi bi-copy"></i> Duplicate</button>
           <button className="btn btn-outline-primary me-2" onClick={handlePrint}><i className="bi bi-printer"></i> Print</button>
           <button className="btn btn-success me-2" onClick={() => setShowPayModal(true)}><i className="bi bi-cash"></i> Record Payment</button>
