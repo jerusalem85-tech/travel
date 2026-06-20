@@ -82,7 +82,7 @@ function parseFlightTicket(text) {
   if (fnMatch) {
     data.flightNumber = fnMatch[1] + fnMatch[2];
     if (!data.airline) {
-      const codeMap = { EK: 'Emirates', TK: 'Turkish Airlines', BA: 'British Airways', AF: 'Air France', LY: 'El Al', SV: 'Saudia', QR: 'Qatar Airways', MS: 'EgyptAir', RJ: 'Royal Jordanian', LH: 'Lufthansa', W6: 'Wizz Air', FR: 'Ryanair', EY: 'Etihad', FZ: 'Flydubai', PC: 'Pegasus', IZ: 'Arkia', 6H: 'Israir' };
+      const codeMap = { EK: 'Emirates', TK: 'Turkish Airlines', BA: 'British Airways', AF: 'Air France', LY: 'El Al', SV: 'Saudia', QR: 'Qatar Airways', MS: 'EgyptAir', RJ: 'Royal Jordanian', LH: 'Lufthansa', W6: 'Wizz Air', FR: 'Ryanair', EY: 'Etihad', FZ: 'Flydubai', PC: 'Pegasus', IZ: 'Arkia', '6H': 'Israir' };
       if (codeMap[fnMatch[1]]) data.airline = codeMap[fnMatch[1]];
     }
     data.confidence += 10;
