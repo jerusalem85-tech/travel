@@ -26,7 +26,7 @@ export default function CreateBooking() {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickForm, setQuickForm] = useState({ full_name: '', phone: '', email: '' });
   const [notes, setNotes] = useState('');
-  const [passengers, setPassengers] = useState([{ name: '', passport: '', nationality: '', type: 'adult' }]);
+  const [passengers, setPassengers] = useState([{ name: '', passport: '', nationality: '', dob: '' }]);
   const [services, setServices] = useState([{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
 
   useEffect(() => {
@@ -130,12 +130,23 @@ export default function CreateBooking() {
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h6 className="text-info mb-0"><i className="bi bi-people me-2"></i>Passengers ({passengers.length})</h6>
-              <button type="button" className="btn btn-sm btn-outline-info" onClick={() => setPassengers([...passengers, { name: '', passport: '', nationality: '', type: 'adult' }])}><i className="bi bi-plus"></i> Add Passenger</button>
+              <button type="button" className="btn btn-sm btn-outline-info" onClick={() => setPassengers([...passengers, { name: '', passport: '', nationality: '', dob: '' }])}><i className="bi bi-plus"></i> Add Passenger</button>
             </div>
             {passengers.map((p, i) => (
               <div key={i} className="row g-2 mb-2 pb-2 border-bottom border-light">
                 <div className="col-md-3"><label className="form-label small text-muted">Full Name</label><input className="form-control" placeholder="e.g. Ahmad Hassan" value={p.name} onChange={e => pax(i, 'name', e.target.value)} /></div>
-                <div className="col-md-2"><label className="form-label small text-muted">Type</label><select className="form-select" value={p.type} onChange={e => pax(i, 'type', e.target.value)}><option value="adult">Adult</option><option value="child">Child</option><option value="infant">Infant</option></select></div>
+                <div className="col-md-2"><label className="form-label small text-muted">Date of Birth</label><input type="date" className="form-control form-control-sm" value={p.dob} onChange={e => pax(i, 'dob', e.target.value)} /></div>
+                <div className="col-md-2"><label className="form-label small text-muted">Type</label>
+                  <span className="form-control form-control-sm bg-light text-muted">
+                    {(() => {
+                      if (!p.dob) return '-';
+                      const age = Math.floor((new Date() - new Date(p.dob)) / (365.25 * 24 * 60 * 60 * 1000));
+                      if (age < 2) return 'Infant';
+                      if (age < 12) return 'Child';
+                      return 'Adult';
+                    })()}
+                  </span>
+                </div>
                 <div className="col-md-2"><label className="form-label small text-muted">Passport #</label><input className="form-control" placeholder="P12345678" value={p.passport} onChange={e => pax(i, 'passport', e.target.value)} /></div>
                 <div className="col-md-3"><label className="form-label small text-muted">Nationality</label><input className="form-control" placeholder="Palestinian" value={p.nationality} onChange={e => pax(i, 'nationality', e.target.value)} /></div>
                 <div className="col-md-2 d-flex align-items-end">

@@ -54,7 +54,7 @@ export default function EditBooking() {
       setAirports(ap.data.rows || ap.data || []);
       setAirlines(al.data.rows || al.data || []);
       setSuppliers(sp.data.rows || sp.data || []);
-      setPassengers(bk.passengers?.length > 0 ? bk.passengers.map(p => ({ name: p.full_name || p.name, passport: p.passport_number || p.passport, nationality: p.nationality, type: p.type || 'adult' })) : [{ name: '', passport: '', nationality: '', type: 'adult' }]);
+      setPassengers(bk.passengers?.length > 0 ? bk.passengers.map(p => ({ name: p.full_name || p.name, passport: p.passport_number || p.passport, nationality: p.nationality, dob: p.date_of_birth || '' })) : [{ name: '', passport: '', nationality: '', dob: '' }]);
       setServices(bk.services?.length > 0 ? bk.services.map(normalizeService) : [{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
     }).finally(() => setLoading(false));
   }, [id]);
@@ -287,7 +287,7 @@ export default function EditBooking() {
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h6 className="mb-0">Passengers ({passengers.length})</h6>
-              <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setPassengers([...passengers, { name: '', passport: '', nationality: '', type: 'adult' }])}><i className="bi bi-plus"></i> Add</button>
+              <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setPassengers([...passengers, { name: '', passport: '', nationality: '', dob: '' }])}><i className="bi bi-plus"></i> Add</button>
             </div>
             {passengers.map((p, i) => (
               <div key={i} className="row g-2 mb-2">
@@ -296,10 +296,18 @@ export default function EditBooking() {
                   <input className="form-control" placeholder="Passenger name" value={p.name || ''} onChange={e => pax(i, 'name', e.target.value)} />
                 </div>
                 <div className="col-md-2">
+                  {i === 0 && <label className="form-label small">Date of Birth</label>}
+                  <input type="date" className="form-control" value={p.dob || ''} onChange={e => pax(i, 'dob', e.target.value)} />
+                </div>
+                <div className="col-md-2">
                   {i === 0 && <label className="form-label small">Type</label>}
-                  <select className="form-select" value={p.type || 'adult'} onChange={e => pax(i, 'type', e.target.value)}>
-                    <option value="adult">Adult</option><option value="child">Child</option><option value="infant">Infant</option>
-                  </select>
+                  <span className="form-control bg-light text-muted small">
+                    {(() => {
+                      if (!p.dob) return '-';
+                      const age = Math.floor((new Date() - new Date(p.dob)) / (365.25 * 24 * 60 * 60 * 1000));
+                      return age < 2 ? 'Infant' : age < 12 ? 'Child' : 'Adult';
+                    })()}
+                  </span>
                 </div>
                 <div className="col-md-2">
                   {i === 0 && <label className="form-label small">Passport</label>}
