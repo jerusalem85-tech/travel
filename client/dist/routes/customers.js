@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
     params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
   const count = await db.get(`SELECT COUNT(*) as count FROM customers WHERE ${where}`, params);
-  const rows = await db.all(`SELECT *, (SELECT COUNT(*) FROM bookings WHERE customer_id = customers.id) as booking_count FROM customers WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  const rows = await db.all(`SELECT *, (SELECT COUNT(*) FROM bookings WHERE customer_id = customers.id) as bookings_count FROM customers WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
   res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
