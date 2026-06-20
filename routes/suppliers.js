@@ -6,14 +6,15 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   const db = await getDb();
-  const { search, page = 1, limit = 20 } = req.query;
+  const { search, type, page = 1, limit = 20 } = req.query;
   const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   let where = '1=1';
   let params = [];
   if (search) {
-    where += " AND (name LIKE ? OR phone LIKE ? OR service_type LIKE ?)";
+    where += " AND (name LIKE ? OR phone LIKE ? OR type LIKE ?)";
     params.push(`%${search}%`, `%${search}%`, `%${search}%`);
   }
+  if (type) { where += ' AND type LIKE ?'; params.push(`%${type}%`); }
   const count = await db.get(`SELECT COUNT(*) as count FROM suppliers WHERE ${where}`, params);
   const rows = await db.all(`SELECT *, (SELECT COUNT(*) FROM booking_services WHERE supplier_id = suppliers.id) as service_count FROM suppliers WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
   res.json({ rows, total: count.count, page: parseInt(page, 10) });

@@ -38,7 +38,7 @@ export default function ShowSupplier() {
               <h6>Supplier Information</h6>
               <div className="row g-2">
                 <div className="col-6"><small className="text-secondary">Name</small><p className="mb-0">{supplier.name}</p></div>
-                <div className="col-6"><small className="text-secondary">Type</small><p className="mb-0">{supplier.type || '-'}</p></div>
+                <div className="col-12"><small className="text-secondary">Types</small><p className="mb-0">{(supplier.type || '').split(',').filter(Boolean).map(t => <span key={t} className="badge bg-primary me-1">{t.trim().replace(/_/g, ' ')}</span>)}</p></div>
                 <div className="col-6"><small className="text-secondary">Phone</small><p className="mb-0">{supplier.phone || '-'}</p></div>
                 <div className="col-6"><small className="text-secondary">Email</small><p className="mb-0">{supplier.email || '-'}</p></div>
                 <div className="col-6"><small className="text-secondary">Contact Person</small><p className="mb-0">{supplier.contact_person || '-'}</p></div>
