@@ -22,18 +22,47 @@ function extractText(buffer) {
     let text = '';
     try {
       let content = buffer.toString('utf-8');
-      // Remove PDF binary headers and stream objects
-      content = content.replace(/stream[\s\S]*?endstream/g, (match) => {
-        const inner = match.replace(/^stream\r?\n/, '').replace(/\r?\nendstream$/, '');
-        // Try to decode FlateDecode (basic approach)
-        return inner;
+      // Extract all text strings from PDF - handle multiple encodings
+      const allText = [];
+
+      // Method 1: Text between parentheses in Tj/TJ operators
+      const tjRegex = /\(([^)]*(?:\\.[^)]*)*)\)\s*Tj/g;
+      let m;
+      while ((m = tjRegex.exec(content)) !== null) {
+        let t = m[1];
+        t = t.replace(/\\([0-3][0-7]{2})/g, (_, c) => String.fromCharCode(parseInt(c, 8)));
+        t = t.replace(/\\([()\\])/g, '$1');
+        t = t.replace(/\\n/g, '\n').replace(/\\r/g, '');
+        if (t.trim()) allText.push(t);
+      }
+
+      // Method 2: BT/ET blocks (Begin Text / End Text)
+      const btBlocks = content.match(/BT[\s\S]*?ET/g) || [];
+      btBlocks.forEach(block => {
+        const tjs = block.match(/\(([^)]*)\)\s*Tj/g) || [];
+        tjs.forEach(t => {
+          const txt = t.replace(/^\s*\(/, '').replace(/\)\s*Tj$/, '');
+          if (txt.trim() && !allText.includes(txt)) allText.push(txt);
+        });
       });
-      // Extract text between parentheses in Tj/TJ operators
-      const textMatches = content.match(/\(([^)]*)\)\s*Tj/g) || [];
-      text = textMatches.map(m => m.replace(/^\s*\(/, '').replace(/\)\s*Tj$/, '')).join(' ');
-      // Decode basic PDF escapes
-      text = text.replace(/\\([0-9]{3})/g, (_, code) => String.fromCharCode(parseInt(code, 8)));
-      text = text.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+
+      // Method 3: Hex strings <...>
+      const hexMatches = content.match(/<([0-9A-Fa-f\s]+)>\s*Tj/g) || [];
+      hexMatches.forEach(hex => {
+        const h = hex.replace(/^<\s*/, '').replace(/\s*>?\s*Tj$/, '').replace(/\s+/g, '');
+        try {
+          const decoded = Buffer.from(h, 'hex').toString('utf-8');
+          if (decoded.trim() && /[A-Za-z0-9]/.test(decoded)) allText.push(decoded);
+        } catch {}
+      });
+
+      text = allText.join('\n');
+
+      // If nothing extracted, try fallback - strip PDF binary and look for readable strings
+      if (!text.trim()) {
+        text = content.replace(/[^\x20-\x7E\n\r\t\u00C0-\u00FF]/g, ' ');
+        text = text.replace(/\s{2,}/g, '\n');
+      }
     } catch (e) { text = ''; }
     resolve(text || '');
   });
