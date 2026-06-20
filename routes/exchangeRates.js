@@ -9,6 +9,19 @@ router.get('/', async (req, res) => {
   res.json({ rows });
 });
 
+router.get('/:code', async (req, res) => {
+  const db = await getDb();
+  const rate = await db.get('SELECT * FROM exchange_rates WHERE currency_code = ?', [req.params.code.toUpperCase()]);
+  if (!rate) return res.status(404).json({ error: 'Not found' });
+  res.json(rate);
+});
+
+router.delete('/:code', async (req, res) => {
+  const db = await getDb();
+  await db.run('DELETE FROM exchange_rates WHERE currency_code = ?', [req.params.code.toUpperCase()]);
+  res.json({ message: 'Deleted' });
+});
+
 router.post('/', async (req, res) => {
   const db = await getDb();
   const { currency_code, rate_to_usd } = req.body;

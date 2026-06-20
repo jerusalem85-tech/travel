@@ -15,6 +15,13 @@ router.get('/', async (req, res) => {
   res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
+router.get('/:id', async (req, res) => {
+  const db = await getDb();
+  const payment = await db.get('SELECT p.*, b.booking_number, c.full_name as customer_name FROM payments p LEFT JOIN bookings b ON p.booking_id = b.id LEFT JOIN customers c ON b.customer_id = c.id WHERE p.id = ?', [req.params.id]);
+  if (!payment) return res.status(404).json({ error: 'Not found' });
+  res.json(payment);
+});
+
 router.post('/', async (req, res) => {
   const db = await getDb();
   const { booking_id, invoice_id, amount, payment_method, reference, notes } = req.body;

@@ -64,7 +64,7 @@ router.put('/:id', async (req, res) => {
   const { customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes, services } = req.body;
   const profit = (total_amount || 0) - (cost_amount || 0);
   await db.run(`UPDATE bookings SET customer_id=?, travel_date=?, return_date=?, from_destination=?, to_destination=?, airline=?, flight_number=?, ticket_number=?, status=?, total_amount=?, cost_amount=?, profit_amount=?, notes=? WHERE id=?`,
-    [customer_id, service_type, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount || 0, cost_amount || 0, profit, notes, req.params.id]);
+    [customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount || 0, cost_amount || 0, profit, notes, req.params.id]);
   if (services && services.length > 0) {
     await db.run('DELETE FROM booking_services WHERE booking_id = ?', [req.params.id]);
     for (const s of services) {

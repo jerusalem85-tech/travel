@@ -39,15 +39,19 @@ router.post('/restore', async (req, res) => {
   if (!data) return res.status(400).json({ error: 'Data is required' });
   const isMysql = db.run.toString().includes('mysql') || db.run.constructor.name.includes('mysql');
   const orClause = isMysql ? 'REPLACE' : 'OR REPLACE';
+  const allowedTables = ['customers','bookings','passengers','suppliers','payments','expenses','invoices','settings','users','airports','airlines','exchange_rates','supplier_payments'];
   for (const [table, rows] of Object.entries(data)) {
+    if (!allowedTables.includes(table)) continue;
     if (!Array.isArray(rows) || rows.length === 0) continue;
+    const sample = rows[0] || {};
+    const allowedCols = Object.keys(sample).filter(k => !k.includes(';') && !k.includes('--') && !k.includes('/*'));
     for (const row of rows) {
-      const keys = Object.keys(row);
-      const values = Object.values(row);
+      const keys = allowedCols.filter(k => k in row);
+      const values = keys.map(k => row[k]);
       const cols = keys.join(', ');
       const placeholders = keys.map(() => '?').join(', ');
       try {
-        await db.run(`INSERT ${orClause} INTO ${table} (${cols}) VALUES (${placeholders})`, values);
+        if (cols) await db.run(`INSERT ${orClause} INTO ${table} (${cols}) VALUES (${placeholders})`, values);
       } catch (err) {
         console.error(`Restore error for ${table}:`, err.message);
       }
