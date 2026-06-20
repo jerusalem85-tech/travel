@@ -21,8 +21,11 @@ export default function ShowBooking() {
   const [airports, setAirports] = useState([]);
   const [airlines, setAirlines] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  const load = () => api.get(`/bookings/${id}`).then(res => setBooking(res.data));
+  const load = () => { api.get(`/bookings/${id}`).then(res => setBooking(res.data)); api.get(`/booking-documents/${id}`).then(res => setDocuments(res.data.rows || [])); };
 
   useEffect(() => { load(); }, [id]);
 
@@ -46,6 +49,51 @@ export default function ShowBooking() {
   };
 
   const handlePrint = () => window.print();
+
+  const handleUpload = async () => {
+    if (!uploadFile) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      await api.post(`/booking-documents/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setUploadFile(null);
+      load();
+    } catch (e) { Swal.fire('Error', 'Upload failed', 'error'); } finally { setUploading(false); }
+  };
+
+  const deleteDocument = (docId) => {
+    Swal.fire({ title: 'Delete document?', icon: 'warning', showCancelButton: true }).then(r => {
+      if (r.isConfirmed) api.delete(`/booking-documents/${docId}`).then(() => load());
+    });
+  };
+
+  const sendWhatsApp = () => {
+    const phone = (booking.customer_phone || booking.customer?.phone || '').replace(/[\s\-\(\)\+]/g, '');
+    if (!phone) return Swal.fire('Warning', 'No phone number for this customer', 'warning');
+
+    const servicesList = (booking.services || []).map(s => {
+      const d = s.details || {};
+      if (s.service_type === 'flight') return `✈️ ${d.airline || ''} ${d.flight_number || ''}: ${d.origin_airport || ''} → ${d.destination_airport || ''} | ${d.departure_date || ''} ${d.departure_time || ''}`;
+      if (s.service_type === 'hotel') return `🏨 ${d.hotel_name || ''} | ${d.check_in || ''} - ${d.check_out || ''}`;
+      if (s.service_type === 'visa') return `📄 Visa: ${d.country || ''} | Type: ${d.visa_type || ''}`;
+      return `• ${s.description || ''}`;
+    }).join('\n');
+
+    const msg = encodeURIComponent(
+      `*TravelBox - Booking ${booking.booking_number}*\n\n` +
+      `👤 *Customer:* ${booking.customer_name || ''}\n` +
+      `📅 *Travel Date:* ${booking.travel_date || 'N/A'}\n` +
+      `📍 *Route:* ${booking.from_destination || ''} → ${booking.to_destination || ''}\n` +
+      `💰 *Total:* ${(booking.total_amount || 0).toLocaleString()} ILS\n` +
+      `💳 *Paid:* ${(booking.paid_amount || 0).toLocaleString()} ILS\n` +
+      `📋 *Status:* ${booking.status || 'N/A'}\n\n` +
+      `*Services:*\n${servicesList}\n\n` +
+      `_Sent via TravelBox System_`
+    );
+
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  };
 
   const duplicateBooking = async () => {
     try {
@@ -154,6 +202,7 @@ export default function ShowBooking() {
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <button className="btn btn-outline-success me-2" onClick={sendWhatsApp} title="Send via WhatsApp"><i className="bi bi-whatsapp"></i> WhatsApp</button>
           <button className="btn btn-outline-info me-2" onClick={duplicateBooking}><i className="bi bi-copy"></i> Duplicate</button>
           <button className="btn btn-outline-primary me-2" onClick={handlePrint}><i className="bi bi-printer"></i> Print</button>
           <button className="btn btn-success me-2" onClick={() => setShowPayModal(true)}><i className="bi bi-cash"></i> Record Payment</button>
@@ -322,6 +371,32 @@ export default function ShowBooking() {
                 <small>{p.payment_method} {p.notes && `- ${p.notes}`}</small>
               </div>
               <span className="text-success">{p.amount?.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Documents */}
+      <div className="card mb-3">
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <h6 className="mb-0"><i className="bi bi-paperclip me-2"></i>Documents ({documents.length})</h6>
+          </div>
+          <div className="input-group mb-2">
+            <input type="file" className="form-control form-control-sm" onChange={e => setUploadFile(e.target.files[0])} />
+            <button className="btn btn-sm btn-outline-primary" onClick={handleUpload} disabled={uploading}>
+              {uploading ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-upload me-1"></i>} Upload
+            </button>
+          </div>
+          {documents.length === 0 && <p className="text-muted small mb-0">Attach tickets, vouchers, passports, invoices...</p>}
+          {documents.map(d => (
+            <div key={d.id} className="d-flex justify-content-between align-items-center border-bottom py-1 small">
+              <div>
+                <i className={`bi ${d.mime_type?.includes('pdf') ? 'bi-file-pdf text-danger' : d.mime_type?.includes('image') ? 'bi-file-image text-primary' : 'bi-file-earmark text-secondary'} me-1`}></i>
+                <a href={`/uploads/booking-docs/${d.file_name}`} target="_blank" className="text-decoration-none">{d.file_name}</a>
+                <span className="text-muted ms-2">{(d.file_size / 1024).toFixed(0)} KB</span>
+              </div>
+              <button className="btn btn-sm text-danger" onClick={() => deleteDocument(d.id)}><i className="bi bi-x-lg"></i></button>
             </div>
           ))}
         </div>

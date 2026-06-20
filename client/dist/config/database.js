@@ -172,6 +172,18 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
   effective_date TEXT DEFAULT (date('now'))
 );
 
+CREATE TABLE IF NOT EXISTS booking_documents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  booking_id INTEGER NOT NULL,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size INTEGER DEFAULT 0,
+  mime_type TEXT,
+  category TEXT DEFAULT 'other',
+  notes TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 CREATE TABLE IF NOT EXISTS expenses (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   description TEXT NOT NULL,
@@ -1094,6 +1106,17 @@ async function init() {
       currency_code VARCHAR(3) NOT NULL,
       rate_to_usd DECIMAL(10,6) NOT NULL DEFAULT 1,
       effective_date DATE DEFAULT (CURRENT_DATE)
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS booking_documents (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      booking_id INT NOT NULL,
+      file_name VARCHAR(500) NOT NULL,
+      file_path VARCHAR(1000) NOT NULL,
+      file_size BIGINT DEFAULT 0,
+      mime_type VARCHAR(100),
+      category VARCHAR(50) DEFAULT 'other',
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS expenses (
       id INT AUTO_INCREMENT PRIMARY KEY,

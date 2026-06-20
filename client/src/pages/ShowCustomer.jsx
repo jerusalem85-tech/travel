@@ -23,6 +23,13 @@ export default function ShowCustomer() {
     return <span className={`badge bg-${colors[status] || 'secondary'}`}>{labels[status] || status}</span>;
   };
 
+  const sendWhatsApp = () => {
+    const phone = (customer.phone || customer.whatsapp || '').replace(/[\s\-\(\)\+]/g, '');
+    if (!phone) return Swal.fire('Warning', 'No phone number', 'warning');
+    const msg = encodeURIComponent(`*TravelBox*\n\nHello ${customer.full_name},\n\n`);
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  };
+
   if (!customer) return <div className="text-center py-5"><div className="spinner-border text-primary"></div></div>;
 
   return (
@@ -30,6 +37,7 @@ export default function ShowCustomer() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Customer: {customer.full_name}</h5>
         <div>
+          <button className="btn btn-outline-success me-2" onClick={sendWhatsApp}><i className="bi bi-whatsapp"></i> WhatsApp</button>
           <Link to={`/customers/${id}/statement`} className="btn btn-info me-2"><i className="bi bi-file-text"></i> Statement</Link>
           <Link to={`/customers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
           <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> Delete</button>
