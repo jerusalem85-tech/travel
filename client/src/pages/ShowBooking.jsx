@@ -47,6 +47,14 @@ export default function ShowBooking() {
 
   const handlePrint = () => window.print();
 
+  const changeStatus = async (newStatus) => {
+    try {
+      await api.put(`/bookings/${id}`, { ...booking, status: newStatus });
+      load();
+      Swal.fire({ icon: 'success', title: 'Status updated', timer: 1000, showConfirmButton: false });
+    } catch (e) { Swal.fire('Error', 'Failed to update status', 'error'); }
+  };
+
   const statusBadge = (status) => {
     const colors = { confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'info' };
     const labels = { confirmed: 'Confirmed', pending: 'Pending', cancelled: 'Cancelled', completed: 'Completed' };
@@ -108,7 +116,13 @@ export default function ShowBooking() {
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Booking #{booking.booking_number}</h5>
-        <div>
+        <div className="d-flex align-items-center gap-2">
+          <select className="form-select form-select-sm" style={{ width: '140px' }} value={booking.status} onChange={e => changeStatus(e.target.value)}>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
           <button className="btn btn-outline-primary me-2" onClick={handlePrint}><i className="bi bi-printer"></i> Print</button>
           <button className="btn btn-success me-2" onClick={() => setShowPayModal(true)}><i className="bi bi-cash"></i> Record Payment</button>
           <Link to={`/bookings/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>

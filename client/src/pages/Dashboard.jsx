@@ -102,6 +102,11 @@ export default function Dashboard() {
     { key: 'todayBookings', value: stats.todayBookings, prefix: '' },
     { key: 'pendingBookings', value: stats.pendingBookings, prefix: '' },
   ];
+  const balanceStats = [
+    { key: 'customerBalance', value: stats.customerBalance, prefix: '$', label: 'Receivables', icon: 'bi-people', color: 'success' },
+    { key: 'supplierBalance', value: stats.supplierBalance, prefix: '$', label: 'Payables', icon: 'bi-building', color: 'danger' },
+    { key: 'monthProfit', value: stats.monthProfit, prefix: '$', label: 'Month Profit', icon: 'bi-graph-up-arrow', color: (stats.monthProfit >= 0 ? 'success' : 'danger') },
+  ];
   const secondaryStats = [
     { key: 'suppliersCount', value: stats.suppliersCount, prefix: '' },
     { key: 'hotelsCount', value: stats.hotelsCount, prefix: '' },
@@ -133,6 +138,22 @@ export default function Dashboard() {
       <div className="row g-3 mb-4">
         {mainStats.map(s => (
           <StatCard key={s.key} value={s.value} {...statLabels[s.key]} prefix={s.prefix} />
+        ))}
+      </div>
+
+      <div className="row g-3 mb-4">
+        {balanceStats.map(s => (
+          <div key={s.key} className="col-6 col-md-4 col-lg-3 col-xl">
+            <div className="card stat-card h-100 border-0">
+              <div className="card-body d-flex flex-column gap-2">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div className={`icon bg-${s.color} text-white`}><i className={`bi ${s.icon}`}></i></div>
+                  <small className="badge opacity-25 text-white" style={{ background: `var(--${s.color})`, fontSize: '0.6rem', padding: '4px 8px' }}>{s.label}</small>
+                </div>
+                <h4 className={`fw-bold mb-0 text-${s.color}`}>{s.prefix}{Number(s.value || 0).toLocaleString()}</h4>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 

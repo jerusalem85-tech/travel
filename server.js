@@ -134,6 +134,17 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
   try { recentBookings = await db.all('SELECT b.*, COALESCE(c.full_name,c.name) as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id ORDER BY b.created_at DESC LIMIT 10'); } catch { recentBookings = []; }
   try { hotelsCount = await db.get('SELECT COUNT(*) as count FROM hotels'); } catch { hotelsCount = { count: 0 }; }
   try { contractsCount = await db.get('SELECT COUNT(*) as count FROM contracts'); } catch { contractsCount = { count: 0 }; }
+  let customerBalance = 0, supplierBalance = 0;
+  try {
+    const totalSelling = await db.get('SELECT COALESCE(SUM(total_amount),0) as t FROM bookings WHERE status != \'cancelled\'');
+    const totalPaid = await db.get('SELECT COALESCE(SUM(amount),0) as t FROM payments');
+    customerBalance = (totalSelling.t || 0) - (totalPaid.t || 0);
+  } catch {}
+  try {
+    const totalCost = await db.get('SELECT COALESCE(SUM(cost_amount),0) as t FROM bookings WHERE status != \'cancelled\'');
+    const totalSupplierPaid = await db.get('SELECT COALESCE(SUM(amount),0) as t FROM supplier_payments');
+    supplierBalance = (totalCost.t || 0) - (totalSupplierPaid.t || 0);
+  } catch {}
   const [bookingsCount, customersCount, suppliersCount] = await Promise.all([
     db.get('SELECT COUNT(*) as count FROM bookings'),
     db.get('SELECT COUNT(*) as count FROM customers'),
@@ -148,6 +159,8 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
     monthPayments: monthPayments.total,
     monthExpenses: monthExpenses.total,
     monthProfit: (monthPayments.total || 0) - (monthExpenses.total || 0),
+    customerBalance,
+    supplierBalance,
     recentBookings,
     hotelsCount: hotelsCount.count,
     contractsCount: contractsCount.count,
