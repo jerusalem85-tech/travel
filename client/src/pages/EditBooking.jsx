@@ -68,6 +68,7 @@ export default function EditBooking() {
     if (!customerId) { Swal.fire('Required', 'Select a customer', 'warning'); return; }
     const activeSvcs = services.filter(s => s.service_category !== '');
     if (activeSvcs.length === 0) { Swal.fire('Required', 'Add at least one service', 'warning'); return; }
+    if (passengers.filter(p => p.name.trim() !== '').length === 0) { Swal.fire('Required', 'Add at least one passenger', 'warning'); return; }
     setSaving(true);
     try {
       const total = activeSvcs.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0);

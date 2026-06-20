@@ -26,7 +26,7 @@ export default function CreateBooking() {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickForm, setQuickForm] = useState({ full_name: '', phone: '', email: '' });
   const [notes, setNotes] = useState('');
-  const [passengers, setPassengers] = useState([{ name: '', passport: '', nationality: '', dob: '' }]);
+  const [passengers, setPassengers] = useState([{ first_name: '', last_name: '', passport: '', nationality: '', dob: '' }]);
   const [services, setServices] = useState([{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
 
   useEffect(() => {
@@ -56,6 +56,8 @@ export default function CreateBooking() {
     if (!customerId) { Swal.fire('Required', 'Select a customer', 'warning'); return; }
     const activeSvcs = services.filter(s => s.service_category !== '');
     if (activeSvcs.length === 0) { Swal.fire('Required', 'Add at least one service', 'warning'); return; }
+    const activePax = passengers.filter(p => p.first_name.trim() !== '' || p.last_name.trim() !== '');
+    if (activePax.length === 0) { Swal.fire('Required', 'Add at least one passenger', 'warning'); return; }
     setSaving(true);
     try {
       const total = activeSvcs.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0);
@@ -65,7 +67,7 @@ export default function CreateBooking() {
         total_amount: total,
         cost_amount: cost,
         notes,
-        passengers: passengers.filter(p => p.name.trim() !== ''),
+        passengers: activePax.map(p => ({ name: [p.first_name, p.last_name].filter(Boolean).join(' '), passport: p.passport || undefined, nationality: p.nationality || undefined })),
         services: activeSvcs.map(s => ({ ...s, cost: parseFloat(s.cost) || null, price: parseFloat(s.price) || null, supplier_id: s.supplier_id || null })),
       });
       Swal.fire({ icon: 'success', title: 'Booking created', timer: 1500, showConfirmButton: false }).then(() => navigate('/bookings'));
@@ -130,11 +132,12 @@ export default function CreateBooking() {
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h6 className="text-info mb-0"><i className="bi bi-people me-2"></i>Passengers ({passengers.length})</h6>
-              <button type="button" className="btn btn-sm btn-outline-info" onClick={() => setPassengers([...passengers, { name: '', passport: '', nationality: '', dob: '' }])}><i className="bi bi-plus"></i> Add Passenger</button>
+              <button type="button" className="btn btn-sm btn-outline-info" onClick={() => setPassengers([...passengers, { first_name: '', last_name: '', passport: '', nationality: '', dob: '' }])}><i className="bi bi-plus"></i> Add Passenger</button>
             </div>
             {passengers.map((p, i) => (
               <div key={i} className="row g-2 mb-2 pb-2 border-bottom border-light">
-                <div className="col-md-3"><label className="form-label small text-muted">Full Name</label><input className="form-control" placeholder="e.g. Ahmad Hassan" value={p.name} onChange={e => pax(i, 'name', e.target.value)} /></div>
+                <div className="col-md-2"><label className="form-label small text-muted">First Name</label><input className="form-control form-control-sm" placeholder="Ahmad" value={p.first_name} onChange={e => pax(i, 'first_name', e.target.value)} /></div>
+                <div className="col-md-2"><label className="form-label small text-muted">Last Name</label><input className="form-control form-control-sm" placeholder="Hassan" value={p.last_name} onChange={e => pax(i, 'last_name', e.target.value)} /></div>
                 <div className="col-md-2"><label className="form-label small text-muted">Date of Birth</label><input type="date" className="form-control form-control-sm" value={p.dob} onChange={e => pax(i, 'dob', e.target.value)} /></div>
                 <div className="col-md-2"><label className="form-label small text-muted">Type</label>
                   <span className="form-control form-control-sm bg-light text-muted">

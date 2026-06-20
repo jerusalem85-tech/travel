@@ -91,7 +91,7 @@ export default function Bookings() {
         </div>
       </div>
       <div className="table-responsive"><table className="table table-hover mb-0">
-        <thead><tr><th><input type="checkbox" checked={selectAll} onChange={toggleAll} /></th><th>Booking #</th><th>Customer</th><th>Svc</th><th>Date</th><th>Amount</th><th>Status</th><th className="text-end">Actions</th></tr></thead>
+        <thead><tr><th><input type="checkbox" checked={selectAll} onChange={toggleAll} /></th><th>Booking #</th><th>Customer</th><th>Svc</th><th>Pax</th><th>Date</th><th>Amount</th><th>Status</th><th className="text-end">Actions</th></tr></thead>
         <tbody>
           {data.rows.map(b => {
             const isEditing = editRow === b.id;
@@ -102,6 +102,7 @@ export default function Bookings() {
                 <td className="fw-bold">{b.booking_number}</td>
                 <td><input className="form-control form-control-sm" value={editValues.customer_name} onChange={e => setEditValues({...editValues, customer_name: e.target.value})} /></td>
                 <td><span className="badge bg-secondary">{b.service_count || 0}</span></td>
+                <td><span className="badge bg-info">{b.passenger_count || 0}</span></td>
                 <td><input type="date" className="form-control form-control-sm" value={editValues.travel_date} onChange={e => setEditValues({...editValues, travel_date: e.target.value})} /></td>
                 <td><input type="number" className="form-control form-control-sm" style={{width:100}} value={editValues.total_amount} onChange={e => setEditValues({...editValues, total_amount: e.target.value})} /></td>
                 <td><select className="form-select form-select-sm" value={editValues.status} onChange={e => setEditValues({...editValues, status: e.target.value})}><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></td>
@@ -117,6 +118,7 @@ export default function Bookings() {
                 <td><Link to={`/bookings/${b.id}`} className="text-decoration-none fw-semibold">{b.booking_number}</Link></td>
                 <td>{b.customer_name}</td>
                 <td><span className="badge bg-secondary">{b.service_count || 0}</span></td>
+                <td><span className="badge bg-info">{b.passenger_count || 0}</span></td>
                 <td>{formatDate(b.travel_date)}</td>
                 <td className="fw-semibold">{(b.total_amount || 0).toLocaleString()} ILS</td>
                 <td>{statusBadge(b.status)}</td>
