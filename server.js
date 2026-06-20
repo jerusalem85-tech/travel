@@ -857,6 +857,60 @@ async function start() {
       for (const [c,r] of rates) await db.run('INSERT INTO exchange_rates (currency_code, rate_to_usd, effective_date) VALUES (?,?,date(\'now\'))', [c, r]);
       console.log('Exchange rates seeded');
     }
+    const airportCount = await db.get('SELECT COUNT(*) as c FROM airports');
+    if (airportCount.c === 0) {
+      const airports = [
+        ['TLV','Ben Gurion Airport','Tel Aviv','Israel'],
+        ['DXB','Dubai International Airport','Dubai','UAE'],
+        ['IST','Istanbul Airport','Istanbul','Turkey'],
+        ['CAI','Cairo International Airport','Cairo','Egypt'],
+        ['AMM','Queen Alia International Airport','Amman','Jordan'],
+        ['LHR','Heathrow Airport','London','UK'],
+        ['CDG','Charles de Gaulle Airport','Paris','France'],
+        ['JED','King Abdulaziz International Airport','Jeddah','Saudi Arabia'],
+        ['RUH','King Khalid International Airport','Riyadh','Saudi Arabia'],
+        ['DOH','Hamad International Airport','Doha','Qatar'],
+        ['CMN','Mohammed V International Airport','Casablanca','Morocco'],
+        ['FCO','Leonardo da Vinci Fiumicino Airport','Rome','Italy'],
+        ['BCN','Barcelona-El Prat Airport','Barcelona','Spain'],
+        ['ATH','Athens International Airport','Athens','Greece'],
+        ['BKK','Suvarnabhumi Airport','Bangkok','Thailand'],
+        ['KUL','Kuala Lumpur International Airport','Kuala Lumpur','Malaysia'],
+        ['MUC','Munich Airport','Munich','Germany'],
+        ['AYT','Antalya Airport','Antalya','Turkey'],
+        ['VIE','Vienna International Airport','Vienna','Austria'],
+        ['ZRH','Zurich Airport','Zurich','Switzerland'],
+      ];
+      for (const a of airports) await db.run('INSERT INTO airports (code, name, city, country) VALUES (?,?,?,?)', a);
+      console.log(`${airports.length} airports seeded`);
+    }
+    const airlineCount = await db.get('SELECT COUNT(*) as c FROM airlines');
+    if (airlineCount.c === 0) {
+      const airlines = [
+        ['EK','Emirates','UAE'],
+        ['TK','Turkish Airlines','Turkey'],
+        ['LY','El Al Israel Airlines','Israel'],
+        ['BA','British Airways','UK'],
+        ['AF','Air France','France'],
+        ['LH','Lufthansa','Germany'],
+        ['QR','Qatar Airways','Qatar'],
+        ['SV','Saudia','Saudi Arabia'],
+        ['MS','EgyptAir','Egypt'],
+        ['RJ','Royal Jordanian','Jordan'],
+        ['W6','Wizz Air','Hungary'],
+        ['FR','Ryanair','Ireland'],
+        ['EY','Etihad Airways','UAE'],
+        ['FZ','Flydubai','UAE'],
+        ['PC','Pegasus Airlines','Turkey'],
+        ['A3','Aegean Airlines','Greece'],
+        ['OS','Austrian Airlines','Austria'],
+        ['LX','SWISS','Switzerland'],
+        ['AT','Royal Air Maroc','Morocco'],
+        ['6H','Israir','Israel'],
+      ];
+      for (const a of airlines) await db.run('INSERT INTO airlines (code, name, country) VALUES (?,?,?)', a);
+      console.log(`${airlines.length} airlines seeded`);
+    }
   } catch (e) {
     console.error('Startup error (non-fatal):', e.message);
   }
