@@ -9,19 +9,6 @@ const router = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
-// Lazy-load pdf-parse to avoid crash if not installed
-let pdfParse = null;
-async function getPdfParse() {
-  if (pdfParse) return pdfParse;
-  try {
-    const mod = await import('pdf-parse');
-    pdfParse = mod.default || mod;
-    return pdfParse;
-  } catch {
-    return null;
-  }
-}
-
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -33,29 +20,10 @@ const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 async function extractText(filePath) {
   try {
     const buffer = fs.readFileSync(filePath);
-    const ext = path.extname(filePath).toLowerCase();
-
-    if (ext === '.pdf') {
-      const parser = await getPdfParse();
-      if (parser) {
-        const data = await parser(buffer);
-        return data.text || '';
-      }
-      // Fallback: basic text extraction
-      return fallbackExtract(buffer);
-    }
-
-    return '';
-  } catch (e) {
-    console.error('PDF extraction error:', e.message);
-    return fallbackExtract(fs.readFileSync(filePath));
-  }
-}
-
-function fallbackExtract(buffer) {
-  try {
     let content = buffer.toString('utf-8');
     const texts = [];
+
+    // Method 1: Tj operators
     const tjRegex = /\(([^)]*)\)\s*Tj/g;
     let m;
     while ((m = tjRegex.exec(content)) !== null) {
@@ -63,7 +31,18 @@ function fallbackExtract(buffer) {
       t = t.replace(/\\([()\\])/g, '$1').replace(/\\n/g, '\n');
       if (t.trim()) texts.push(t);
     }
-    // Also try hex strings
+
+    // Method 2: BT/ET blocks
+    const btBlocks = content.match(/BT[\s\S]*?ET/g) || [];
+    btBlocks.forEach(block => {
+      const tjs = block.match(/\(([^)]*)\)\s*Tj/g) || [];
+      tjs.forEach(t => {
+        const txt = t.replace(/^\s*\(/, '').replace(/\)\s*Tj$/, '');
+        if (txt.trim() && !texts.includes(txt)) texts.push(txt);
+      });
+    });
+
+    // Method 3: Hex strings
     const hexMatches = content.match(/<([0-9A-Fa-f\s]+)>\s*Tj/g) || [];
     hexMatches.forEach(hex => {
       const h = hex.replace(/^<\s*/, '').replace(/\s*>?\s*Tj$/, '').replace(/\s+/g, '');
@@ -72,8 +51,15 @@ function fallbackExtract(buffer) {
         if (decoded.trim()) texts.push(decoded);
       } catch {}
     });
-    return texts.join('\n') || content.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s{2,}/g, '\n').substring(0, 5000);
-  } catch {
+
+    const text = texts.join('\n');
+    if (text.trim()) return text;
+
+    // Fallback: strip non-printable chars
+    return content.replace(/[^\x20-\x7E\n\r\t\u00C0-\u00FF]/g, ' ')
+      .replace(/\s{2,}/g, '\n').substring(0, 5000);
+  } catch (e) {
+    console.error('Extraction error:', e.message);
     return '';
   }
 }
