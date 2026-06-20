@@ -752,6 +752,7 @@ import uploadsRoutes from './routes/uploads.js';
 import dailyLogsRoutes from './routes/dailyLogs.js';
 import supplierPaymentsRoutes from './routes/supplierPayments.js';
 import exchangeRatesRoutes from './routes/exchangeRates.js';
+import aiReaderRoutes from './routes/aiReader.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -825,6 +826,7 @@ app.use('/api/uploads', authMiddleware, uploadsRoutes);
 app.use('/api/daily-logs', authMiddleware, dailyLogsRoutes);
 app.use('/api/supplier-payments', authMiddleware, supplierPaymentsRoutes);
 app.use('/api/exchange-rates', authMiddleware, exchangeRatesRoutes);
+app.use('/api/ai-reader', authMiddleware, aiReaderRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
