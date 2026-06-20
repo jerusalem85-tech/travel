@@ -18,6 +18,8 @@ export default function Suppliers() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
+  const [editRow, setEditRow] = useState(null);
+  const [editValues, setEditValues] = useState({});
 
   const load = () => {
     const params = { page, limit: 20 };
@@ -33,6 +35,10 @@ export default function Suppliers() {
       if (r.isConfirmed) api.delete(`/suppliers/${id}`).then(() => load());
     });
   };
+
+  const startEdit = (s) => { setEditRow(s.id); setEditValues({ name: s.name, phone: s.phone || '', email: s.email || '' }); };
+  const cancelEdit = () => { setEditRow(null); setEditValues({}); };
+  const saveEdit = async (id) => { try { await api.put(`/suppliers/${id}`, editValues); setEditRow(null); load(); } catch (e) { Swal.fire('Error', 'Failed', 'error'); } };
 
   const renderTypes = (types) => {
     if (!types) return <span className="text-muted">-</span>;
@@ -63,13 +69,23 @@ export default function Suppliers() {
         </div>
       </div>
       <div className="card"><div className="table-responsive"><table className="table table-hover mb-0">
-        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Types</th><th>Services</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Types</th><th>Svc</th><th className="text-end">Actions</th></tr></thead>
         <tbody>
-          {data.rows.map(s => (
-            <tr key={s.id}><td><Link to={`/suppliers/${s.id}`} className="text-decoration-none fw-semibold">{s.name}</Link></td><td>{s.phone || '-'}</td><td className="small">{s.email || '-'}</td><td>{renderTypes(s.type)}</td><td><span className="badge bg-secondary">{s.services_count || 0}</span></td>
-              <td><Link to={`/suppliers/${s.id}`} className="btn btn-sm btn-outline-primary me-1"><i className="bi bi-eye"></i></Link><Link to={`/suppliers/${s.id}/edit`} className="btn btn-sm btn-outline-warning me-1"><i className="bi bi-pencil"></i></Link><button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(s.id)}><i className="bi bi-trash"></i></button></td>
-            </tr>
-          ))}
+          {data.rows.map(s => {
+            if (editRow === s.id) return (
+              <tr key={s.id} className="table-active">
+                <td><input className="form-control form-control-sm" value={editValues.name} onChange={e => setEditValues({...editValues, name: e.target.value})} /></td>
+                <td><input className="form-control form-control-sm" value={editValues.phone} onChange={e => setEditValues({...editValues, phone: e.target.value})} /></td>
+                <td><input className="form-control form-control-sm" value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} /></td>
+                <td>{renderTypes(s.type)}</td>
+                <td><span className="badge bg-secondary">{s.services_count || 0}</span></td>
+                <td className="text-end"><button className="btn btn-sm btn-success me-1" onClick={() => saveEdit(s.id)}><i className="bi bi-check"></i></button><button className="btn btn-sm btn-outline-secondary" onClick={cancelEdit}><i className="bi bi-x"></i></button></td>
+              </tr>
+            );
+            return (<tr key={s.id}><td><Link to={`/suppliers/${s.id}`} className="text-decoration-none fw-semibold">{s.name}</Link></td><td>{s.phone || '-'}</td><td className="small">{s.email || '-'}</td><td>{renderTypes(s.type)}</td><td><span className="badge bg-secondary">{s.services_count || 0}</span></td>
+              <td className="text-end"><button className="btn btn-sm btn-outline-secondary me-1" onClick={() => startEdit(s)} title="Quick Edit"><i className="bi bi-pencil"></i></button><Link to={`/suppliers/${s.id}`} className="btn btn-sm btn-outline-primary me-1" title="View"><i className="bi bi-eye"></i></Link><button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(s.id)} title="Delete"><i className="bi bi-trash"></i></button></td>
+            </tr>);
+          })}
           {data.rows?.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No suppliers found</td></tr>}
         </tbody>
       </table></div></div>
