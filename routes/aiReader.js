@@ -2,13 +2,25 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import pdf from 'pdf-parse';
 import { getDb } from '../config/database.js';
 import { fileURLToPath } from 'url';
 
 const router = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', 'uploads');
+
+// Lazy-load pdf-parse to avoid crash if not installed
+let pdfParse = null;
+async function getPdfParse() {
+  if (pdfParse) return pdfParse;
+  try {
+    const mod = await import('pdf-parse');
+    pdfParse = mod.default || mod;
+    return pdfParse;
+  } catch {
+    return null;
+  }
+}
 
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -24,14 +36,44 @@ async function extractText(filePath) {
     const ext = path.extname(filePath).toLowerCase();
 
     if (ext === '.pdf') {
-      const data = await pdf(buffer);
-      return data.text || '';
+      const parser = await getPdfParse();
+      if (parser) {
+        const data = await parser(buffer);
+        return data.text || '';
+      }
+      // Fallback: basic text extraction
+      return fallbackExtract(buffer);
     }
 
-    // For images, return empty - would need OCR
     return '';
   } catch (e) {
     console.error('PDF extraction error:', e.message);
+    return fallbackExtract(fs.readFileSync(filePath));
+  }
+}
+
+function fallbackExtract(buffer) {
+  try {
+    let content = buffer.toString('utf-8');
+    const texts = [];
+    const tjRegex = /\(([^)]*)\)\s*Tj/g;
+    let m;
+    while ((m = tjRegex.exec(content)) !== null) {
+      let t = m[1].replace(/\\([0-3][0-7]{2})/g, (_, c) => String.fromCharCode(parseInt(c, 8)));
+      t = t.replace(/\\([()\\])/g, '$1').replace(/\\n/g, '\n');
+      if (t.trim()) texts.push(t);
+    }
+    // Also try hex strings
+    const hexMatches = content.match(/<([0-9A-Fa-f\s]+)>\s*Tj/g) || [];
+    hexMatches.forEach(hex => {
+      const h = hex.replace(/^<\s*/, '').replace(/\s*>?\s*Tj$/, '').replace(/\s+/g, '');
+      try {
+        const decoded = Buffer.from(h, 'hex').toString('utf-8');
+        if (decoded.trim()) texts.push(decoded);
+      } catch {}
+    });
+    return texts.join('\n') || content.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s{2,}/g, '\n').substring(0, 5000);
+  } catch {
     return '';
   }
 }
