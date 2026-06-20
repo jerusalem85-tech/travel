@@ -101,18 +101,29 @@ export default function Bookings() {
         </div>
       </div>
       <div className="card">
+        <div className="card-body border-bottom">
+          <div className="d-flex gap-2 flex-wrap">
+            {[{ label: 'All', value: '' }, { label: 'Pending', value: 'pending' }, { label: 'Confirmed', value: 'confirmed' }, { label: 'Completed', value: 'completed' }, { label: 'Cancelled', value: 'cancelled' }].map(f => (
+              <button key={f.value} className={`btn btn-sm ${status === f.value ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => { setStatus(f.value); setPage(1); }}>{f.label}</button>
+            ))}
+            <span className="ms-auto text-muted small align-self-center">{data.total} bookings</span>
+          </div>
+        </div>
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead><tr><th><input type="checkbox" checked={selectAll} onChange={toggleAll} /></th><th>Booking #</th><th>Customer</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th><input type="checkbox" checked={selectAll} onChange={toggleAll} /></th><th>Booking #</th><th>Customer</th><th>Svc</th><th>From - To</th><th>Travel Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
-              {data.rows.map(b => (
-                <tr key={b.id}>
+              {data.rows.map(b => {
+                const rowColor = b.status === 'confirmed' ? 'table-success' : b.status === 'cancelled' ? 'table-danger' : b.status === 'completed' ? 'table-info' : '';
+                return (
+                <tr key={b.id} className={rowColor}>
                   <td><input type="checkbox" checked={selected.includes(b.id)} onChange={() => toggleSelect(b.id)} /></td>
-                  <td><Link to={`/bookings/${b.id}`} className="text-decoration-none">{b.booking_number}</Link></td>
+                  <td><Link to={`/bookings/${b.id}`} className="text-decoration-none fw-semibold">{b.booking_number}</Link></td>
                   <td>{b.customer_name}</td>
+                  <td><span className="badge bg-secondary">{b.service_count || 0}</span></td>
                   <td>{b.from_destination && b.to_destination ? `${b.from_destination} → ${b.to_destination}` : '-'}</td>
                   <td>{formatDate(b.travel_date)}</td>
-                  <td>{b.total_amount?.toLocaleString()}</td>
+                  <td className="fw-semibold">${(b.total_amount || 0).toLocaleString()}</td>
                   <td>{statusBadge(b.status)}</td>
                   <td>
                     <Link to={`/bookings/${b.id}`} className="btn btn-sm btn-outline-primary me-1"><i className="bi bi-eye"></i></Link>
@@ -120,7 +131,7 @@ export default function Bookings() {
                     <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(b.id)}><i className="bi bi-trash"></i></button>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>

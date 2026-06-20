@@ -72,6 +72,8 @@ export default function Dashboard() {
   const [monthlyBookings, setMonthlyBookings] = useState([]);
   const [statusBreakdown, setStatusBreakdown] = useState([]);
   const [greeting, setGreeting] = useState('');
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [recentSupplierPayments, setRecentSupplierPayments] = useState([]);
 
   useEffect(() => {
     const h = new Date().getHours();
@@ -85,6 +87,8 @@ export default function Dashboard() {
     api.get('/stats/top-customers').then(res => setTopCustomers(res.data));
     api.get('/stats/monthly-bookings').then(res => setMonthlyBookings(res.data));
     api.get('/stats/status-breakdown').then(res => setStatusBreakdown(res.data));
+    api.get('/payments?limit=5').then(res => setRecentPayments(res.data.rows || []));
+    api.get('/supplier-payments?limit=5').then(res => setRecentSupplierPayments(res.data.rows || []));
   }, []);
 
   if (!stats) {
@@ -313,6 +317,37 @@ export default function Dashboard() {
           )}
         </div>
       )}
+
+      <div className="row g-3 mb-4">
+        <div className="col-md-6">
+          <div className="card h-100">
+            <div className="card-body">
+              <h6 className="fw-bold mb-3"><i className="bi bi-cash-stack me-2 text-success"></i>Recent Customer Payments</h6>
+              {recentPayments.length === 0 && <p className="text-muted small mb-0">No payments yet</p>}
+              {recentPayments.map(p => (
+                <div key={p.id} className="d-flex justify-content-between border-bottom py-1 small">
+                  <span>{p.customer_name || '-'}</span>
+                  <span className="text-success fw-bold">${(p.amount || 0).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card h-100">
+            <div className="card-body">
+              <h6 className="fw-bold mb-3"><i className="bi bi-building me-2 text-danger"></i>Recent Supplier Payments</h6>
+              {recentSupplierPayments.length === 0 && <p className="text-muted small mb-0">No supplier payments yet</p>}
+              {recentSupplierPayments.map(p => (
+                <div key={p.id} className="d-flex justify-content-between border-bottom py-1 small">
+                  <span>{p.supplier_name || '-'}</span>
+                  <span className="text-danger fw-bold">${(p.amount || 0).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="card">
         <div className="card-body">

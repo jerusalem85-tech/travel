@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
   if (dateFrom) { where += ' AND b.travel_date >= ?'; params.push(dateFrom); }
   if (dateTo) { where += ' AND b.travel_date <= ?'; params.push(dateTo); }
   const count = await db.get(`SELECT COUNT(*) as count FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id WHERE ${where}`, params);
-  const rows = await db.all(`SELECT b.*, c.full_name as customer_name FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id WHERE ${where} ORDER BY b.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
+  const rows = await db.all(`SELECT b.*, c.full_name as customer_name, (SELECT COUNT(*) FROM booking_services WHERE booking_id = b.id) as service_count FROM bookings b LEFT JOIN customers c ON b.customer_id = c.id WHERE ${where} ORDER BY b.created_at DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit, 10), offset]);
   res.json({ rows, total: count.count, page: parseInt(page, 10) });
 });
 
