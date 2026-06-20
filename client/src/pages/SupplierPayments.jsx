@@ -84,7 +84,7 @@ export default function SupplierPayments() {
                 <div className="row g-2 mb-2">
                   <div className="col-6"><label className="form-label">Currency</label>
                     <select className="form-select" value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })}>
-                      <option value="USD">USD</option><option value="ILS">ILS</option><option value="EUR">EUR</option><option value="JOD">JOD</option><option value="AED">AED</option>
+                      <option value="ILS">ILS</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="JOD">JOD</option><option value="AED">AED</option>
                     </select>
                   </div>
                   <div className="col-6"><label className="form-label">Date</label><input type="date" className="form-control" value={form.payment_date} onChange={e => setForm({ ...form, payment_date: e.target.value })} /></div>

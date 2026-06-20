@@ -40,8 +40,8 @@ router.put('/:code', async (req, res) => {
 router.post('/seed', async (req, res) => {
   const db = await getDb();
   const rates = [
-    ['USD', 1.0], ['EUR', 1.085], ['ILS', 0.267], ['JOD', 1.41],
-    ['AED', 0.2723], ['THB', 0.028], ['EGP', 0.02], ['GBP', 1.27]
+    ['ILS', 1.0], ['USD', 3.75], ['EUR', 4.07], ['JOD', 5.29],
+    ['AED', 1.02], ['THB', 0.105], ['EGP', 0.075], ['GBP', 4.76]
   ];
   for (const [code, rate] of rates) {
     await db.run('INSERT OR REPLACE INTO exchange_rates (currency_code, rate_to_usd, effective_date) VALUES (?,?,date(\'now\'))', [code, rate]);

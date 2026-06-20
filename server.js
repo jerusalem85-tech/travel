@@ -853,7 +853,7 @@ async function start() {
     }
     const rateCount = await db.get('SELECT COUNT(*) as c FROM exchange_rates');
     if (rateCount.c === 0) {
-      const rates = [['USD',1],['EUR',1.085],['ILS',0.267],['JOD',1.41],['AED',0.2723],['THB',0.028],['EGP',0.02],['GBP',1.27]];
+      const rates = [['ILS',1],['USD',3.75],['EUR',4.07],['JOD',5.29],['AED',1.02],['THB',0.105],['EGP',0.075],['GBP',4.76]];
       for (const [c,r] of rates) await db.run('INSERT INTO exchange_rates (currency_code, rate_to_usd, effective_date) VALUES (?,?,date(\'now\'))', [c, r]);
       console.log('Exchange rates seeded');
     }

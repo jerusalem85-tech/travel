@@ -208,8 +208,8 @@ export default function Services() {
                     <div className="col-md-6 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
-                        <option value="USD">US Dollar</option>
                         <option value="ILS">Israeli Shekel</option>
+                        <option value="USD">US Dollar</option>
                         <option value="SAR">Saudi Riyal</option>
                         <option value="EUR">Euro</option>
                         <option value="EGP">Egyptian Pound</option>

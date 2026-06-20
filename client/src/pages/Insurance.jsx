@@ -241,8 +241,8 @@ export default function Insurance() {
                     <div className="col-md-4 mb-3">
                       <label className="form-label">Currency</label>
                       <select className="form-select" name="currency" value={formData.currency} onChange={e => setFormData({ ...formData, currency: e.target.value })}>
-                        <option value="USD">US Dollar</option>
                         <option value="ILS">Israeli Shekel</option>
+                        <option value="USD">US Dollar</option>
                         <option value="SAR">Saudi Riyal</option>
                         <option value="AED">UAE Dirham</option>
                         <option value="EUR">Euro</option>
