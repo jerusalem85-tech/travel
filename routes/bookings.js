@@ -61,10 +61,17 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const db = await getDb();
-  const { customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes, services } = req.body;
+  const { customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount, cost_amount, notes, services, passengers } = req.body;
   const profit = (total_amount || 0) - (cost_amount || 0);
   await db.run(`UPDATE bookings SET customer_id=?, travel_date=?, return_date=?, from_destination=?, to_destination=?, airline=?, flight_number=?, ticket_number=?, status=?, total_amount=?, cost_amount=?, profit_amount=?, notes=? WHERE id=?`,
     [customer_id, travel_date, return_date, from_destination, to_destination, airline, flight_number, ticket_number, status, total_amount || 0, cost_amount || 0, profit, notes, req.params.id]);
+  if (passengers && passengers.length > 0) {
+    await db.run('DELETE FROM booking_passengers WHERE booking_id = ?', [req.params.id]);
+    for (const p of passengers) {
+      await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number) VALUES (?,?,?)',
+        [req.params.id, p.name || null, p.passport || null]);
+    }
+  }
   if (services && services.length > 0) {
     await db.run('DELETE FROM booking_services WHERE booking_id = ?', [req.params.id]);
     for (const s of services) {
