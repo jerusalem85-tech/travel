@@ -57,6 +57,12 @@ export default function Layout() {
           <NavLink to="/reports" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
             <i className="bi bi-bar-chart"></i> Reports
           </NavLink>
+          <NavLink to="/search" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-search"></i> Global Search
+          </NavLink>
+          <NavLink to="/call-log" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-telephone"></i> Call Log
+          </NavLink>
 
           <div className="nav-section">Operations</div>
           <NavLink to="/bookings" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>

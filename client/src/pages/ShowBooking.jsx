@@ -92,7 +92,23 @@ export default function ShowBooking() {
       `_Sent via TravelBox System_`
     );
 
-      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  };
+
+  const sendEmail = () => {
+    const email = booking.customer_email || booking.customer?.email || '';
+    if (!email) return Swal.fire('Warning', 'No email for this customer', 'warning');
+    const subject = encodeURIComponent(`TravelBox - Booking ${booking.booking_number}`);
+    const body = encodeURIComponent(
+      `Booking: ${booking.booking_number}\n` +
+      `Customer: ${booking.customer_name}\n` +
+      `Travel Date: ${booking.travel_date || 'N/A'}\n` +
+      `Route: ${booking.from_destination || ''} → ${booking.to_destination || ''}\n` +
+      `Total: ${(booking.total_amount || 0).toLocaleString()} ILS\n` +
+      `Status: ${booking.status}\n\n` +
+      `Thank you for choosing TravelBox!`
+    );
+    window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
   };
 
   const sendReminder = () => {
@@ -220,6 +236,7 @@ export default function ShowBooking() {
             <option value="cancelled">Cancelled</option>
           </select>
           <button className="btn btn-outline-success me-2" onClick={sendWhatsApp} title="Send via WhatsApp"><i className="bi bi-whatsapp"></i> WhatsApp</button>
+          <button className="btn btn-outline-secondary me-2" onClick={sendEmail} title="Send via Email"><i className="bi bi-envelope"></i> Email</button>
           <button className="btn btn-outline-warning me-2" onClick={sendReminder} title="Send travel reminder"><i className="bi bi-bell"></i> Reminder</button>
           <button className="btn btn-outline-info me-2" onClick={duplicateBooking}><i className="bi bi-copy"></i> Duplicate</button>
           <button className="btn btn-outline-primary me-2" onClick={handlePrint}><i className="bi bi-printer"></i> Print</button>

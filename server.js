@@ -754,6 +754,7 @@ import supplierPaymentsRoutes from './routes/supplierPayments.js';
 import exchangeRatesRoutes from './routes/exchangeRates.js';
 import aiReaderRoutes from './routes/aiReader.js';
 import bookingDocumentsRoutes from './routes/bookingDocuments.js';
+import callLogsRoutes from './routes/callLogs.js';
 
 app.use('/api/auth', authMiddleware, authRoutes);
 app.use('/api/bookings', authMiddleware, bookingsRoutes);
@@ -829,6 +830,7 @@ app.use('/api/supplier-payments', authMiddleware, supplierPaymentsRoutes);
 app.use('/api/exchange-rates', authMiddleware, exchangeRatesRoutes);
 app.use('/api/ai-reader', authMiddleware, aiReaderRoutes);
 app.use('/api/booking-documents', authMiddleware, bookingDocumentsRoutes);
+app.use('/api/call-logs', authMiddleware, callLogsRoutes);
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

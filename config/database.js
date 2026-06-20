@@ -184,6 +184,14 @@ CREATE TABLE IF NOT EXISTS booking_documents (
   created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS call_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER NOT NULL,
+  notes TEXT,
+  follow_up_date TEXT,
+  created_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
 CREATE TABLE IF NOT EXISTS expenses (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   description TEXT NOT NULL,
@@ -1116,6 +1124,13 @@ async function init() {
       mime_type VARCHAR(100),
       category VARCHAR(50) DEFAULT 'other',
       notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    await d.run(`CREATE TABLE IF NOT EXISTS call_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT NOT NULL,
+      notes TEXT,
+      follow_up_date DATE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS expenses (
