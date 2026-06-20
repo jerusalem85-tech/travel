@@ -34,6 +34,7 @@ import Flights from './pages/Flights';
 import Services from './pages/Services';
 import SupplierPayments from './pages/SupplierPayments';
 import CustomerStatement from './pages/CustomerStatement';
+import SupplierStatement from './pages/SupplierStatement';
 import Contracts from './pages/Contracts';
 import Commissions from './pages/Commissions';
 import ActivityLog from './pages/ActivityLog';
@@ -66,6 +67,7 @@ function App() {
             <Route path="customers/:id/edit" element={<EditCustomer />} />
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="suppliers/create" element={<CreateSupplier />} />
+            <Route path="suppliers/:id/statement" element={<SupplierStatement />} />
             <Route path="suppliers/:id" element={<ShowSupplier />} />
             <Route path="suppliers/:id/edit" element={<EditSupplier />} />
             <Route path="invoices" element={<Invoices />} />

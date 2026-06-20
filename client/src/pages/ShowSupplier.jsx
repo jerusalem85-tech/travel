@@ -24,6 +24,7 @@ export default function ShowSupplier() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="page-title mb-0">Supplier: {supplier.name}</h5>
         <div>
+          <Link to={`/suppliers/${id}/statement`} className="btn btn-info me-2"><i className="bi bi-file-text"></i> Statement</Link>
           <Link to={`/suppliers/${id}/edit`} className="btn btn-warning me-2"><i className="bi bi-pencil"></i> Edit</Link>
           <button className="btn btn-danger me-2" onClick={handleDelete}><i className="bi bi-trash"></i> Delete</button>
           <button className="btn btn-outline-secondary" onClick={() => navigate('/suppliers')}>Back</button>

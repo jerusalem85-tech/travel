@@ -21,6 +21,8 @@ export default function CreateBooking() {
   const [saving, setSaving] = useState(false);
   const [customerId, setCustomerId] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickForm, setQuickForm] = useState({ full_name: '', phone: '', email: '' });
   const [notes, setNotes] = useState('');
   const [passengers, setPassengers] = useState([{ name: '', passport: '', nationality: '', type: 'adult' }]);
   const [services, setServices] = useState([{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
@@ -35,6 +37,19 @@ export default function CreateBooking() {
   const pax = (i, field, value) => { const u = [...passengers]; u[i][field] = value; setPassengers(u); };
   const svc = (i, field, value) => { const u = [...services]; u[i][field] = value; if (field === 'service_category') { u[i].details = { ...emptyDetails }; u[i].description = serviceLabel(value); } setServices(u); };
   const dtl = (i, field, value) => { const u = [...services]; u[i].details = { ...u[i].details, [field]: value }; setServices(u); };
+
+  const quickAddCustomer = async () => {
+    if (!quickForm.full_name) return Swal.fire('Required', 'Enter customer name', 'warning');
+    try {
+      const res = await api.post('/customers', quickForm);
+      setCustomerId(res.data.id);
+      setCustomerSearch(quickForm.full_name);
+      setShowQuickAdd(false);
+      setQuickForm({ full_name: '', phone: '', email: '' });
+      api.get('/customers', { params: { limit: 1000 } }).then(r => setCustomers(r.data.rows));
+      Swal.fire({ icon: 'success', title: 'Customer added', timer: 1200, showConfirmButton: false });
+    } catch (e) { Swal.fire('Error', 'Failed to add customer', 'error'); }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -244,6 +259,7 @@ export default function CreateBooking() {
                   <span className="input-group-text"><i className="bi bi-search"></i></span>
                   <input className="form-control" placeholder="Search customer..." value={customerSearch} onChange={e => { setCustomerSearch(e.target.value); setCustomerId(''); }}
                     autoComplete="off" />
+                  <button type="button" className="btn btn-outline-success" onClick={() => setShowQuickAdd(true)} title="Quick add"><i className="bi bi-plus-lg"></i></button>
                 </div>
                 {customerSearch && (
                   <div className="list-group mt-1 position-absolute z-3 shadow" style={{ maxHeight: '200px', overflow: 'auto', width: 'calc(50% - 24px)' }}>
@@ -332,6 +348,25 @@ export default function CreateBooking() {
           <button type="button" className="btn btn-outline-secondary" onClick={() => navigate('/bookings')}>Cancel</button>
         </div>
       </form>
+
+      {showQuickAdd && (
+        <div className="modal d-block" tabIndex="-1" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header"><h6 className="modal-title">Quick Add Customer</h6><button className="btn-close" onClick={() => setShowQuickAdd(false)}></button></div>
+              <div className="modal-body">
+                <div className="mb-2"><label className="form-label">Name <span className="text-danger">*</span></label><input className="form-control" value={quickForm.full_name} onChange={e => setQuickForm({ ...quickForm, full_name: e.target.value })} autoFocus /></div>
+                <div className="mb-2"><label className="form-label">Phone</label><input className="form-control" value={quickForm.phone} onChange={e => setQuickForm({ ...quickForm, phone: e.target.value })} /></div>
+                <div className="mb-2"><label className="form-label">Email</label><input type="email" className="form-control" value={quickForm.email} onChange={e => setQuickForm({ ...quickForm, email: e.target.value })} /></div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary btn-sm" onClick={() => setShowQuickAdd(false)}>Cancel</button>
+                <button className="btn btn-primary btn-sm" onClick={quickAddCustomer}>Add Customer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
