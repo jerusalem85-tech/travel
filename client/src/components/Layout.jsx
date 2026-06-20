@@ -46,7 +46,10 @@ export default function Layout() {
         <nav>
           <div className="nav-section">Main</div>
           <NavLink to="/" end className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
-            <i className="bi bi-grid-1x2"></i> Dashboard
+            <i className="bi bi-speedometer2"></i> Dashboard
+          </NavLink>
+          <NavLink to="/system" className="nav-link" onClick={() => document.getElementById('sidebar').classList.remove('show')}>
+            <i className="bi bi-grid"></i> System
           </NavLink>
 
           <div className="nav-section">Operations</div>

@@ -35,6 +35,7 @@ import Services from './pages/Services';
 import SupplierPayments from './pages/SupplierPayments';
 import CustomerStatement from './pages/CustomerStatement';
 import SupplierStatement from './pages/SupplierStatement';
+import SystemPage from './pages/SystemPage';
 import Contracts from './pages/Contracts';
 import Commissions from './pages/Commissions';
 import ActivityLog from './pages/ActivityLog';
@@ -56,6 +57,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
+            <Route path="system" element={<SystemPage />} />
             <Route path="bookings" element={<Bookings />} />
             <Route path="bookings/create" element={<CreateBooking />} />
             <Route path="bookings/:id" element={<ShowBooking />} />
