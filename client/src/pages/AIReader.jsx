@@ -38,10 +38,20 @@ export default function AIReader() {
       const formData = new FormData();
       formData.append('file', file);
       if (docType) formData.append('type', docType);
-      const res = await api.post('/ai-reader/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.post('/ai-reader/upload', formData);
       const result = res.data;
+
+      if (result.error) {
+        setUploadError(result.error);
+        if (result.extracted) {
+          setExtracted(result);
+          const fields = docTypes.find(d => d.value === result.extracted?.type)?.fields || [];
+          const editFields = {};
+          fields.forEach(f => { editFields[f] = result.extracted?.[f] || ''; });
+          setEditable(editFields);
+        }
+        return;
+      }
 
       if (!result.extracted || result.extracted.confidence < 10) {
         setUploadError('Could not extract data automatically. Try Manual mode or check the raw text preview.');

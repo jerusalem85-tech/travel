@@ -9,11 +9,12 @@ const router = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// Ensure upload directory exists
+try { if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true }); } catch (e) { console.error('Upload dir error:', e.message); }
 
 const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
+  destination: (req, file, cb) => { try { cb(null, uploadDir); } catch (e) { cb(e, uploadDir); } },
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_')),
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -237,16 +238,16 @@ function parseVisaDoc(text) {
 
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.file) return res.json({ error: 'No file received. Only PDF, JPG, PNG accepted.', extracted: null });
 
     const text = await extractText(req.file.path);
 
     if (!text || text.trim().length < 5) {
       return res.json({
+        error: text ? 'No readable text found in this file' : 'Could not read file content',
         extracted: { type: req.body.type || 'flight', confidence: 0 },
-        rawText: '(Could not extract text from this file. The PDF may be scanned/image-based. Try a digital PDF or use Manual mode.)',
+        rawText: text || '',
         fileName: req.file.filename,
-        error: 'No readable text found',
       });
     }
 
@@ -262,9 +263,18 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       result = parseFlightTicket(text);
     }
 
+    if (result.confidence < 5) {
+      return res.json({
+        error: 'Low confidence — try Manual mode or check raw text',
+        extracted: result,
+        rawText: text.substring(0, 2000),
+        fileName: req.file.filename,
+      });
+    }
+
     res.json({ extracted: result, rawText: text.substring(0, 2000), fileName: req.file.filename });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.json({ error: 'Upload processing failed: ' + e.message, extracted: null });
   }
 });
 
