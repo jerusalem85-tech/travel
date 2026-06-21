@@ -9,7 +9,6 @@ const router = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
-// Ensure upload directory exists
 try { if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true }); } catch (e) { console.error('Upload dir error:', e.message); }
 
 const storage = multer.diskStorage({
@@ -18,13 +17,44 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+// Lazy-load OCR
+let Tesseract = null;
+async function getTesseract() {
+  if (Tesseract) return Tesseract;
+  try { const m = await import('tesseract.js'); Tesseract = m.default; return Tesseract; } catch { return null; }
+}
+
 async function extractText(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  
+  // Try PDF text extraction first
+  if (ext === '.pdf') {
+    const text = extractPdfText(filePath);
+    if (text && text.trim().length > 20) return text;
+  }
+  
+  // Fallback: OCR using tesseract.js
+  try {
+    const T = await getTesseract();
+    if (!T) return extractPdfText(filePath) || '';
+    
+    const { data: { text } } = await T.recognize(filePath, 'eng', {
+      logger: () => {},
+    });
+    return text || '';
+  } catch (e) {
+    console.error('OCR error:', e.message);
+    return extractPdfText(filePath) || '';
+  }
+}
+
+function extractPdfText(filePath) {
   try {
     const buffer = fs.readFileSync(filePath);
     let content = buffer.toString('utf-8');
     const texts = [];
 
-    // Method 1: Tj operators
+    // Tj operators
     const tjRegex = /\(([^)]*)\)\s*Tj/g;
     let m;
     while ((m = tjRegex.exec(content)) !== null) {
@@ -33,36 +63,29 @@ async function extractText(filePath) {
       if (t.trim()) texts.push(t);
     }
 
-    // Method 2: BT/ET blocks
+    // BT/ET blocks
     const btBlocks = content.match(/BT[\s\S]*?ET/g) || [];
     btBlocks.forEach(block => {
       const tjs = block.match(/\(([^)]*)\)\s*Tj/g) || [];
       tjs.forEach(t => {
         const txt = t.replace(/^\s*\(/, '').replace(/\)\s*Tj$/, '');
-        if (txt.trim() && !texts.includes(txt)) texts.push(txt);
+        if (txt.trim()) texts.push(txt);
       });
     });
 
-    // Method 3: Hex strings
+    // Hex strings
     const hexMatches = content.match(/<([0-9A-Fa-f\s]+)>\s*Tj/g) || [];
     hexMatches.forEach(hex => {
       const h = hex.replace(/^<\s*/, '').replace(/\s*>?\s*Tj$/, '').replace(/\s+/g, '');
-      try {
-        const decoded = Buffer.from(h, 'hex').toString('utf-8');
-        if (decoded.trim()) texts.push(decoded);
-      } catch {}
+      try { const decoded = Buffer.from(h, 'hex').toString('utf-8'); if (decoded.trim()) texts.push(decoded); } catch {}
     });
 
     const text = texts.join('\n');
     if (text.trim()) return text;
 
-    // Fallback: strip non-printable chars
-    return content.replace(/[^\x20-\x7E\n\r\t\u00C0-\u00FF]/g, ' ')
-      .replace(/\s{2,}/g, '\n').substring(0, 5000);
-  } catch (e) {
-    console.error('Extraction error:', e.message);
-    return '';
-  }
+    // Fallback: strip non-printable
+    return content.replace(/[^\x20-\x7E\n\r\t\u00C0-\u00FF]/g, ' ').replace(/\s{2,}/g, '\n').substring(0, 5000);
+  } catch { return ''; }
 }
 
 function parseFlightTicket(text) {
