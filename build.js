@@ -11,7 +11,7 @@ const dist = path.join(__dirname, 'client', 'dist');
 });
 
 // Copy directories
-['routes', 'config'].forEach(d => {
+['routes', 'config', 'middleware', 'seeds'].forEach(d => {
   const src = path.join(__dirname, d);
   const dest = path.join(dist, d);
   try {

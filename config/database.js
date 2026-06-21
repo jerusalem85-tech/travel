@@ -39,6 +39,13 @@ async function mysqlDb() {
       waitForConnections: true,
       connectionLimit: 10,
     });
+    try {
+      const conn = await mysqlPool.getConnection();
+      conn.release();
+    } catch (e) {
+      mysqlPool = null;
+      throw e;
+    }
   }
   return {
     run: async (sql, params = []) => {
@@ -125,8 +132,11 @@ CREATE TABLE IF NOT EXISTS booking_services (
   service_type TEXT,
   supplier_id INTEGER,
   description TEXT,
-  amount REAL DEFAULT 0
+  amount REAL DEFAULT 0,
+  details TEXT DEFAULT '{}'
 );
+
+
 
 CREATE TABLE IF NOT EXISTS invoices (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1904,9 +1914,11 @@ async function getDb() {
     const dataDir = path.join(__dirname, '..', 'data');
     try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
     db = sqliteDb();
-    db.run(schema);
+    db.exec(schema);
   }
   return db;
 }
+
+export function forceSqliteFallback() { mysqlFailed = true; }
 
 export { init, getDb };
