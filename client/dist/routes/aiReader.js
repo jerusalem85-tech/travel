@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import https from 'https';
 import { getDb } from '../config/database.js';
 import { fileURLToPath } from 'url';
 
@@ -9,83 +10,71 @@ const router = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', 'uploads');
 
-try { if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true }); } catch (e) { console.error('Upload dir error:', e.message); }
+try { if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true }); } catch {}
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => { try { cb(null, uploadDir); } catch (e) { cb(e, uploadDir); } },
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_')),
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Lazy-load OCR
-let Tesseract = null;
-async function getTesseract() {
-  if (Tesseract) return Tesseract;
-  try { const m = await import('tesseract.js'); Tesseract = m.default; return Tesseract; } catch { return null; }
-}
-
-async function extractText(filePath) {
+// OCR via free API - falls back to basic PDF text extraction
+async function ocrFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   
-  // Try PDF text extraction first
-  if (ext === '.pdf') {
-    const text = extractPdfText(filePath);
-    if (text && text.trim().length > 20) return text;
-  }
-  
-  // Fallback: OCR using tesseract.js
-  try {
-    const T = await getTesseract();
-    if (!T) return extractPdfText(filePath) || '';
-    
-    const { data: { text } } = await T.recognize(filePath, 'eng', {
-      logger: () => {},
-    });
-    return text || '';
-  } catch (e) {
-    console.error('OCR error:', e.message);
-    return extractPdfText(filePath) || '';
-  }
-}
-
-function extractPdfText(filePath) {
+  // Try OCR.space free API first (works for images and PDFs)
   try {
     const buffer = fs.readFileSync(filePath);
-    let content = buffer.toString('utf-8');
-    const texts = [];
+    const base64 = buffer.toString('base64');
+    
+    return await new Promise((resolve) => {
+      const postData = new URLSearchParams({
+        apikey: 'helloworld', // Free tier key
+        base64Image: `data:image/${ext === '.pdf' ? 'pdf' : ext.replace('.','')};base64,${base64}`,
+        language: 'eng',
+        isOverlayRequired: 'false',
+        filetype: ext.replace('.', '').toUpperCase(),
+      }).toString();
 
-    // Tj operators
-    const tjRegex = /\(([^)]*)\)\s*Tj/g;
-    let m;
-    while ((m = tjRegex.exec(content)) !== null) {
-      let t = m[1].replace(/\\([0-3][0-7]{2})/g, (_, c) => String.fromCharCode(parseInt(c, 8)));
-      t = t.replace(/\\([()\\])/g, '$1').replace(/\\n/g, '\n');
-      if (t.trim()) texts.push(t);
-    }
-
-    // BT/ET blocks
-    const btBlocks = content.match(/BT[\s\S]*?ET/g) || [];
-    btBlocks.forEach(block => {
-      const tjs = block.match(/\(([^)]*)\)\s*Tj/g) || [];
-      tjs.forEach(t => {
-        const txt = t.replace(/^\s*\(/, '').replace(/\)\s*Tj$/, '');
-        if (txt.trim()) texts.push(txt);
+      const req = https.request({
+        hostname: 'api.ocr.space',
+        path: '/parse/image',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(postData),
+        },
+      }, (res) => {
+        let body = '';
+        res.on('data', d => body += d);
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(body);
+            const text = result?.ParsedResults?.[0]?.ParsedText || '';
+            resolve(text.trim());
+          } catch { resolve(''); }
+        });
       });
+      req.on('error', () => resolve(''));
+      req.write(postData);
+      req.end();
     });
-
-    // Hex strings
-    const hexMatches = content.match(/<([0-9A-Fa-f\s]+)>\s*Tj/g) || [];
-    hexMatches.forEach(hex => {
-      const h = hex.replace(/^<\s*/, '').replace(/\s*>?\s*Tj$/, '').replace(/\s+/g, '');
-      try { const decoded = Buffer.from(h, 'hex').toString('utf-8'); if (decoded.trim()) texts.push(decoded); } catch {}
-    });
-
-    const text = texts.join('\n');
-    if (text.trim()) return text;
-
-    // Fallback: strip non-printable
-    return content.replace(/[^\x20-\x7E\n\r\t\u00C0-\u00FF]/g, ' ').replace(/\s{2,}/g, '\n').substring(0, 5000);
-  } catch { return ''; }
+  } catch {
+    // Fallback: try basic PDF text extraction
+    try {
+      const buffer = fs.readFileSync(filePath);
+      const content = buffer.toString('utf-8');
+      const texts = [];
+      const tjRegex = /\(([^)]*)\)\s*Tj/g;
+      let m;
+      while ((m = tjRegex.exec(content)) !== null) {
+        let t = m[1].replace(/\\([0-3][0-7]{2})/g, (_, c) => String.fromCharCode(parseInt(c, 8)));
+        t = t.replace(/\\([()\\])/g, '$1').replace(/\\n/g, '\n');
+        if (t.trim()) texts.push(t);
+      }
+      return texts.join('\n') || '';
+    } catch { return ''; }
+  }
 }
 
 function parseFlightTicket(text) {
@@ -263,7 +252,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.json({ error: 'No file received. Only PDF, JPG, PNG accepted.', extracted: null });
 
-    const text = await extractText(req.file.path);
+    const text = await ocrFile(req.file.path);
 
     if (!text || text.trim().length < 5) {
       return res.json({
