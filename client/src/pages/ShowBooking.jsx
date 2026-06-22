@@ -52,7 +52,7 @@ export default function ShowBooking() {
     setReturnDate(b.return_date || '');
     setStatus(b.status || 'pending');
     setNotes(b.notes || '');
-    setPassengers((b.passengers || []).map(p => ({ id: p.id, name: p.full_name || p.name, passport: p.passport_number || p.passport || '', nationality: p.nationality || '', dob: p.date_of_birth || '' })));
+    setPassengers((b.passengers || []).map(p => ({ id: p.id, name: p.full_name || '', passport: p.passport_number || p.passport || '', nationality: p.nationality || '', dob: p.date_of_birth || '' })));
     setServices((b.services || []).map(s => ({
       id: s.id, service_category: s.service_type || s.service_category || '',
       supplier_id: s.supplier_id || '', description: s.description || '',

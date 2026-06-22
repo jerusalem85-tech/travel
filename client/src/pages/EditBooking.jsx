@@ -54,7 +54,7 @@ export default function EditBooking() {
       setAirports(ap.data.rows || ap.data || []);
       setAirlines(al.data.rows || al.data || []);
       setSuppliers(sp.data.rows || sp.data || []);
-      setPassengers(bk.passengers?.length > 0 ? bk.passengers.map(p => ({ name: p.full_name || p.name, passport: p.passport_number || p.passport, nationality: p.nationality, dob: p.date_of_birth || '' })) : [{ name: '', passport: '', nationality: '', dob: '' }]);
+      setPassengers(bk.passengers?.length > 0 ? bk.passengers.map(p => ({ name: p.full_name || '', passport: p.passport_number || p.passport || '', nationality: p.nationality || '', dob: p.date_of_birth || '' })) : [{ name: '', passport: '', nationality: '', dob: '' }]);
       setServices(bk.services?.length > 0 ? bk.services.map(normalizeService) : [{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
     }).finally(() => setLoading(false));
   }, [id]);
