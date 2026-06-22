@@ -123,7 +123,9 @@ CREATE TABLE IF NOT EXISTS booking_passengers (
   full_name TEXT NOT NULL,
   passport_number TEXT,
   id_number TEXT,
-  seat_number TEXT
+  seat_number TEXT,
+  nationality TEXT,
+  date_of_birth TEXT
 );
 
 CREATE TABLE IF NOT EXISTS booking_services (
@@ -133,7 +135,9 @@ CREATE TABLE IF NOT EXISTS booking_services (
   supplier_id INTEGER,
   description TEXT,
   amount REAL DEFAULT 0,
-  details TEXT DEFAULT '{}'
+  cost REAL DEFAULT 0,
+  details TEXT DEFAULT '{}',
+  currency TEXT DEFAULT 'ILS'
 );
 
 
@@ -1075,7 +1079,9 @@ async function init() {
       full_name VARCHAR(255) NOT NULL,
       passport_number VARCHAR(100),
       id_number VARCHAR(100),
-      seat_number VARCHAR(50)
+      seat_number VARCHAR(50),
+      nationality VARCHAR(100),
+      date_of_birth DATE
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS booking_services (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1083,7 +1089,10 @@ async function init() {
       service_type VARCHAR(100),
       supplier_id INT,
       description VARCHAR(255),
-      amount DECIMAL(10,2) DEFAULT 0
+      amount DECIMAL(10,2) DEFAULT 0,
+      cost DECIMAL(10,2) DEFAULT 0,
+      details TEXT DEFAULT '{}',
+      currency VARCHAR(10) DEFAULT 'ILS'
     )`);
     await d.run(`CREATE TABLE IF NOT EXISTS invoices (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1888,6 +1897,10 @@ async function init() {
     try { await d.run('ALTER TABLE installment_plans ADD COLUMN status VARCHAR(50) DEFAULT \'active\''); } catch {}
     try { await d.run('ALTER TABLE installment_payments ADD COLUMN status VARCHAR(50) DEFAULT \'pending\''); } catch {}
     try { await d.run("ALTER TABLE booking_services ADD COLUMN details TEXT DEFAULT '{}'"); } catch {}
+    try { await d.run("ALTER TABLE booking_services ADD COLUMN cost DECIMAL(10,2) DEFAULT 0"); } catch {}
+    try { await d.run("ALTER TABLE booking_services ADD COLUMN currency VARCHAR(10) DEFAULT 'ILS'"); } catch {}
+    try { await d.run("ALTER TABLE booking_passengers ADD COLUMN nationality VARCHAR(100)"); } catch {}
+    try { await d.run("ALTER TABLE booking_passengers ADD COLUMN date_of_birth DATE"); } catch {}
 
     const userCount = await d.get('SELECT COUNT(*) as c FROM users');
     if (userCount.c === 0) {
@@ -1903,6 +1916,10 @@ async function init() {
   } else {
     db = sqliteDb();
     db.exec(schema);
+    try { db.run("ALTER TABLE booking_services ADD COLUMN cost REAL DEFAULT 0"); } catch {}
+    try { db.run("ALTER TABLE booking_services ADD COLUMN currency TEXT DEFAULT 'ILS'"); } catch {}
+    try { db.run("ALTER TABLE booking_passengers ADD COLUMN nationality TEXT"); } catch {}
+    try { db.run("ALTER TABLE booking_passengers ADD COLUMN date_of_birth TEXT"); } catch {}
   }
 }
 
@@ -1915,6 +1932,10 @@ async function getDb() {
     try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
     db = sqliteDb();
     db.exec(schema);
+    try { db.run("ALTER TABLE booking_services ADD COLUMN cost REAL DEFAULT 0"); } catch {}
+    try { db.run("ALTER TABLE booking_services ADD COLUMN currency TEXT DEFAULT 'ILS'"); } catch {}
+    try { db.run("ALTER TABLE booking_passengers ADD COLUMN nationality TEXT"); } catch {}
+    try { db.run("ALTER TABLE booking_passengers ADD COLUMN date_of_birth TEXT"); } catch {}
   }
   return db;
 }

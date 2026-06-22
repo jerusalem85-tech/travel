@@ -46,14 +46,14 @@ router.post('/', async (req, res) => {
   const bookingId = result.insertId || result.lastInsertRowid;
   if (passengers && passengers.length > 0) {
     for (const p of passengers) {
-      await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number, id_number, seat_number) VALUES (?,?,?,?,?)',
-        [bookingId, p.name || null, p.passport || null, p.idNumber || null, p.seat || null]);
+      await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number, id_number, seat_number, nationality, date_of_birth) VALUES (?,?,?,?,?,?,?)',
+        [bookingId, p.name || null, p.passport || null, p.idNumber || null, p.seat || null, p.nationality || null, p.dob || null]);
     }
   }
   if (services && services.length > 0) {
     for (const s of services) {
-      await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
-        [bookingId, s.service_category || s.service_type || null, s.supplier_id || null, s.description || null, s.price || 0, s.details ? JSON.stringify(s.details) : '{}']);
+      await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, cost, details, currency) VALUES (?,?,?,?,?,?,?,?)',
+        [bookingId, s.service_category || s.service_type || null, s.supplier_id || null, s.description || null, s.price || 0, s.cost || 0, s.details ? JSON.stringify(s.details) : '{}', s.currency || 'ILS']);
     }
   }
   res.json({ id: bookingId, booking_number });
@@ -68,15 +68,15 @@ router.put('/:id', async (req, res) => {
   if (passengers && passengers.length > 0) {
     await db.run('DELETE FROM booking_passengers WHERE booking_id = ?', [req.params.id]);
     for (const p of passengers) {
-      await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number) VALUES (?,?,?)',
-        [req.params.id, p.name || null, p.passport || null]);
+      await db.run('INSERT INTO booking_passengers (booking_id, full_name, passport_number, nationality, date_of_birth) VALUES (?,?,?,?,?)',
+        [req.params.id, p.name || null, p.passport || null, p.nationality || null, p.dob || null]);
     }
   }
   if (services && services.length > 0) {
     await db.run('DELETE FROM booking_services WHERE booking_id = ?', [req.params.id]);
     for (const s of services) {
-      await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, details) VALUES (?,?,?,?,?,?)',
-        [req.params.id, s.service_category || s.service_type || null, s.supplier_id || null, s.description || null, s.price || 0, s.details ? JSON.stringify(s.details) : '{}']);
+      await db.run('INSERT INTO booking_services (booking_id, service_type, supplier_id, description, amount, cost, details, currency) VALUES (?,?,?,?,?,?,?,?)',
+        [req.params.id, s.service_category || s.service_type || null, s.supplier_id || null, s.description || null, s.price || 0, s.cost || 0, s.details ? JSON.stringify(s.details) : '{}', s.currency || 'ILS']);
     }
   }
   res.json({ message: 'Updated' });

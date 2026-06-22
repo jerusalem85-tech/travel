@@ -37,7 +37,6 @@ export default function ShowBooking() {
   const [passengers, setPassengers] = useState([]);
   const [services, setServices] = useState([]);
   const [payments, setPayments] = useState([]);
-  const [loaded, setLoaded] = useState(false);
 
   const load = async () => {
     const res = await api.get(`/bookings/${id}`);
@@ -57,13 +56,13 @@ export default function ShowBooking() {
       id: s.id, service_category: s.service_type || s.service_category || '',
       supplier_id: s.supplier_id || '', description: s.description || '',
       cost: s.cost || '', price: s.amount || s.price || '',
+      currency: s.currency || 'ILS',
       details: s.details && typeof s.details === 'object' ? { ...emptyDetails, ...s.details } : { ...emptyDetails },
     })));
     setPayments(b.payments || []);
   };
 
   useEffect(() => { load(); api.get('/airports?limit=1000').then(r => setAirports(r.data.rows || [])); api.get('/airlines?limit=1000').then(r => setAirlines(r.data.rows || [])); api.get('/suppliers?limit=1000').then(r => setSuppliers(r.data.rows || r.data || [])); }, [id]);
-  useEffect(() => { if (loaded) { const totalAmount = services.filter(s => s.service_category).reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0); const costAmount = services.filter(s => s.service_category).reduce((sum, s) => sum + (parseFloat(s.cost) || 0), 0); const profit = totalAmount - costAmount; setLoaded(prev => prev); } }, [services, loaded]);
 
   const paxUpd = (i, field, v) => { const u = [...passengers]; u[i][field] = v; setPassengers(u); };
   const svcUpd = (i, field, v) => { const u = [...services]; u[i][field] = v; if (field === 'service_category') { u[i].details = { ...emptyDetails }; u[i].description = serviceLabel(v); } setServices(u); };
@@ -89,8 +88,8 @@ export default function ShowBooking() {
         customer_id: customerId, status, from_destination: fromDest, to_destination: toDest,
         travel_date: travelDate, return_date: returnDate, notes,
         total_amount: totalAmount, cost_amount: costAmount,
-        passengers: activePax.map(p => ({ id: p.id, name: p.name, passport: p.passport, nationality: p.nationality })),
-        services: activeSvcs.map(s => ({ id: s.id, service_category: s.service_category, supplier_id: s.supplier_id || null, description: s.description, cost: parseFloat(s.cost) || null, price: parseFloat(s.price) || null, details: s.details })),
+        passengers: activePax.map(p => ({ id: p.id, name: p.name, passport: p.passport, nationality: p.nationality, dob: p.dob })),
+        services: activeSvcs.map(s => ({ id: s.id, service_category: s.service_category, supplier_id: s.supplier_id || null, description: s.description, cost: parseFloat(s.cost) || null, price: parseFloat(s.price) || null, currency: s.currency || 'ILS', details: s.details })),
       });
       Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
       load();
@@ -275,7 +274,7 @@ export default function ShowBooking() {
 
                 {cat && (
                   <div className="row g-1 mt-1">
-                    <div className="col-md-3"><select className="form-select form-select-sm" value={s.supplier_id} onChange={e => svcUpd(i, 'supplier_id', e.target.value)}><option value="">Supplier</option>{suppliers.map(sp => <option key={sp.id} value={sp.name}>{sp.name}</option>)}</select></div>
+                    <div className="col-md-3"><select className="form-select form-select-sm" value={s.supplier_id} onChange={e => svcUpd(i, 'supplier_id', e.target.value)}><option value="">Supplier</option>{suppliers.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}</select></div>
                     <div className="col-md-2"><input type="number" step="0.01" className="form-control form-control-sm" placeholder="Cost" value={s.cost} onChange={e => svcUpd(i, 'cost', e.target.value)} /></div>
                     <div className="col-md-2"><input type="number" step="0.01" className="form-control form-control-sm" placeholder="Price" value={s.price} onChange={e => svcUpd(i, 'price', e.target.value)} /></div>
                     {parseFloat(s.price) > 0 && <div className="col-md-2 d-flex align-items-center"><span className="text-success small fw-bold">{(Number(s.price) || 0).toLocaleString()} ILS</span></div>}

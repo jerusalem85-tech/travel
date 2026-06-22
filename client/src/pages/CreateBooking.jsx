@@ -25,6 +25,10 @@ export default function CreateBooking() {
   const [customerSearch, setCustomerSearch] = useState('');
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [quickForm, setQuickForm] = useState({ full_name: '', phone: '', email: '' });
+  const [fromDest, setFromDest] = useState('');
+  const [toDest, setToDest] = useState('');
+  const [travelDate, setTravelDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
   const [notes, setNotes] = useState('');
   const [passengers, setPassengers] = useState([{ first_name: '', last_name: '', passport: '', nationality: '', dob: '' }]);
   const [services, setServices] = useState([{ service_category: '', supplier_id: '', description: '', cost: '', price: '', details: { ...emptyDetails } }]);
@@ -64,6 +68,10 @@ export default function CreateBooking() {
       const cost = activeSvcs.reduce((sum, s) => sum + (parseFloat(s.cost) || 0), 0);
       const res = await api.post('/bookings', {
         customer_id: customerId,
+        from_destination: fromDest || null,
+        to_destination: toDest || null,
+        travel_date: travelDate || null,
+        return_date: returnDate || null,
         total_amount: total,
         cost_amount: cost,
         notes,
@@ -123,6 +131,31 @@ export default function CreateBooking() {
                   <span className="badge bg-success fs-6 py-2 px-3"><i className="bi bi-check-circle me-1"></i> {customerSearch}</span>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* === TRIP === */}
+        <div className="card mb-4 border-warning border-top border-3">
+          <div className="card-body">
+            <h6 className="text-warning mb-3"><i className="bi bi-geo-alt me-2"></i>Trip Details</h6>
+            <div className="row g-2">
+              <div className="col-md-3">
+                <label className="form-label small text-muted">From</label>
+                <input className="form-control" placeholder="Origin city" value={fromDest} onChange={e => setFromDest(e.target.value)} />
+              </div>
+              <div className="col-md-3">
+                <label className="form-label small text-muted">To</label>
+                <input className="form-control" placeholder="Destination city" value={toDest} onChange={e => setToDest(e.target.value)} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small text-muted">Travel Date</label>
+                <input type="date" className="form-control" value={travelDate} onChange={e => setTravelDate(e.target.value)} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small text-muted">Return Date</label>
+                <input type="date" className="form-control" value={returnDate} onChange={e => setReturnDate(e.target.value)} />
+              </div>
             </div>
           </div>
         </div>
@@ -282,7 +315,7 @@ export default function CreateBooking() {
                       <label className="form-label small mb-1 text-muted">Supplier</label>
                       <select className="form-select form-select-sm" value={s.supplier_id} onChange={e => svc(i, 'supplier_id', e.target.value)}>
                         <option value="">None</option>
-                        {suppliers.map(sp => <option key={sp.id} value={sp.name}>{sp.name}</option>)}
+                        {suppliers.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                       </select>
                     </div>
                     <div className="col-md-2"><label className="form-label small mb-1 text-muted">Cost</label><input type="number" step="0.01" className="form-control form-control-sm" placeholder="0" value={s.cost} onChange={e => svc(i, 'cost', e.target.value)} /></div>

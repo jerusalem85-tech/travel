@@ -31,6 +31,10 @@ export default function EditBooking() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [customerId, setCustomerId] = useState('');
+  const [fromDest, setFromDest] = useState('');
+  const [toDest, setToDest] = useState('');
+  const [travelDate, setTravelDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
   const [status, setStatus] = useState('pending');
   const [notes, setNotes] = useState('');
   const [passengers, setPassengers] = useState([]);
@@ -47,6 +51,10 @@ export default function EditBooking() {
     ]).then(([b, c, ap, al, sp]) => {
       const bk = b.data;
       setCustomerId(bk.customer_id || '');
+      setFromDest(bk.from_destination || '');
+      setToDest(bk.to_destination || '');
+      setTravelDate(bk.travel_date ? bk.travel_date.split('T')[0] : '');
+      setReturnDate(bk.return_date ? bk.return_date.split('T')[0] : '');
       setStatus(bk.status || 'pending');
       setNotes(bk.notes || '');
       setBookingNumber(bk.booking_number);
@@ -75,6 +83,10 @@ export default function EditBooking() {
       const cost = activeSvcs.reduce((sum, s) => sum + (parseFloat(s.cost) || 0), 0);
       await api.put(`/bookings/${id}`, {
         customer_id: customerId,
+        from_destination: fromDest || null,
+        to_destination: toDest || null,
+        travel_date: travelDate || null,
+        return_date: returnDate || null,
         status,
         total_amount: total,
         cost_amount: cost,
@@ -166,7 +178,7 @@ export default function EditBooking() {
         <label className="form-label small mb-1">Supplier</label>
         <select className="form-select" value={s.supplier_id} onChange={e => svc(i, 'supplier_id', e.target.value)}>
           <option value="">None</option>
-          {suppliers.map(sp => <option key={sp.id} value={sp.name}>{sp.name}</option>)}
+          {suppliers.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
         </select>
       </div>
       <div className="col-md-2">
@@ -262,9 +274,9 @@ export default function EditBooking() {
         <button className="btn btn-outline-secondary" onClick={() => navigate(`/bookings/${id}`)}>Back</button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="card mb-3">
+          <div className="card mb-3">
           <div className="card-body">
-            <h6 className="card-title mb-3">Customer & Status</h6>
+            <h6 className="card-title mb-3">Customer & Trip</h6>
             <div className="row g-2">
               <div className="col-md-6">
                 <select className="form-select form-select-lg" value={customerId} onChange={e => setCustomerId(e.target.value)} required>
@@ -279,6 +291,24 @@ export default function EditBooking() {
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+              </div>
+            </div>
+            <div className="row g-2 mt-2">
+              <div className="col-md-3">
+                <label className="form-label small">From</label>
+                <input className="form-control" placeholder="Origin" value={fromDest} onChange={e => setFromDest(e.target.value)} />
+              </div>
+              <div className="col-md-3">
+                <label className="form-label small">To</label>
+                <input className="form-control" placeholder="Destination" value={toDest} onChange={e => setToDest(e.target.value)} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small">Travel Date</label>
+                <input type="date" className="form-control" value={travelDate} onChange={e => setTravelDate(e.target.value)} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label small">Return Date</label>
+                <input type="date" className="form-control" value={returnDate} onChange={e => setReturnDate(e.target.value)} />
               </div>
             </div>
           </div>

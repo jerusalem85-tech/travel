@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
   let where = '1=1';
   let params = [];
   if (search) {
-    where += " AND (name LIKE ? OR phone LIKE ? OR type LIKE ?)";
+    where += " AND (name LIKE ? OR phone LIKE ? OR service_type LIKE ?)";
     params.push(`%${search}%`, `%${search}%`, `%${search}%`);
   }
   if (type) { where += ' AND type LIKE ?'; params.push(`%${type}%`); }
