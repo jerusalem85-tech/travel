@@ -1022,6 +1022,10 @@ async function init() {
     if (mysqlFailed) {
       db = sqliteDb();
       db.exec(schema);
+      try { db.run("ALTER TABLE booking_services ADD COLUMN cost REAL DEFAULT 0"); } catch {}
+      try { db.run("ALTER TABLE booking_services ADD COLUMN currency TEXT DEFAULT 'ILS'"); } catch {}
+      try { db.run("ALTER TABLE booking_passengers ADD COLUMN nationality TEXT"); } catch {}
+      try { db.run("ALTER TABLE booking_passengers ADD COLUMN date_of_birth TEXT"); } catch {}
       return;
     }
     await d.run(`CREATE TABLE IF NOT EXISTS users (
