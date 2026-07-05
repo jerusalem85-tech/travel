@@ -20,6 +20,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
+console.log(`Travel System v2.0 - ${isProd ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
 
 // Security
 app.use(helmet({
